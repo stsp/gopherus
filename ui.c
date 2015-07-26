@@ -62,6 +62,6 @@ void ui_cursor_hide(void) {
 }
 
 
-void ui_refres(void) {
+void ui_refresh(void) {
   /* nothing here, we draw directly to video memory already */
 }
