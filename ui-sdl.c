@@ -7,6 +7,9 @@
  * Provides all UI functions used by Gopherus, wrapped around a virtual terminal emulated via SDL calls.
  */
 
+#include <stdio.h>  /* puts() */
+#include <stdlib.h> /* atexit() */
+
 #include <SDL2/SDL.h>
 #include "ui.h"    /* include self for control */
 #include "ascii.h" /* ascii fonts */
@@ -84,9 +87,9 @@ void ui_putchar(char c, int attr, int x, int y) {
   for (yy = 0; yy < 16; yy++) {
     for (xx = 0; xx < 8; xx++) {
       if ((ascii_font[((unsigned)c << 4) + yy] & (1 << xx)) != 0) {
-          glyphbuff[(7 - xx) + yy * (pitch / 4)] = attrpal[attr & 0x0f];
-        } else {
-          glyphbuff[(7 - xx) + yy * (pitch / 4)] = attrpal[attr >> 4];
+        glyphbuff[(7 - xx) + yy * (pitch / 4)] = attrpal[attr & 0x0f];
+      } else {
+        glyphbuff[(7 - xx) + yy * (pitch / 4)] = attrpal[attr >> 4];
       }
     }
   }
