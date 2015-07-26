@@ -554,6 +554,7 @@
 
 int main(void) {
   int x, r, g, b, a, res;
+
   printf("unsigned short icopixels[64*64] = {\n");
   for (x = 0; x < 64 * 64 * 4;) {
     r = (rgba[x++] >> 4);
@@ -575,4 +576,6 @@ int main(void) {
     }
   }
   printf("};\n");
+
+  return(0);
 }

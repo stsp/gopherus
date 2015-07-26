@@ -2,7 +2,7 @@
  * This file is part of the gopherus project.
  * It provides abstract functions to draw on screen.
  *
- * Copyright (C) Mateusz Viste 2013
+ * Copyright (C) Mateusz Viste 2013-2015
  *
  * Provides all UI functions used by Gopherus, basing on DJGPP conio facilities.
  */

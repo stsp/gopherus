@@ -2,7 +2,7 @@
  * This file is part of the gopherus project.
  * It provides abstract functions to draw on terminal's screen.
  *
- * Copyright (C) Mateusz Viste 2013
+ * Copyright (C) Mateusz Viste 2013-2015
  */
 
 #ifndef ui_h_sentinel

@@ -4,7 +4,8 @@
  *
  * Copyright (C) Mateusz Viste 2013-2015
  *
- * Provides all UI functions used by Gopherus, wrapped around a virtual terminal emulated via SDL calls.
+ * Provides all UI functions used by Gopherus, wrapped around a virtual
+ * terminal emulated via SDL2 calls.
  */
 
 #include <stdio.h>  /* puts() */
@@ -101,7 +102,8 @@ void ui_putchar(char c, int attr, int x, int y) {
       }
     }
   }
-  /* draw a cursor over if cursor is enabled and position is right.. this is really clumsy, but it works for now... */
+  /* draw a static "cursor" over if cursor is enabled and position is right..
+   * this is really clumsy, but it works well enough for now... */
   if ((cursorstate != 0) && (cursorx == x) && (cursory == y)) {
     for (yy = 0; yy < 16; yy++) {
       for (xx = 0; xx < 8; xx++) {

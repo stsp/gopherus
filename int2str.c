@@ -1,6 +1,6 @@
 /*
  * This file is part of the Gopherus project.
- * Copyright (C) Mateusz Viste 2013
+ * Copyright (C) Mateusz Viste 2013-2015
  */
 
 #include <stdlib.h>  /* NULL, div() */
@@ -15,19 +15,19 @@ int int2str(char *res, int x) {
     return(-1);
   }
   if (x < 10) {
-      step = 1;
-    } else if (x < 100) {
-      step = 10;
-    } else if (x < 1000) {
-      step = 100;
-    } else if (x < 10000) {
-      step = 1000;
-    } else if (x < 100000) {
-      step = 10000;
-    } else if (x < 1000000) {
-      step = 100000;
-    } else {
-      step = 1000000;
+    step = 1;
+  } else if (x < 100) {
+    step = 10;
+  } else if (x < 1000) {
+    step = 100;
+  } else if (x < 10000) {
+    step = 1000;
+  } else if (x < 100000) {
+    step = 10000;
+  } else if (x < 1000000) {
+    step = 100000;
+  } else {
+    step = 1000000;
   }
   for (; step > 0; step /= 10) {
     divres = div(x, step);  /* all this could be written as: */

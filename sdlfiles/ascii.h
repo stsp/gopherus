@@ -1,6 +1,6 @@
 /*
  * This file is part of the Gopherus project.
- * Copyright (C) Mateusz Viste 2013
+ * Copyright (C) Mateusz Viste 2013-2015
  */
 
 const unsigned char ascii_font[4096] = {
