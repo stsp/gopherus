@@ -7,7 +7,8 @@ Gopherus v1.0b [26 Jul 2015]:
  - [new] Migrated SDL ports to SDL2,
  - [fix] The 'downloading' status bar counter is refreshed once per second
          instead of being redrawn at every received packet,
- - [fix] Recompiled the DOS version linking against an 80386-friendly watt32.
+ - [fix] Recompiled the DOS version linking against an 80386-friendly watt32,
+ - [fix] DOS exe linked with a 387 emu lib so gopherus can run on a 386SX.
 
 Gopherus v1.0a [30 Mar 2013]:
  - [fix] When refreshing a location, the display properties (position of the file on screen) are reset as well now. This prevents corrupt rendering if the file changes between refreshes,

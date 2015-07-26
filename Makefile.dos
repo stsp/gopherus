@@ -1,5 +1,5 @@
 CFLAGS = -std=gnu89 -O3 -Wall -Wno-long-long -Wextra -pedantic -I watt32/inc
-LIB = watt32/bin/386watt.a
+LIB = watt32/bin/386watt.a -lemu
 
 all: gopherus.exe
 
