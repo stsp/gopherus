@@ -12,7 +12,8 @@
 
 #include <SDL2/SDL.h>
 #include "ui.h"    /* include self for control */
-#include "ascii.h" /* ascii fonts */
+#include "sdlfiles/ascii.h" /* ascii fonts */
+#include "sdlfiles/icon.h"  /* a raw pixel array with gopheurs icon */
 
 static int cursorx, cursory, sdlinited;
 static SDL_Renderer *renderer;
@@ -22,13 +23,20 @@ static int cursorstate = 1;
 
 static void initsdl(void) {
   SDL_Window *window;
+  SDL_Surface *icosurface;
   SDL_Init(SDL_INIT_VIDEO);
   sdlinited = 1;
   window = SDL_CreateWindow("Gopherus", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 640, 480, 0);
   renderer = SDL_CreateRenderer(window, -1, 0);
   screen = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, 640, 480);
+  /* load the gopherus icon to titlebar */
+  icosurface = SDL_CreateRGBSurfaceFrom(icopixels,64,64,16,64*2,0x0f00,0x00f0,0x000f,0xf000);
+  SDL_SetWindowIcon(window, icosurface);
+  SDL_FreeSurface(icosurface);
+  /* enable unicode 'textinput' events */
   SDL_StartTextInput();
-  atexit(SDL_Quit); /* clean up at exit time */
+  /* make sur to close SDL properly at exit time */
+  atexit(SDL_Quit);
 }
 
 
