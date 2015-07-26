@@ -2,6 +2,13 @@
 Gopherus changelog
 
 
+Gopherus v1.0b [xx Jul 2015]:
+ - [new] Added support for scripted downloading (-o=xxx),
+ - [new] Migrated SDL ports to SDL2,
+ - [fix] The 'downloading' status bar counter is refreshed once per second
+         instead of being redrawn at every received packet,
+ - [fix] Recompiled the DOS version linking against an 80386-friendly watt32.
+
 Gopherus v1.0a [30 Mar 2013]:
  - [fix] When refreshing a location, the display properties (position of the file on screen) are reset as well now. This prevents corrupt rendering if the file changes between refreshes,
  - [fix] Fixed a bug leading to random crashes when the URL inside a menu was longer than 128 bytes,

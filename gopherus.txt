@@ -1,5 +1,5 @@
 
- Gopherus v1.0a Copyright (C) Mateusz Viste 2013
+ Gopherus v1.0b Copyright (C) Mateusz Viste 2013-2015
 
 
  ** Key bindings **

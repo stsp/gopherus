@@ -2,16 +2,17 @@
  *  This file is part of the Gopherus project.
  *  It provides a set of basic network-related functions.
  *
- *  Copyright (C) Mateusz Viste 2013
- * 
- * Provides all network functions used by Gopherus, wrapped around the WatTCP TCP/IP stack.
+ *  Copyright (C) Mateusz Viste 2013-2015
+ *
+ * Provides all network functions used by Gopherus, wrapped around the Watt32 TCP/IP stack.
  */
 
 #include <stdlib.h>
 #include <string.h>
 #include <limits.h>
+#include <errno.h>
 
-/* WatTCP includes */
+/* Watt32 includes */
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/socket.h>

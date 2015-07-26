@@ -38,7 +38,7 @@ int loadembeddedstartpage(char *buffer, char *token, char *pVer, char *pDate) {
                      "1Veronica - A gopher search engine\t/v2\tgopher.floodgap.com\t70\n"
                      "1Super Dimension Fortress (non-profit gopher hosting)\t\tsdf.org\t70\n"
                      "1The Online Book Initiative\t1/The Online Book Initiative\tgopher.std.com\t70\n"
-                     "1The Gopherus home gopher hole\t/projects/gopherus\tgopher.viste-family.net\t70\n"
+                     "1The Gopherus home gopher hole\t/projects/gopherus\tgopher.viste.fr\t70\n"
                      "i\n"
                      "iGopherus (offline) documentation:\n"
                      "0The Gopherus manual\t\t#manual\t70\n"

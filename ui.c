@@ -3,7 +3,7 @@
  * It provides abstract functions to draw on screen.
  *
  * Copyright (C) Mateusz Viste 2013
- * 
+ *
  * Provides all UI functions used by Gopherus, basing on DJGPP conio facilities.
  */
 
@@ -12,17 +12,17 @@
 
 #include "ui.h"  /* include self for control */
 
-int ui_getrowcount() {
+int ui_getrowcount(void) {
  return(ScreenRows());
 }
 
 
-int ui_getcolcount() {
+int ui_getcolcount(void) {
  return(ScreenCols());
 }
 
 
-void ui_cls() {
+void ui_cls(void) {
   clrscr();
 }
 
@@ -42,21 +42,26 @@ void ui_putchar(char c, int attr, int x, int y) {
 }
 
 
-int ui_getkey() {
+int ui_getkey(void) {
   return(getkey());
 }
 
 
-int ui_kbhit() {
+int ui_kbhit(void) {
   return(kbhit());
 }
 
 
-void ui_cursor_show() {
+void ui_cursor_show(void) {
   _setcursortype(_NORMALCURSOR);
 }
 
 
-void ui_cursor_hide() {
+void ui_cursor_hide(void) {
   _setcursortype(_NOCURSOR);
+}
+
+
+void ui_refres(void) {
+  /* nothing here, we draw directly to video memory already */
 }

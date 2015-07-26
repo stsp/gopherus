@@ -2,74 +2,52 @@
  * This file is part of the gopherus project.
  * It provides abstract functions to draw on screen.
  *
- * Copyright (C) Mateusz Viste 2013
- * 
+ * Copyright (C) Mateusz Viste 2013-2015
+ *
  * Provides all UI functions used by Gopherus, wrapped around a virtual terminal emulated via SDL calls.
  */
 
-#include <SDL/SDL.h>
+#include <SDL2/SDL.h>
 #include "ui.h"    /* include self for control */
 #include "ascii.h" /* ascii fonts */
 
 static int cursorx, cursory, sdlinited;
-static SDL_Surface *screen;
+static SDL_Renderer *renderer;
+static SDL_Texture *screen;
 static int cursorstate = 1;
 
-/* This function has been borrowed from the SDL documentation */
-static void putpixel(SDL_Surface *surface, int x, int y, Uint32 pixel) {
-  int bpp = surface->format->BytesPerPixel;
-  /* Here p is the address to the pixel we want to set */
-  Uint8 *p = (Uint8 *)surface->pixels + y * surface->pitch + x * bpp;
-  switch(bpp) {
-    case 1:
-      *p = pixel;
-      break;
-    case 2:
-      *(Uint16 *)p = pixel;
-      break;
-    case 3:
-      if(SDL_BYTEORDER == SDL_BIG_ENDIAN) {
-          p[0] = (pixel >> 16) & 0xff;
-          p[1] = (pixel >> 8) & 0xff;
-          p[2] = pixel & 0xff;
-        } else {
-          p[0] = pixel & 0xff;
-          p[1] = (pixel >> 8) & 0xff;
-          p[2] = (pixel >> 16) & 0xff;
-      }
-      break;
-    case 4:
-      *(Uint32 *)p = pixel;
-      break;
-  }
-}
 
-
-static void initsdl() {
+static void initsdl(void) {
+  SDL_Window *window;
   SDL_Init(SDL_INIT_VIDEO);
-  screen = SDL_SetVideoMode(640, 480, 32, 0);
-  SDL_WM_SetCaption("Gopherus", NULL);
   sdlinited = 1;
-  SDL_EnableKeyRepeat(800, 80); /* enable repeating keys */
-  SDL_EnableUNICODE(1);  /* using the SDL unicode support actually for getting ASCII */
+  window = SDL_CreateWindow("Gopherus", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 640, 480, 0);
+  renderer = SDL_CreateRenderer(window, -1, 0);
+  screen = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, 640, 480);
+  SDL_StartTextInput();
   atexit(SDL_Quit); /* clean up at exit time */
 }
 
 
-int ui_getrowcount() {
- return(30);
+int ui_getrowcount(void) {
+  return(30);
 }
 
 
-int ui_getcolcount() {
- return(80);
+int ui_getcolcount(void) {
+  return(80);
 }
 
 
-void ui_cls() {
+void ui_cls(void) {
+  int x, y;
   if (sdlinited == 0) initsdl();
-  SDL_FillRect(screen, NULL, 0);
-  SDL_Flip(screen);
+  for (y = 0; y < 30; y++) {
+    for (x = 0; x < 80; x++) {
+      ui_putchar(' ', 0, x, y);
+    }
+  }
+  ui_refresh();
 }
 
 
@@ -86,15 +64,29 @@ void ui_locate(int y, int x) {
 
 
 void ui_putchar(char c, int attr, int x, int y) {
-  int xx, yy;
-  const long attrpal[16] = {0x000000l, 0x0000AAl, 0x00AA00l, 0x00AAAAl, 0xAA0000l, 0xAA00AAl, 0xAA5500l, 0xAAAAAAl, 0x555555l, 0x5555FFl, 0x55FF55l, 0x55FFFFl, 0xFF5555l, 0xFF55FFl, 0xFFFF55l, 0xFFFFFFl};
+  int xx, yy, pitch;
+  SDL_Rect rect;
+  /* static uint32_t glyphbuff[8 * 16];*/
+  void *ptr;
+  uint32_t *glyphbuff;
+  const unsigned long attrpal[16] = {0x000000l, 0x0000AAl, 0x00AA00l, 0x00AAAAl, 0xAA0000l, 0xAA00AAl, 0xAA5500l, 0xAAAAAAl, 0x555555l, 0x5555FFl, 0x55FF55l, 0x55FFFFl, 0xFF5555l, 0xFF55FFl, 0xFFFF55l, 0xFFFFFFl};
   if (sdlinited == 0) initsdl();
+
+  /* */
+  rect.x = x * 8;
+  rect.y = y * 16;
+  rect.w = 8;
+  rect.h = 16;
+
+  SDL_LockTexture(screen, &rect, &ptr, &pitch);
+  glyphbuff = ptr;
+
   for (yy = 0; yy < 16; yy++) {
     for (xx = 0; xx < 8; xx++) {
       if ((ascii_font[((unsigned)c << 4) + yy] & (1 << xx)) != 0) {
-          putpixel(screen, (x << 3) + 7 - xx, (y << 4) + yy, attrpal[attr & 0x0F]);
+          glyphbuff[(7 - xx) + yy * (pitch / 4)] = attrpal[attr & 0x0f];
         } else {
-          putpixel(screen, (x << 3) + 7 - xx, (y << 4) + yy, attrpal[attr >> 4]);
+          glyphbuff[(7 - xx) + yy * (pitch / 4)] = attrpal[attr >> 4];
       }
     }
   }
@@ -103,105 +95,101 @@ void ui_putchar(char c, int attr, int x, int y) {
     for (yy = 0; yy < 16; yy++) {
       for (xx = 0; xx < 8; xx++) {
         if ((ascii_font[('_' << 4) + yy] & (1 << xx)) != 0) {
-          putpixel(screen, (x << 3) + 7 - xx, (y << 4) + yy, attrpal[attr & 0x0F]);
-        }      
+          glyphbuff[(7 - xx) + yy * (pitch / 4)] = attrpal[attr & 0x0f];
+        }
       }
     }
   }
-  /* tell SDL to update the character's area on screen */
-  SDL_UpdateRect(screen, (x << 3), (y << 4), 8, 16);
+  SDL_UnlockTexture(screen);
 }
 
 
-
-
-int ui_getkey() {
+int ui_getkey(void) {
   SDL_Event event;
   if (sdlinited == 0) initsdl();
   for (;;) {
     if (SDL_WaitEvent(&event) == 0) return(0); /* block until an event is received */
     if (event.type == SDL_KEYDOWN) { /* I'm only interested in key presses */
-        switch (event.key.keysym.sym) {
-          case SDLK_ESCAPE: /* Escape */
-            return(0x1B);
-          case SDLK_BACKSPACE: /* Backspace */
-            return(0x08);
-          case SDLK_TAB:    /* TAB */
-            return(0x09);
-          case SDLK_RETURN: /* ENTER */
-            return(0x0D);
-          case SDLK_F1:     /* F1 */
-            return(0x13B);
-          case SDLK_F2:     /* F2 */
-            return(0x13C);
-          case SDLK_F3:     /* F3 */
-            return(0x13D);
-          case SDLK_F4:     /* F4 */
-            return(0x13E);
-          case SDLK_F5:     /* F5 */
-            return(0x13F);
-          case SDLK_F6:     /* F6 */
-            return(0x140);
-          case SDLK_F7:     /* F7 */
-            return(0x141);
-          case SDLK_F8:     /* F8 */
-            return(0x142);
-          case SDLK_F9:     /* F9 */
-            return(0x143);
-          case SDLK_F10:    /* F10 */
-            return(0x144);
-          case SDLK_HOME:   /* HOME */
-            return(0x147);
-          case SDLK_UP:     /* UP */
-            return(0x148);
-          case SDLK_PAGEUP: /* PGUP */
-            return(0x149);
-          case SDLK_LEFT:   /* LEFT */
-            return(0x14B);
-          case SDLK_RIGHT:  /* RIGHT */
-            return(0x14D);
-          case SDLK_END:    /* END */
-            return(0x14F);
-          case SDLK_DOWN:   /* DOWN */
-            return(0x150);
-          case SDLK_PAGEDOWN: /* PGDOWN */
-            return(0x151);
-          case SDLK_DELETE: /* DEL */
-            return(0x153);
-          default: /* ignore anything else, unless it's classic ascii */
-            if (event.key.keysym.unicode < 127) {
-              if ((event.key.keysym.mod & KMOD_ALT) != 0) {
-                  return(0x100 | event.key.keysym.unicode);
-                } else {
-                  return(event.key.keysym.unicode);
-              }
-            }
-            break;
-        }
-      } else if (event.type == SDL_QUIT) {
-        return(0xFF);
-      } else if (event.type == SDL_KEYUP) { /* silently drop all key up events */
-        continue;
-      } else {
-        break;
+      /* int asciichar; */
+      switch (event.key.keysym.sym) {
+        case SDLK_ESCAPE: /* Escape */
+          return(0x1B);
+        case SDLK_BACKSPACE: /* Backspace */
+          return(0x08);
+        case SDLK_TAB:    /* TAB */
+          return(0x09);
+        case SDLK_RETURN: /* ENTER */
+          return(0x0D);
+        case SDLK_F1:     /* F1 */
+          return(0x13B);
+        case SDLK_F2:     /* F2 */
+          return(0x13C);
+        case SDLK_F3:     /* F3 */
+          return(0x13D);
+        case SDLK_F4:     /* F4 */
+          return(0x13E);
+        case SDLK_F5:     /* F5 */
+          return(0x13F);
+        case SDLK_F6:     /* F6 */
+          return(0x140);
+        case SDLK_F7:     /* F7 */
+          return(0x141);
+        case SDLK_F8:     /* F8 */
+          return(0x142);
+        case SDLK_F9:     /* F9 */
+          return(0x143);
+        case SDLK_F10:    /* F10 */
+          return(0x144);
+        case SDLK_HOME:   /* HOME */
+          return(0x147);
+        case SDLK_UP:     /* UP */
+          return(0x148);
+        case SDLK_PAGEUP: /* PGUP */
+          return(0x149);
+        case SDLK_LEFT:   /* LEFT */
+          return(0x14B);
+        case SDLK_RIGHT:  /* RIGHT */
+          return(0x14D);
+        case SDLK_END:    /* END */
+          return(0x14F);
+        case SDLK_DOWN:   /* DOWN */
+          return(0x150);
+        case SDLK_PAGEDOWN: /* PGDOWN */
+          return(0x151);
+        case SDLK_DELETE: /* DEL */
+          return(0x153);
+        default: break;   /* ignore anything else */
+          break;
+      }
+    } else if (event.type == SDL_TEXTINPUT) {
+      if (event.text.text[0] < 127) {
+        if ((SDL_GetModState() & KMOD_ALT) != 0) return(event.text.text[0] | 0x100);
+        return(event.text.text[0]);
+      }
+    } else if (event.type == SDL_QUIT) {
+      return(0xFF);
+    } else if (event.type == SDL_KEYUP) { /* silently drop all key up events */
+      continue;
+    } else {
+      break;
     }
   } /* for (;;) */
   return(0x00); /* unknown key */
 }
 
 
-static void flushKeyUpEvents() {
+static void flushKeyUpEvents(void) {
   int res;
   SDL_Event event;
   for (;;) { /* silently flush all possible 'KEY UP' events */
     SDL_PumpEvents();
-    res = SDL_PeepEvents(&event, 1, SDL_GETEVENT, SDL_EVENTMASK(SDL_KEYUP));
+    res = SDL_PeepEvents(&event, 1, SDL_GETEVENT, SDL_KEYUP, SDL_KEYUP);
     if (res < 1) return;
   }
 }
 
 
-int ui_kbhit() {
+int ui_kbhit(void) {
   int res;
   if (sdlinited == 0) initsdl();
   flushKeyUpEvents();  /* silently flush all possible 'KEY UP' events */
@@ -211,13 +199,20 @@ int ui_kbhit() {
 }
 
 
-void ui_cursor_show() {
+void ui_cursor_show(void) {
   if (sdlinited == 0) initsdl();
   cursorstate = 1;
 }
 
 
-void ui_cursor_hide() {
+void ui_cursor_hide(void) {
   if (sdlinited == 0) initsdl();
   cursorstate = 0;
+}
+
+
+void ui_refresh(void) {
+  SDL_RenderClear(renderer);
+  SDL_RenderCopy(renderer, screen, NULL, NULL);
+  SDL_RenderPresent(renderer);
 }
