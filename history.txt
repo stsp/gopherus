@@ -2,7 +2,7 @@
 Gopherus changelog
 
 
-Gopherus v1.0b [xx Jul 2015]:
+Gopherus v1.0b [26 Jul 2015]:
  - [new] Added support for scripted downloading (-o=xxx),
  - [new] Migrated SDL ports to SDL2,
  - [fix] The 'downloading' status bar counter is refreshed once per second
