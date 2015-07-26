@@ -21,6 +21,13 @@ static SDL_Renderer *renderer;
 static SDL_Texture *screen;
 static int cursorstate = 1;
 
+#define SCREENWIDTH 80
+#define SCREENHEIGHT 30
+
+/* a screen buffer that is updated by the application, and put into the
+ * renderer only at refresh time */
+static unsigned short screenbuffer[SCREENHEIGHT][SCREENWIDTH];
+
 
 static void initsdl(void) {
   SDL_Window *window;
@@ -42,20 +49,20 @@ static void initsdl(void) {
 
 
 int ui_getrowcount(void) {
-  return(30);
+  return(SCREENHEIGHT);
 }
 
 
 int ui_getcolcount(void) {
-  return(80);
+  return(SCREENWIDTH);
 }
 
 
 void ui_cls(void) {
   int x, y;
   if (sdlinited == 0) initsdl();
-  for (y = 0; y < 30; y++) {
-    for (x = 0; x < 80; x++) {
+  for (y = 0; y < SCREENHEIGHT; y++) {
+    for (x = 0; x < SCREENWIDTH; x++) {
       ui_putchar(' ', 0, x, y);
     }
   }
@@ -76,44 +83,8 @@ void ui_locate(int y, int x) {
 
 
 void ui_putchar(char c, int attr, int x, int y) {
-  int xx, yy, pitch;
-  SDL_Rect rect;
-  /* static uint32_t glyphbuff[8 * 16];*/
-  void *ptr;
-  uint32_t *glyphbuff;
-  const unsigned long attrpal[16] = {0x000000l, 0x0000AAl, 0x00AA00l, 0x00AAAAl, 0xAA0000l, 0xAA00AAl, 0xAA5500l, 0xAAAAAAl, 0x555555l, 0x5555FFl, 0x55FF55l, 0x55FFFFl, 0xFF5555l, 0xFF55FFl, 0xFFFF55l, 0xFFFFFFl};
-  if (sdlinited == 0) initsdl();
-
-  /* */
-  rect.x = x * 8;
-  rect.y = y * 16;
-  rect.w = 8;
-  rect.h = 16;
-
-  SDL_LockTexture(screen, &rect, &ptr, &pitch);
-  glyphbuff = ptr;
-
-  for (yy = 0; yy < 16; yy++) {
-    for (xx = 0; xx < 8; xx++) {
-      if ((ascii_font[((unsigned)c << 4) + yy] & (1 << xx)) != 0) {
-        glyphbuff[(7 - xx) + yy * (pitch / 4)] = attrpal[attr & 0x0f];
-      } else {
-        glyphbuff[(7 - xx) + yy * (pitch / 4)] = attrpal[attr >> 4];
-      }
-    }
-  }
-  /* draw a static "cursor" over if cursor is enabled and position is right..
-   * this is really clumsy, but it works well enough for now... */
-  if ((cursorstate != 0) && (cursorx == x) && (cursory == y)) {
-    for (yy = 0; yy < 16; yy++) {
-      for (xx = 0; xx < 8; xx++) {
-        if ((ascii_font[('_' << 4) + yy] & (1 << xx)) != 0) {
-          glyphbuff[(7 - xx) + yy * (pitch / 4)] = attrpal[attr & 0x0f];
-        }
-      }
-    }
-  }
-  SDL_UnlockTexture(screen);
+  if ((x >= SCREENWIDTH) || (y >= SCREENHEIGHT) || (x < 0) || (y < 0)) return;
+  screenbuffer[y][x] = (attr << 8) | c;
 }
 
 
@@ -122,8 +93,7 @@ int ui_getkey(void) {
   if (sdlinited == 0) initsdl();
   for (;;) {
     if (SDL_WaitEvent(&event) == 0) return(0); /* block until an event is received */
-    if (event.type == SDL_KEYDOWN) { /* I'm only interested in key presses */
-      /* int asciichar; */
+    if (event.type == SDL_KEYDOWN) { /* I'm mostly interested in key presses */
       switch (event.key.keysym.sym) {
         case SDLK_ESCAPE: /* Escape */
           return(0x1B);
@@ -183,11 +153,12 @@ int ui_getkey(void) {
       return(0xFF);
     } else if (event.type == SDL_KEYUP) { /* silently drop all key up events */
       continue;
-    } else {
-      break;
+    } else if (event.type == SDL_WINDOWEVENT) { /* I want to redraw screen on window events */
+      return(0x00); /* return 'unknown key' */
+    } else { /* anything else I ignore, to not flood the application with garbage */
+      continue;
     }
   } /* for (;;) */
-  return(0x00); /* unknown key */
 }
 
 
@@ -225,6 +196,47 @@ void ui_cursor_hide(void) {
 
 
 void ui_refresh(void) {
+  int x, y, xx, yy, pitch, attr;
+  char c;
+  uint32_t *glyphbuff, *screenptr;
+  const unsigned long attrpal[16] = {0x000000l, 0x0000AAl, 0x00AA00l, 0x00AAAAl, 0xAA0000l, 0xAA00AAl, 0xAA5500l, 0xAAAAAAl, 0x555555l, 0x5555FFl, 0x55FF55l, 0x55FFFFl, 0xFF5555l, 0xFF55FFl, 0xFFFF55l, 0xFFFFFFl};
+
+  if (sdlinited == 0) initsdl();
+
+  SDL_LockTexture(screen, NULL, (void *)&screenptr, &pitch);
+
+  for (y = 0; y < SCREENHEIGHT; y++) {
+    for (x = 0; x < SCREENWIDTH; x++) {
+      c = screenbuffer[y][x] & 0xff;
+      attr = screenbuffer[y][x] >> 8;
+      glyphbuff = screenptr + (y * 4 * pitch + x * 8);
+
+      for (yy = 0; yy < 16; yy++) {
+        for (xx = 0; xx < 8; xx++) {
+          if ((ascii_font[((unsigned)c << 4) + yy] & (1 << xx)) != 0) {
+            glyphbuff[(7 - xx) + yy * (pitch / 4)] = attrpal[attr & 0x0f];
+          } else {
+            glyphbuff[(7 - xx) + yy * (pitch / 4)] = attrpal[attr >> 4];
+          }
+        }
+      }
+      /* draw a static "cursor" over if cursor is enabled and position is right..
+       * this is really clumsy, but it works well enough for now... */
+      if ((cursorstate != 0) && (cursorx == x) && (cursory == y)) {
+        for (yy = 0; yy < 16; yy++) {
+          for (xx = 0; xx < 8; xx++) {
+            if ((ascii_font[('_' << 4) + yy] & (1 << xx)) != 0) {
+              glyphbuff[(7 - xx) + yy * (pitch / 4)] = attrpal[attr & 0x0f];
+            }
+          }
+        }
+      }
+
+    } /* for (x...) */
+  } /* for (y...) */
+
+  SDL_UnlockTexture(screen);
+
   SDL_RenderClear(renderer);
   SDL_RenderCopy(renderer, screen, NULL, NULL);
   SDL_RenderPresent(renderer);

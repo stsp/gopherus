@@ -492,7 +492,7 @@ static int display_menu(struct historytype **history, struct gopherusconfig *cfg
     }
     draw_statusbar(statusbar, cfg);
     ui_refresh();
-    /* wait for keypress */
+    /* wait for a keypress */
     keypress = ui_getkey();
     switch (keypress) {
       case 0x08: /* BACKSPACE */
