@@ -20,6 +20,6 @@
     The DOS version relies on the Watt32 library for all network operations.
   Linux & Windows
     Non-DOS version are built against SDL2 to emulate a pseudo terminal. All
-    network operations are performed using classic BSD sockets.
+    network operations are performed using classic BSD-style sockets.
 
  - Mateusz Viste
