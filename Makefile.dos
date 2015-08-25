@@ -5,7 +5,7 @@ all: gopherus.exe
 
 gopherus.exe: gopherus.o dnscache.o history.o int2str.o net.o parseurl.o startpg.o ui.o wordwrap.o
 	gcc gopherus.o dnscache.o history.o int2str.o net.o parseurl.o startpg.o ui.o wordwrap.o -o gopherus.exe $(LIB) $(CFLAGS)
-	upx --best --lzma --all-filters gopherus.exe
+	upx --best gopherus.exe
 
 gopherus.o: gopherus.c
 	gcc -c gopherus.c -o gopherus.o $(CFLAGS)

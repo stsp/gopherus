@@ -2,6 +2,10 @@
 Gopherus changelog
 
 
+Gopherus v1.0c [xx xxx xxxx]:
+ - [fix] DOS port is UPXed without LZMA to speed up launching on 386 machines,
+ - ...
+
 Gopherus v1.0b [29 Jul 2015]:
  - [new] Added support for scripted downloading (-o=xxx),
  - [new] Migrated SDL ports to SDL2 (Linux, Windows),

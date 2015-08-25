@@ -31,7 +31,7 @@
 #include "wordwrap.h"
 #include "startpg.h"
 
-#define pVer "1.0b"
+#define pVer "1.0c"
 #define pDate "2013-2015"
 
 
