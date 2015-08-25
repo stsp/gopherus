@@ -4,6 +4,7 @@ Gopherus changelog
 
 Gopherus v1.0c [xx xxx xxxx]:
  - [fix] DOS port is UPXed without LZMA to speed up launching on 386 machines,
+ - [fix] Fixed freeze of gopherus when trying to display some '0' items,
  - ...
 
 Gopherus v1.0b [29 Jul 2015]:

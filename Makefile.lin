@@ -34,8 +34,8 @@ ui.o: ui-sdl.c
 wordwrap.o: wordwrap.c
 	gcc -c wordwrap.c -o wordwrap.o $(CFLAGS)
 
-wraptest.exe: wraptest.c wordwrap.o
-	gcc wraptest.c wordwrap.o -o wraptest.exe $(CFLAGS)
+wraptest: wraptest.c wordwrap.o
+	gcc wraptest.c wordwrap.o -o wraptest $(CFLAGS)
 
 pkg: gopherus
 	rm -rf pkg_lin

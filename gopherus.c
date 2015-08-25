@@ -716,8 +716,15 @@ static int display_text(struct historytype **history, struct gopherusconfig *cfg
     for (txtptr = buffer; txtptr != NULL; ) {
       txtptr = wordwrap(txtptr, linebuff, 80);
       if (y >= firstline) {
-        for (x = 0; linebuff[x] != 0; x++) ui_putchar(linebuff[x], cfg->attr_textnorm, x, y + 1 - firstline);
-        for (; x < 80; x++) ui_putchar(' ', cfg->attr_textnorm, x, y + 1 - firstline);
+        int endstringreached = 0;
+        for (x = 0; x < 80; x++) {
+          if (linebuff[x] == 0) endstringreached = 1;
+          if (endstringreached == 0) {
+            ui_putchar(linebuff[x], cfg->attr_textnorm, x, y + 1 - firstline);
+          } else {
+            ui_putchar(' ', cfg->attr_textnorm, x, y + 1 - firstline);
+          }
+        }
       }
       y++;
       if (y > lastline) break;
