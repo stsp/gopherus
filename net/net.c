@@ -65,7 +65,7 @@ static int dummy_printf(const char * format, ...) {
 }
 
 /* must be called before using libtcp. returns 0 on success, or non-zero if network subsystem is not available. */
-int net_init() {
+int net_init(void) {
   tzset();
   _printf = dummy_printf;  /* this is to avoid watt32 printing its stuff to console */
   return(sock_init());

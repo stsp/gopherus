@@ -1,12 +1,14 @@
 /*
  * This file is part of the Gopherus project
  * Copyright (C) Mateusz Viste 2013
- * 
+ *
  * Provides all network functions used by Gopherus, wrapped around POSIX (BSD) sockets.
  */
 
 #include <stdlib.h>  /* NULL */
-#include <winsock2.h> /* socket() */
+#include <sys/socket.h> /* socket() */
+#include <arpa/inet.h>
+#include <netdb.h>
 #include <stdio.h> /* sprintf() */
 #include <unistd.h> /* close() */
 #include <errno.h> /* EAGAIN, EWOULDBLOCK... */
@@ -33,11 +35,8 @@ unsigned long net_dnsresolve(const char *name) {
 
 
 /* must be called before using libtcp. returns 0 on success, or non-zero if network subsystem is not available. */
-int net_init() {
-  int iResult;
-  WSADATA wsaData;
-  iResult = WSAStartup(MAKEWORD(2,2), &wsaData);
-  return(iResult);
+int net_init(void) {
+  return(0);
 }
 
 
@@ -61,7 +60,7 @@ struct net_tcpsocket *net_connect(unsigned long ipaddr, int port) {
     return(NULL);
   }
   remote.sin_family = AF_INET;  /* Proto family (IPv4) */
-  remote.sin_addr.s_addr = inet_addr(ipstr); /* set dst IP address */
+  inet_pton(AF_INET, ipstr, (void *)(&remote.sin_addr.s_addr)); /* set dst IP address */
   remote.sin_port = htons(port); /* set the dst port */
   if (connect(s->fd, (struct sockaddr *)&remote, sizeof(struct sockaddr)) < 0) {
     close(s->fd);
@@ -100,7 +99,11 @@ int net_recv(struct net_tcpsocket *socket, char *buff, int maxlen) {
   if (res < 0) return(-1);
   if (res == 0) return(0);
   /* read the stuff now (if any) */
-  res = recv(realsocket, buff, maxlen, 0);
+  res = recv(realsocket, buff, maxlen, MSG_DONTWAIT);
+  if (res < 0) {
+    if (errno == EAGAIN) return(0);
+    if (errno == EWOULDBLOCK) return(0);
+  }
   if (res == 0) return(-1); /* the peer performed an orderly shutdown */
   return(res);
 }

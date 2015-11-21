@@ -13,8 +13,8 @@
 
 #include <SDL2/SDL.h>
 #include "ui.h"    /* include self for control */
-#include "sdlfiles/ascii.h" /* ascii fonts */
-#include "sdlfiles/icon.h"  /* a raw pixel array with gopheurs icon */
+#include "../sdlfiles/ascii.h" /* ascii fonts */
+#include "../sdlfiles/icon.h"  /* a raw pixel array with gopheurs icon */
 
 static int cursorx, cursory, sdlinited;
 static SDL_Renderer *renderer;

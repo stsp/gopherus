@@ -9,7 +9,8 @@
  * What compiler to use *
 
  Or, should I say, what *I* used to compile Gopherus:
-  DOS: DJGPP (+Watt32)
+  DOS 16 bit: OpenWatcom (+WatTCP)
+  DOS 32 bit: DJGPP (+Watt32)
   Linux: gcc (+SDL2)
   Windows: Mingw (+SDL2)
 
@@ -17,7 +18,8 @@
  * Dependencies *
 
   DOS
-    The DOS version relies on the Watt32 library for all network operations.
+    The DOS version relies on the WatTCP (for 16 bit target) or Watt32 library
+    (for 32 bit target) for all network operations.
   Linux & Windows
     Non-DOS version are built against SDL2 to emulate a pseudo terminal. All
     network operations are performed using classic BSD-style sockets.

@@ -3,8 +3,8 @@ LIB = -lSDL2
 
 all: gopherus
 
-gopherus: gopherus.o dnscache.o history.o int2str.o net.o parseurl.o startpg.o ui.o wordwrap.o
-	gcc gopherus.o dnscache.o history.o int2str.o net.o parseurl.o startpg.o ui.o wordwrap.o -o gopherus $(LIB) $(CFLAGS)
+gopherus: gopherus.o dnscache.o history.o int2str.o net.o parseurl.o startpg.o ui.o timer.o wordwrap.o
+	gcc gopherus.o dnscache.o history.o int2str.o net.o parseurl.o startpg.o ui.o timer.o wordwrap.o -o gopherus $(LIB) $(CFLAGS)
 	upx --best --lzma --all-filters gopherus
 
 gopherus.o: gopherus.c
@@ -19,8 +19,8 @@ history.o: history.c
 int2str.o: int2str.c
 	gcc -c int2str.c -o int2str.o $(CFLAGS)
 
-net.o: net-lin.c
-	gcc -c net-lin.c -o net.o $(CFLAGS)
+net.o: net/net-lin.c
+	gcc -c net/net-lin.c -o net.o $(CFLAGS)
 
 parseurl.o: parseurl.c
 	gcc -c parseurl.c -o parseurl.o $(CFLAGS)
@@ -28,8 +28,11 @@ parseurl.o: parseurl.c
 startpg.o: startpg.c
 	gcc -c startpg.c -o startpg.o $(CFLAGS)
 
-ui.o: ui-sdl.c
-	gcc -c ui-sdl.c -o ui.o $(CFLAGS)
+ui.o: ui/ui-sdl.c
+	gcc -c ui/ui-sdl.c -o ui.o $(CFLAGS)
+
+timer.o: timer/timer.c
+	gcc -c timer/timer.c -o timer.o $(CFLAGS)
 
 wordwrap.o: wordwrap.c
 	gcc -c wordwrap.c -o wordwrap.o $(CFLAGS)

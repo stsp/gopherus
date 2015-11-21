@@ -1,6 +1,8 @@
 
  Stuff that I'd like to get done on Gopherus (but probably won't ever have time to do it)
 
+  - freezes on http://mateusz.viste.fr/software/
+
   - Display graphic files (bmp, png, jpg, gif..)
   - configuration file (for memory settings)
   - timeout and user cancel when in connecting... phase

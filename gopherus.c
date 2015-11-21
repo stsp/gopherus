@@ -22,12 +22,13 @@
 #include <stdlib.h>  /* malloc(), getenv() */
 #include <stdio.h>   /* sprintf(), fwrite()... */
 #include <time.h>    /* time_t */
-#include <unistd.h>  /* usleep() */
+
 #include "dnscache.h"
 #include "history.h"
-#include "net.h"
+#include "net/net.h"
 #include "parseurl.h"
-#include "ui.h"
+#include "ui/ui.h"
+#include "timer/timer.h"
 #include "wordwrap.h"
 #include "startpg.h"
 
@@ -261,7 +262,7 @@ static int edit_url(struct historytype **history, struct gopherusconfig *cfg) {
     char itemtype;
     char hostaddr[256];
     char selector[256];
-    int hostport;
+    unsigned short hostport;
     int protocol;
     if ((protocol = parsegopherurl(url, hostaddr, &hostport, &itemtype, selector)) >= 0) {
       history_add(history, protocol, hostaddr, hostport, itemtype, selector);
@@ -522,7 +523,8 @@ static int display_menu(struct historytype **history, struct gopherusconfig *cfg
                   return(DISPLAY_ORDER_NONE);
               }
             } else { /* itemtype is anything else than type 7 */
-              int tmpproto, tmpport;
+              int tmpproto;
+              unsigned short tmpport;
               char tmphost[512], tmpitemtype, tmpselector[512];
               tmpproto = parsegopherurl(curURL, tmphost, &tmpport, &tmpitemtype, tmpselector);
               if (keypress == 0x143) tmpitemtype = '9'; /* force the itemtype to 'binary' if 'save as' was requested */
@@ -957,11 +959,11 @@ static long loadfile_buff(int protocol, char *hostaddr, unsigned int hostport, c
       } else {
         if (curtime - lastactivity > 2) {
           if (curtime - lastactivity > 20) { /* TIMEOUT! */
-              set_statusbar(statusbar, "!Timeout while waiting for data!");
-              reslength = -1;
-              break;
-            } else {
-              usleep(250000);  /* give the cpu some time up (250ms), the transfer is really slow */
+            set_statusbar(statusbar, "!Timeout while waiting for data!");
+            reslength = -1;
+            break;
+          } else {
+            timer_milisleep(250);  /* give the cpu some time up (250ms), the transfer is really slow */
           }
         }
     }
@@ -1010,7 +1012,7 @@ int main(int argc, char **argv) {
     char itemtype;
     char hostaddr[1024];
     char selector[1024];
-    int hostport, i;
+    unsigned short hostport, i;
     int protocol;
     int goturl = 0;
     for (i = 1; i < argc; i++) {

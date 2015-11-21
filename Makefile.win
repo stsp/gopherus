@@ -3,9 +3,9 @@ LIB = -lSDL2 -lws2_32
 
 all: gopherus.exe
 
-gopherus.exe: gopherus.o dnscache.o history.o int2str.o net.o parseurl.o startpg.o ui.o wordwrap.o
+gopherus.exe: gopherus.o dnscache.o history.o int2str.o net.o parseurl.o startpg.o timer.o ui.o wordwrap.o
 	windres gopherus.rc -O coff -o gopherus.res
-	gcc -mwindows gopherus.o dnscache.o history.o int2str.o net.o parseurl.o startpg.o ui.o wordwrap.o gopherus.res -o gopherus.exe $(LIB) $(CFLAGS)
+	gcc -mwindows gopherus.o dnscache.o history.o int2str.o net.o parseurl.o startpg.o timer.o ui.o wordwrap.o gopherus.res -o gopherus.exe $(LIB) $(CFLAGS)
 
 gopherus.o: gopherus.c
 	gcc -c gopherus.c -o gopherus.o $(CFLAGS)
@@ -19,8 +19,8 @@ history.o: history.c
 int2str.o: int2str.c
 	gcc -c int2str.c -o int2str.o $(CFLAGS)
 
-net.o: net-win.c
-	gcc -c net-win.c -o net.o $(CFLAGS)
+net.o: net/net-win.c
+	gcc -c net/net-win.c -o net.o $(CFLAGS)
 
 parseurl.o: parseurl.c
 	gcc -c parseurl.c -o parseurl.o $(CFLAGS)
@@ -28,8 +28,11 @@ parseurl.o: parseurl.c
 startpg.o: startpg.c
 	gcc -c startpg.c -o startpg.o $(CFLAGS)
 
-ui.o: ui-sdl.c
-	gcc -c ui-sdl.c -o ui.o $(CFLAGS)
+timer.o: timer/timer.c
+	gcc -c timer/timer.c -o timer.o $(CFLAGS)
+
+ui.o: ui/ui-sdl.c
+	gcc -c ui/ui-sdl.c -o ui.o $(CFLAGS)
 
 wordwrap.o: wordwrap.c
 	gcc -c wordwrap.c -o wordwrap.o $(CFLAGS)
