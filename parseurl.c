@@ -7,7 +7,7 @@
 #include "int2str.h"  /* int2str() is used to convert the port into a string */
 #include "parseurl.h" /* include self for control */
 
-int parsegopherurl(char *url, char *host, int *port, char *itemtype, char *selector) {
+int parsegopherurl(char *url, char *host, unsigned short *port, char *itemtype, char *selector) {
   int parserstate = 0;
   int protocol = PARSEURL_PROTO_GOPHER, x;
   char *curtoken;
@@ -101,7 +101,7 @@ int parsegopherurl(char *url, char *host, int *port, char *itemtype, char *selec
 
 
 /* computes an URL string from exploded gopher parts, and returns its length. Returns -1 on error. */
-int buildgopherurl(char *res, int maxlen, int protocol, char *host, int port, char itemtype, char *selector) {
+int buildgopherurl(char *res, int maxlen, int protocol, char *host, unsigned short port, char itemtype, char *selector) {
   int x = 0;
   char *protoname_gopher = "gopher://";
   char *protoname_http = "http://";
@@ -133,7 +133,7 @@ int buildgopherurl(char *res, int maxlen, int protocol, char *host, int port, ch
   }
   /* The proto is gopher -- validate input data */
   if (maxlen < 2) return(-1);
-  if ((port < 1) || (port > 65535)) return(-1);
+  if (port < 1) return(-1);
   if ((host == NULL) || (res == NULL) || (selector == NULL)) return(-1);
   if (itemtype < 33) return(-1);
   /* detect special hURL links */

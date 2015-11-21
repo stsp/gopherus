@@ -11,8 +11,8 @@
   #define PARSEURL_PROTO_UNKNOWN -1
 
   /* explodes a URL into parts, and return the protocol id, or a negative value on error */
-  int parsegopherurl(char *url, char *host, int *port, char *itemtype, char *selector);
+  int parsegopherurl(char *url, char *host, unsigned short *port, char *itemtype, char *selector);
 
   /* builds a URL from exploded parts */
-  int buildgopherurl(char *res, int maxlen, int protocol, char *host, int port, char itemtype, char *selector);
+  int buildgopherurl(char *res, int maxlen, int protocol, char *host, unsigned short port, char itemtype, char *selector);
 #endif
