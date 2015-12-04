@@ -16,7 +16,7 @@
 #include "../sdlfiles/ascii.h" /* ascii fonts */
 #include "../sdlfiles/icon.h"  /* a raw pixel array with gopheurs icon */
 
-static int cursorx, cursory, sdlinited;
+static int cursorx, cursory;
 static SDL_Renderer *renderer;
 static SDL_Texture *screen;
 static int cursorstate = 1;
@@ -29,11 +29,10 @@ static int cursorstate = 1;
 static unsigned short screenbuffer[SCREENHEIGHT][SCREENWIDTH];
 
 
-static void initsdl(void) {
+void ui_init(void) {
   SDL_Window *window;
   SDL_Surface *icosurface;
   SDL_Init(SDL_INIT_VIDEO);
-  sdlinited = 1;
   window = SDL_CreateWindow("Gopherus", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 640, 480, 0);
   renderer = SDL_CreateRenderer(window, -1, 0);
   screen = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, 640, 480);
@@ -45,6 +44,11 @@ static void initsdl(void) {
   SDL_StartTextInput();
   /* make sur to close SDL properly at exit time */
   atexit(SDL_Quit);
+}
+
+
+void ui_close(void) {
+  SDL_Quit();
 }
 
 
@@ -60,7 +64,6 @@ int ui_getcolcount(void) {
 
 void ui_cls(void) {
   int x, y;
-  if (sdlinited == 0) initsdl();
   for (y = 0; y < SCREENHEIGHT; y++) {
     for (x = 0; x < SCREENWIDTH; x++) {
       ui_putchar(' ', 0, x, y);
@@ -71,7 +74,6 @@ void ui_cls(void) {
 
 
 void ui_puts(char *str) {
-  if (sdlinited == 0) initsdl();
   puts(str);
 }
 
@@ -90,7 +92,6 @@ void ui_putchar(char c, int attr, int x, int y) {
 
 int ui_getkey(void) {
   SDL_Event event;
-  if (sdlinited == 0) initsdl();
   for (;;) {
     if (SDL_WaitEvent(&event) == 0) return(0); /* block until an event is received */
     if (event.type == SDL_KEYDOWN) { /* I'm mostly interested in key presses */
@@ -175,7 +176,6 @@ static void flushKeyUpEvents(void) {
 
 int ui_kbhit(void) {
   int res;
-  if (sdlinited == 0) initsdl();
   flushKeyUpEvents();  /* silently flush all possible 'KEY UP' events */
   res = SDL_PollEvent(NULL);
   if (res < 0) return(0);
@@ -184,13 +184,11 @@ int ui_kbhit(void) {
 
 
 void ui_cursor_show(void) {
-  if (sdlinited == 0) initsdl();
   cursorstate = 1;
 }
 
 
 void ui_cursor_hide(void) {
-  if (sdlinited == 0) initsdl();
   cursorstate = 0;
 }
 
@@ -200,8 +198,6 @@ void ui_refresh(void) {
   char c;
   uint32_t *glyphbuff, *screenptr;
   const unsigned long attrpal[16] = {0x000000l, 0x0000AAl, 0x00AA00l, 0x00AAAAl, 0xAA0000l, 0xAA00AAl, 0xAA5500l, 0xAAAAAAl, 0x555555l, 0x5555FFl, 0x55FF55l, 0x55FFFFl, 0xFF5555l, 0xFF55FFl, 0xFFFF55l, 0xFFFFFFl};
-
-  if (sdlinited == 0) initsdl();
 
   SDL_LockTexture(screen, NULL, (void *)&screenptr, &pitch);
 

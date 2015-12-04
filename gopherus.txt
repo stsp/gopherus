@@ -1,5 +1,5 @@
 
-             Gopherus v1.0c Copyright (C) Mateusz Viste 2013-2015
+             Gopherus v1.0c Copyright (C) 2013-2016 Mateusz Viste
                        http://gopherus.sourceforge.net
 
 

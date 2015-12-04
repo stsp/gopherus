@@ -8,6 +8,11 @@
 #ifndef ui_h_sentinel
 #define ui_h_sentinel
 
+/* inits the UI subsystem */
+void ui_init(void);
+
+void ui_close(void);
+
 /* returns the number of rows of current text mode */
 int ui_getrowcount(void);
 

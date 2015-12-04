@@ -611,7 +611,7 @@ static int display_menu(struct historytype **history, struct gopherusconfig *cfg
 
 static int display_text(struct historytype **history, struct gopherusconfig *cfg, char *buffer, char *statusbar, int txtformat) {
   char *txtptr;
-  char linebuff[80];
+  char linebuff[128];
   long x, y, firstline, lastline, bufferlen;
   int eof_flag;
   sprintf(linebuff, "file loaded (%ld bytes)", (*history)->cachesize);
@@ -1094,6 +1094,7 @@ int main(int argc, char **argv) {
     return(0);
   }
 
+  ui_init();
   ui_cursor_hide(); /* hide the cursor */
   ui_cls();
 
@@ -1164,5 +1165,8 @@ int main(int argc, char **argv) {
   free(buffer);
   /* unallocate all the history */
   history_flush(history);
+
+  ui_close();
+
   return(0);
 }

@@ -1,49 +1,35 @@
 CFLAGS = -std=gnu89 -O3 -Wall -Wextra -pedantic
-LIB = -lSDL2 -lws2_32
 
-all: gopherus.exe
+all: gopherus.exe gopherus-sdl.exe
 
 gopherus.exe: gopherus.o dnscache.o history.o int2str.o net.o parseurl.o startpg.o timer.o ui.o wordwrap.o
 	windres gopherus.rc -O coff -o gopherus.res
-	gcc -mwindows gopherus.o dnscache.o history.o int2str.o net.o parseurl.o startpg.o timer.o ui.o wordwrap.o gopherus.res -o gopherus.exe $(LIB) $(CFLAGS)
+	gcc gopherus.o dnscache.o history.o int2str.o net.o parseurl.o startpg.o timer.o ui.o wordwrap.o gopherus.res -o gopherus.exe -lcurses -lws2_32 $(CFLAGS)
 
-gopherus.o: gopherus.c
-	gcc -c gopherus.c -o gopherus.o $(CFLAGS)
-
-dnscache.o: dnscache.c
-	gcc -c dnscache.c -o dnscache.o $(CFLAGS)
-
-history.o: history.c
-	gcc -c history.c -o history.o $(CFLAGS)
-
-int2str.o: int2str.c
-	gcc -c int2str.c -o int2str.o $(CFLAGS)
+gopherus-sdl.exe: gopherus.o dnscache.o history.o int2str.o net.o parseurl.o startpg.o timer.o ui-sdl.o wordwrap.o
+	windres gopherus.rc -O coff -o gopherus.res
+	gcc -mwindows gopherus.o dnscache.o history.o int2str.o net.o parseurl.o startpg.o timer.o ui-sdl.o wordwrap.o gopherus.res -o gopherus.exe -lSDL2 -lws2_32 $(CFLAGS)
 
 net.o: net/net-win.c
 	gcc -c net/net-win.c -o net.o $(CFLAGS)
 
-parseurl.o: parseurl.c
-	gcc -c parseurl.c -o parseurl.o $(CFLAGS)
-
-startpg.o: startpg.c
-	gcc -c startpg.c -o startpg.o $(CFLAGS)
-
 timer.o: timer/timer.c
 	gcc -c timer/timer.c -o timer.o $(CFLAGS)
 
-ui.o: ui/ui-sdl.c
-	gcc -c ui/ui-sdl.c -o ui.o $(CFLAGS)
+ui.o: ui/ui-curse.c
+	gcc -c ui/ui-curse.c -o ui.o $(CFLAGS)
 
-wordwrap.o: wordwrap.c
-	gcc -c wordwrap.c -o wordwrap.o $(CFLAGS)
+ui-sdl.o: ui/ui-sdl.c
+	gcc -c ui/ui-sdl.c -o ui-sdl.o $(CFLAGS)
 
 wraptest.exe: wraptest.c wordwrap.o
 	gcc wraptest.c wordwrap.o -o wraptest.exe $(CFLAGS)
 
-pkg: gopherus.exe
+pkg: gopherus.exe gopherus-sdl.exe
 	if exist pkg_win\nul del /s /q pkg_win\*
 	if not exist pkg_win\nul mkdir pkg_win
 	copy gopherus.exe pkg_win
+	copy gopherus-sdl.exe pkg_win
 	copy sdl2.dll pkg_win
 	copy gopherus.txt pkg_win
 	copy license.txt pkg_win
@@ -53,3 +39,4 @@ pkg: gopherus.exe
 clean:
 	del *.o
 	del gopherus.exe
+	del gopherus-sdl.exe
