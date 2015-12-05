@@ -79,10 +79,10 @@ int parsegopherurl(char *url, char *host, unsigned short *port, char *itemtype, 
           if (*url != 0) {
               *itemtype = *url;
               parserstate = 3;
+              url += 1;
             } else {
               parserstate = 4;
           }
-          url += 1;
         }
         parserstate = 3; /* go right to the url part now */
       case 3:

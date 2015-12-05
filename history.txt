@@ -3,7 +3,8 @@ Gopherus changelog
 
 
 Gopherus v1.0c [xx xxx xxxx]:
- - [new] non-DOS ports are using the curses output by default instead of SDL,
+ - [new] Linux ports uses the curses output by default instead of SDL,
+ - [fix] Gopherus accepts URLs with only a hostname followed by a slash,
  - [fix] DOS port is UPXed without LZMA to speed up launching on 386 machines,
  - [fix] Fixed freeze of gopherus when trying to display some '0' items,
  - ...

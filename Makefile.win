@@ -1,10 +1,6 @@
 CFLAGS = -std=gnu89 -O3 -Wall -Wextra -pedantic
 
-all: gopherus.exe gopherus-sdl.exe
-
-gopherus.exe: gopherus.o dnscache.o history.o int2str.o net.o parseurl.o startpg.o timer.o ui.o wordwrap.o
-	windres gopherus.rc -O coff -o gopherus.res
-	gcc gopherus.o dnscache.o history.o int2str.o net.o parseurl.o startpg.o timer.o ui.o wordwrap.o gopherus.res -o gopherus.exe -lcurses -lws2_32 $(CFLAGS)
+all: gopherus-sdl.exe
 
 gopherus-sdl.exe: gopherus.o dnscache.o history.o int2str.o net.o parseurl.o startpg.o timer.o ui-sdl.o wordwrap.o
 	windres gopherus.rc -O coff -o gopherus.res
@@ -16,9 +12,6 @@ net.o: net/net-win.c
 timer.o: timer/timer.c
 	gcc -c timer/timer.c -o timer.o $(CFLAGS)
 
-ui.o: ui/ui-curse.c
-	gcc -c ui/ui-curse.c -o ui.o $(CFLAGS)
-
 ui-sdl.o: ui/ui-sdl.c
 	gcc -c ui/ui-sdl.c -o ui-sdl.o $(CFLAGS)
 
@@ -28,7 +21,6 @@ wraptest.exe: wraptest.c wordwrap.o
 pkg: gopherus.exe gopherus-sdl.exe
 	if exist pkg_win\nul del /s /q pkg_win\*
 	if not exist pkg_win\nul mkdir pkg_win
-	copy gopherus.exe pkg_win
 	copy gopherus-sdl.exe pkg_win
 	copy sdl2.dll pkg_win
 	copy gopherus.txt pkg_win
@@ -38,5 +30,4 @@ pkg: gopherus.exe gopherus-sdl.exe
 
 clean:
 	del *.o
-	del gopherus.exe
 	del gopherus-sdl.exe
