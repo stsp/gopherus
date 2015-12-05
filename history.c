@@ -1,6 +1,6 @@
 /*
  * This file is part of the Gopherus project.
- * Copyright (C) Mateusz Viste 2013
+ * Copyright (C) 2013-2016 Mateusz Viste
  */
 
 #include <stdlib.h>  /* malloc(), NULL */

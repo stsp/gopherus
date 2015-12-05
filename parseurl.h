@@ -1,6 +1,6 @@
 /*
  * This file is part of the Gopherus project.
- * Copyright (C) Mateusz Viste 2013
+ * Copyright (C) 2013-2016 Mateusz Viste
  */
 
 #ifndef parseurl_h_sentinel
@@ -15,4 +15,5 @@
 
   /* builds a URL from exploded parts */
   int buildgopherurl(char *res, int maxlen, int protocol, char *host, unsigned short port, char itemtype, char *selector);
+
 #endif

@@ -1,5 +1,6 @@
 /*
- * This file is part of the gopherus project.
+ * This file is part of the Gopherus project.
+ * Copyright (C) 2013-2016 Mateusz Viste
  */
 
 #include <string.h>   /* strstr() */
