@@ -111,14 +111,14 @@ static void loadcfg(struct gopherusconfig *cfg) {
   colorstring = getenv("GOPHERUSCOLOR");
   if (colorstring != NULL) {
     if (strlen(colorstring) == 18) {
-        for (x = 0; x < 18; x++) {
-          if (hex2int(colorstring[x]) < 0) {
-            colorstring = NULL;
-            break;
-          }
+      for (x = 0; x < 18; x++) {
+        if (hex2int(colorstring[x]) < 0) {
+          colorstring = NULL;
+          break;
         }
-      } else {
-        colorstring = NULL;
+      }
+    } else {
+      colorstring = NULL;
     }
   }
   if (colorstring == NULL) colorstring = defaultcolorscheme;
@@ -151,9 +151,9 @@ static void draw_urlbar(struct historytype *history, struct gopherusconfig *cfg)
   url_len = buildgopherurl(urlstr, 79, history->protocol, history->host, history->port, history->itemtype, history->selector);
   for (x = 0; x < 79; x++) {
     if (x < url_len) {
-        ui_putchar(urlstr[x], cfg->attr_urlbar, x+1, 0);
-      } else {
-        ui_putchar(' ', cfg->attr_urlbar, x+1, 0);
+      ui_putchar(urlstr[x], cfg->attr_urlbar, x+1, 0);
+    } else {
+      ui_putchar(' ', cfg->attr_urlbar, x+1, 0);
     }
   }
   ui_putchar(']', cfg->attr_urlbardeco, 79, 0);
@@ -165,10 +165,10 @@ static void draw_statusbar(char *origmsg, struct gopherusconfig *cfg) {
   char *msg = origmsg;
   y = ui_getrowcount() - 1;
   if (msg[0] == '!') {
-      msg += 1;
-      colattr = cfg->attr_statusbarwarn; /* this is an important message */
-    } else {
-      colattr = cfg->attr_statusbarinfo;
+    msg += 1;
+    colattr = cfg->attr_statusbarwarn; /* this is an important message */
+  } else {
+    colattr = cfg->attr_statusbarinfo;
   }
   for (x = 0; x < 80; x++) {
     if (msg[x] == 0) break;
@@ -188,9 +188,9 @@ static int editstring(char *url, int maxlen, int maxdisplaylen, int xx, int yy, 
   ui_cursor_show();
   for (;;) {
     if (urllen > maxdisplaylen - 1) {
-        displayoffset = urllen - (maxdisplaylen - 1);
-      } else {
-        displayoffset = 0;
+      displayoffset = urllen - (maxdisplaylen - 1);
+    } else {
+      displayoffset = 0;
     }
     if (displayoffset > cursorpos - 8) {
       displayoffset = cursorpos - 8;
@@ -199,52 +199,52 @@ static int editstring(char *url, int maxlen, int maxdisplaylen, int xx, int yy, 
     ui_locate(yy, cursorpos + xx - displayoffset);
     for (x = 0; x < maxdisplaylen; x++) {
       if ((x + displayoffset) < urllen) {
-          ui_putchar(url[x + displayoffset], attr, x+xx, yy);
-        } else {
-          ui_putchar(' ', attr, x+xx, yy);
+        ui_putchar(url[x + displayoffset], attr, x+xx, yy);
+      } else {
+        ui_putchar(' ', attr, x+xx, yy);
       }
     }
     ui_refresh();
     presskey = ui_getkey();
     if ((presskey == 0x1B) || (presskey == 0x09)) { /* ESC or TAB */
-        result = 0;
-        break;
-      } else if (presskey == 0x147) { /* HOME */
-        cursorpos = 0;
-      } else if (presskey == 0x14F) { /* END */
-        cursorpos = urllen;
-      } else if (presskey == 0x0D) { /* ENTER */
-        url[urllen] = 0; /* terminate the URL string with a NULL terminator */
-        result = -1;
-        break;
-      } else if (presskey == 0x14B) { /* LEFT */
-        if (cursorpos > 0) cursorpos -= 1;
-      } else if (presskey == 0x14D) { /* RIGHT */
-        if (cursorpos < urllen) cursorpos += 1;
-      } else if (presskey == 0x08) { /* BACKSPACE */
-        if (cursorpos > 0) {
-          int y;
-          urllen -= 1;
-          cursorpos -= 1;
-          for (y = cursorpos; y < urllen; y++) url[y] = url[y + 1];
-        }
-      } else if (presskey == 0x153) { /* DEL */
-        if (cursorpos < urllen) {
-          int y;
-          for (y = cursorpos; y < urllen; y++) url[y] = url[y+1];
-          urllen -= 1;
-        }
-      } else if (presskey == 0xFF) { /* QUIT */
-        result = 0;
-        break;
-      } else if ((presskey > 0x1F) && (presskey < 127)) {
-        if (urllen < maxlen - 1) {
-          int y;
-          for (y = urllen; y > cursorpos; y--) url[y] = url[y - 1];
-          url[cursorpos] = presskey;
-          urllen += 1;
-          cursorpos += 1;
-        }
+      result = 0;
+      break;
+    } else if (presskey == 0x147) { /* HOME */
+      cursorpos = 0;
+    } else if (presskey == 0x14F) { /* END */
+      cursorpos = urllen;
+    } else if (presskey == 0x0D) { /* ENTER */
+      url[urllen] = 0; /* terminate the URL string with a NULL terminator */
+      result = -1;
+      break;
+    } else if (presskey == 0x14B) { /* LEFT */
+      if (cursorpos > 0) cursorpos -= 1;
+    } else if (presskey == 0x14D) { /* RIGHT */
+      if (cursorpos < urllen) cursorpos += 1;
+    } else if (presskey == 0x08) { /* BACKSPACE */
+      if (cursorpos > 0) {
+        int y;
+        urllen -= 1;
+        cursorpos -= 1;
+        for (y = cursorpos; y < urllen; y++) url[y] = url[y + 1];
+      }
+    } else if (presskey == 0x153) { /* DEL */
+      if (cursorpos < urllen) {
+        int y;
+        for (y = cursorpos; y < urllen; y++) url[y] = url[y+1];
+        urllen -= 1;
+      }
+    } else if (presskey == 0xFF) { /* QUIT */
+      result = 0;
+      break;
+    } else if ((presskey > 0x1F) && (presskey < 127)) {
+      if (urllen < maxlen - 1) {
+        int y;
+        for (y = urllen; y > cursorpos; y--) url[y] = url[y - 1];
+        url[cursorpos] = presskey;
+        urllen += 1;
+        cursorpos += 1;
+      }
     }
   }
   ui_cursor_hide();
@@ -284,9 +284,9 @@ static int askQuitConfirmation(struct gopherusconfig *cfg) {
   ui_refresh();
   while ((keypress = ui_getkey()) == 0x00); /* fetch the next recognized keypress */
   if ((keypress == 0x1B) || (keypress == 0xFF)) {
-      return(1);
-    } else {
-      return(0);
+    return(1);
+  } else {
+    return(0);
   }
 }
 
@@ -342,11 +342,11 @@ static int display_menu(struct historytype **history, struct gopherusconfig *cfg
         if (*cursor == '\n') endofline = 1;
         *cursor = 0; /* put a NULL instead to terminate previous string */
         if (column == 0) {
-            selector = cursor + 1;
-          } else if (column == 1) {
-            host = cursor + 1;
-          } else if (column == 2) {
-            port = cursor + 1;
+          selector = cursor + 1;
+        } else if (column == 1) {
+          host = cursor + 1;
+        } else if (column == 2) {
+          port = cursor + 1;
         }
         if (endofline != 0) {
           cursor += 1;
@@ -367,9 +367,9 @@ static int display_menu(struct historytype **history, struct gopherusconfig *cfg
       for (;; firstiteration += 1) {
         if ((firstiteration > 0) && (itemtype != 'i') && (itemtype != '3')) itemtype = 0;
         if (itemtype == 'i') {
-            wraplen = 80;
-          } else {
-            wraplen = 76;
+          wraplen = 80;
+        } else {
+          wraplen = 76;
         }
         line_description[linecount] = wrapptr;
         wrapptr = wordwrap(wrapptr, singlelinebuf, wraplen);
@@ -378,10 +378,10 @@ static int display_menu(struct historytype **history, struct gopherusconfig *cfg
         line_host[linecount] = host;
         line_itemtype[linecount] = itemtype;
         if (port != NULL) {
-            line_port[linecount] = atoi(port);
-            if (line_port[linecount] < 1) line_port[linecount] = 70;
-          } else {
-            line_port[linecount] = 70;
+          line_port[linecount] = atoi(port);
+          if (line_port[linecount] < 1) line_port[linecount] = 70;
+        } else {
+          line_port[linecount] = 70;
         }
         linecount += 1;
         if (wrapptr == NULL) break;
@@ -407,88 +407,88 @@ static int display_menu(struct historytype **history, struct gopherusconfig *cfg
     /* start drawing lines of the menu */
     for (x = *screenlineoffset; x < *screenlineoffset + (ui_getrowcount() - 2); x++) {
       if (x < linecount) {
-          int z, attr;
-          char *prefix = NULL;
-          attr = cfg->attr_menuselectable;
-          if (x == *selectedline) { /* change the background if item is selected */
-              attr = cfg->attr_menucurrent;
-              /* attr &= 0x0F;
-              attr |= 0x20; */
-            } else {
-              attr = cfg->attr_menutype;
+        int z, attr;
+        char *prefix = NULL;
+        attr = cfg->attr_menuselectable;
+        if (x == *selectedline) { /* change the background if item is selected */
+          attr = cfg->attr_menucurrent;
+          /* attr &= 0x0F;
+          attr |= 0x20; */
+        } else {
+          attr = cfg->attr_menutype;
+        }
+        switch (line_itemtype[x]) {
+          case 'i': /* message */
+            break;
+          case 'h': /* html */
+            prefix = "HTM";
+            break;
+          case '0': /* text */
+            prefix = "TXT";
+            break;
+          case '1':
+            prefix = "DIR";
+            break;
+          case '3':
+            prefix = "ERR";
+            break;
+          case '5':
+          case '9':
+            prefix = "BIN";
+            break;
+          case '7':
+            prefix = "ASK";
+            break;
+          case 'I':
+            prefix = "IMG";
+            break;
+          case 'P':
+          case 'd':
+            prefix = "PDF";
+            break;
+          case 0: /* this is an internal itemtype that means 'it's a continuation of the previous (wrapped) line */
+            prefix = "   ";
+            break;
+          default: /* unknown type */
+            prefix = "UNK";
+            break;
+        }
+        z = 0;
+        if (prefix != NULL) {
+          for (y = 0; y < 3; y++) ui_putchar(prefix[y], attr, y, 1 + (x - *screenlineoffset));
+          ui_putchar(' ', attr, y, 1 + (x - *screenlineoffset));
+          z = 4;
+        }
+        /* select foreground color */
+        /* attr &= 0xF0; */
+        if (x == *selectedline) {
+          /* attr |= 0x00; */
+          attr = cfg->attr_menucurrent;
+        } else if (line_itemtype[x] == 'i') {
+          /* attr |= 0x07; */
+          attr = cfg->attr_textnorm;
+        } else if (line_itemtype[x] == '3') {
+          attr = cfg->attr_menuerr;
+          /* attr |= 0x04; */
+        } else {
+          if (isitemtypeselectable(line_itemtype[x]) != 0) {
+            attr = cfg->attr_menuselectable;
+            /* attr |= 0x02; */
+          } else {
+            attr = cfg->attr_textnorm;
+            /* attr |= 0x08; */
           }
-          switch (line_itemtype[x]) {
-            case 'i': /* message */
-              break;
-            case 'h': /* html */
-              prefix = "HTM";
-              break;
-            case '0': /* text */
-              prefix = "TXT";
-              break;
-            case '1':
-              prefix = "DIR";
-              break;
-            case '3':
-              prefix = "ERR";
-              break;
-            case '5':
-            case '9':
-              prefix = "BIN";
-              break;
-            case '7':
-              prefix = "ASK";
-              break;
-            case 'I':
-              prefix = "IMG";
-              break;
-            case 'P':
-            case 'd':
-              prefix = "PDF";
-              break;
-            case 0: /* this is an internal itemtype that means 'it's a continuation of the previous (wrapped) line */
-              prefix = "   ";
-              break;
-            default: /* unknown type */
-              prefix = "UNK";
-              break;
+        }
+        /* print the the line's description */
+        for (y = 0; y < (80 - z); y++) {
+          if (y < line_description_len[x]) {
+            ui_putchar(line_description[x][y], attr, y + z, 1 + (x - *screenlineoffset));
+          } else {
+            ui_putchar(' ', attr, y + z, 1 + (x - *screenlineoffset));
           }
-          z = 0;
-          if (prefix != NULL) {
-            for (y = 0; y < 3; y++) ui_putchar(prefix[y], attr, y, 1 + (x - *screenlineoffset));
-            ui_putchar(' ', attr, y, 1 + (x - *screenlineoffset));
-            z = 4;
-          }
-          /* select foreground color */
-          /* attr &= 0xF0; */
-          if (x == *selectedline) {
-              /* attr |= 0x00; */
-              attr = cfg->attr_menucurrent;
-            } else if (line_itemtype[x] == 'i') {
-                /* attr |= 0x07; */
-                attr = cfg->attr_textnorm;
-              } else if (line_itemtype[x] == '3') {
-                attr = cfg->attr_menuerr;
-                /* attr |= 0x04; */
-              } else {
-                if (isitemtypeselectable(line_itemtype[x]) != 0) {
-                    attr = cfg->attr_menuselectable;
-                    /* attr |= 0x02; */
-                  } else {
-                    attr = cfg->attr_textnorm;
-                    /* attr |= 0x08; */
-                }
-          }
-          /* print the the line's description */
-          for (y = 0; y < (80 - z); y++) {
-            if (y < line_description_len[x]) {
-                ui_putchar(line_description[x][y], attr, y + z, 1 + (x - *screenlineoffset));
-              } else {
-                ui_putchar(' ', attr, y + z, 1 + (x - *screenlineoffset));
-            }
-          }
-        } else { /* x >= linecount */
-          for (y = 0; y < 80; y++) ui_putchar(' ', cfg->attr_textnorm, y, 1 + (x - *screenlineoffset));
+        }
+      } else { /* x >= linecount */
+        for (y = 0; y < 80; y++) ui_putchar(' ', cfg->attr_textnorm, y, 1 + (x - *screenlineoffset));
       }
     }
     draw_statusbar(statusbar, cfg);
@@ -506,35 +506,35 @@ static int display_menu(struct historytype **history, struct gopherusconfig *cfg
       case 0x0D: /* ENTER */
         if (*selectedline >= 0) {
           if ((line_itemtype[*selectedline] == '7') && (keypress != 0x143)) { /* a query needs to be issued */
-              char query[64];
-              char *finalselector;
-              sprintf(query, "Enter a query: ");
-              draw_statusbar(query, cfg);
-              query[0] = 0;
-              if (editstring(query, 64, 64, 15, ui_getrowcount() - 1, cfg->attr_statusbarinfo) == 0) break;
-              finalselector = malloc(strlen(line_selector[*selectedline]) + strlen(query) + 2); /* add 1 for the TAB, and 1 for the NULL terminator */
-              if (finalselector == NULL) {
-                  set_statusbar(statusbar, "Out of memory");
-                  break;
-                } else {
-                  sprintf(finalselector, "%s\t%s", line_selector[*selectedline], query);
-                  history_add(history, PARSEURL_PROTO_GOPHER, line_host[*selectedline], line_port[*selectedline], line_itemtype[*selectedline], finalselector);
-                  free(finalselector);
-                  return(DISPLAY_ORDER_NONE);
-              }
-            } else { /* itemtype is anything else than type 7 */
-              int tmpproto;
-              unsigned short tmpport;
-              char tmphost[512], tmpitemtype, tmpselector[512];
-              tmpproto = parsegopherurl(curURL, tmphost, &tmpport, &tmpitemtype, tmpselector);
-              if (keypress == 0x143) tmpitemtype = '9'; /* force the itemtype to 'binary' if 'save as' was requested */
-              if (tmpproto < 0) {
-                  set_statusbar(statusbar, "!Unknown protocol");
-                  break;
-                } else {
-                  history_add(history, tmpproto, tmphost, tmpport, tmpitemtype, tmpselector);
-                  return(DISPLAY_ORDER_NONE);
-              }
+            char query[64];
+            char *finalselector;
+            sprintf(query, "Enter a query: ");
+            draw_statusbar(query, cfg);
+            query[0] = 0;
+            if (editstring(query, 64, 64, 15, ui_getrowcount() - 1, cfg->attr_statusbarinfo) == 0) break;
+            finalselector = malloc(strlen(line_selector[*selectedline]) + strlen(query) + 2); /* add 1 for the TAB, and 1 for the NULL terminator */
+            if (finalselector == NULL) {
+              set_statusbar(statusbar, "Out of memory");
+              break;
+            } else {
+              sprintf(finalselector, "%s\t%s", line_selector[*selectedline], query);
+              history_add(history, PARSEURL_PROTO_GOPHER, line_host[*selectedline], line_port[*selectedline], line_itemtype[*selectedline], finalselector);
+              free(finalselector);
+              return(DISPLAY_ORDER_NONE);
+            }
+          } else { /* itemtype is anything else than type 7 */
+            int tmpproto;
+            unsigned short tmpport;
+            char tmphost[512], tmpitemtype, tmpselector[512];
+            tmpproto = parsegopherurl(curURL, tmphost, &tmpport, &tmpitemtype, tmpselector);
+            if (keypress == 0x143) tmpitemtype = '9'; /* force the itemtype to 'binary' if 'save as' was requested */
+            if (tmpproto < 0) {
+              set_statusbar(statusbar, "!Unknown protocol");
+              break;
+            } else {
+              history_add(history, tmpproto, tmphost, tmpport, tmpitemtype, tmpselector);
+              return(DISPLAY_ORDER_NONE);
+            }
           }
         }
         break;
@@ -554,10 +554,10 @@ static int display_menu(struct historytype **history, struct gopherusconfig *cfg
         break;
       case 0x148: /* UP */
         if (*selectedline > firstlinkline) {
-            while (isitemtypeselectable(line_itemtype[--(*selectedline)]) == 0); /* select the next item that is selectable */
-          } else {
-            if (*screenlineoffset > 0) *screenlineoffset -= 1;
-            continue; /* do not force the selected line to be on screen */
+          while (isitemtypeselectable(line_itemtype[--(*selectedline)]) == 0); /* select the next item that is selectable */
+        } else {
+          if (*screenlineoffset > 0) *screenlineoffset -= 1;
+          continue; /* do not force the selected line to be on screen */
         }
         break;
       case 0x149: /* PGUP */
@@ -577,10 +577,10 @@ static int display_menu(struct historytype **history, struct gopherusconfig *cfg
           continue;
         }
         if (*selectedline < lastlinkline) {
-            while (isitemtypeselectable(line_itemtype[++(*selectedline)]) == 0); /* select the next item that is selectable */
-          } else {
-            if (*screenlineoffset < linecount - (ui_getrowcount() - 3)) *screenlineoffset += 1;
-            continue; /* do not force the selected line to be on screen */
+          while (isitemtypeselectable(line_itemtype[++(*selectedline)]) == 0); /* select the next item that is selectable */
+        } else {
+          if (*screenlineoffset < linecount - (ui_getrowcount() - 3)) *screenlineoffset += 1;
+          continue; /* do not force the selected line to be on screen */
         }
         break;
       case 0x151: /* PGDOWN */
@@ -600,10 +600,10 @@ static int display_menu(struct historytype **history, struct gopherusconfig *cfg
     }
     /* if the selected line is going out of the screen, adjust the screen (but only if there is a selectedline at all) */
     if ((*selectedline < *screenlineoffset) && (*selectedline >= 0)) {
-        *screenlineoffset = *selectedline;
-      } else if (*selectedline > *screenlineoffset + (ui_getrowcount() - 3)) {
-        *screenlineoffset = *selectedline - (ui_getrowcount() - 3);
-        if (*screenlineoffset < 0) *screenlineoffset = 0;
+      *screenlineoffset = *selectedline;
+    } else if (*selectedline > *screenlineoffset + (ui_getrowcount() - 3)) {
+      *screenlineoffset = *selectedline - (ui_getrowcount() - 3);
+      if (*screenlineoffset < 0) *screenlineoffset = 0;
     }
   }
 }
@@ -619,98 +619,98 @@ static int display_text(struct historytype **history, struct gopherusconfig *cfg
   /* copy the content of the file into buffer, and take care to modify dangerous chars and apply formating (if any) */
   bufferlen = 0;
   if (txtformat == TXT_FORMAT_HTM) { /* HTML format */
-      int lastcharwasaspace = 0;
-      int insidetoken = -1;
-      int insidescript = 0;
-      int insidebody = 0;
-      char token[8];
-      char specialchar[8];
-      int insidespecialchar = -1;
-      for (x = 0; x < (*history)->cachesize; x++) {
-        if ((insidescript != 0) && (insidetoken < 0) && ((*history)->cache[x] != '<')) continue;
-        switch ((*history)->cache[x]) {
-          case '\t':  /* replace whitespaces by single spaces */
-          case '\n':
-          case '\r':
-          case ' ':
-            if (insidetoken >= 0) {
-              if (insidetoken < 7) token[insidetoken++] = 0;
-              continue;
-            }
-            if (lastcharwasaspace == 0) {
-              buffer[bufferlen++] = ' ';
-              lastcharwasaspace = 1;
-            }
-            break;
-          case '<':
-            lastcharwasaspace = 0;
-            insidetoken = 0;
-            break;
-          case '>':
-            lastcharwasaspace = 0;
-            if (insidetoken < 0) continue;
-            token[insidetoken] = 0;
-            insidetoken = -1;
-            if ((strcasecmp(token, "/p") == 0) || (strcasecmp(token, "br") == 0) || (strcasecmp(token, "/tr") == 0) || (strcasecmp(token, "/title") == 0)) {
-              buffer[bufferlen++] = '\n';
-            } else if (strcasecmp(token, "script") == 0) {
-              insidescript = 1;
-            } else if (strcasecmp(token, "body") == 0) {
-              insidebody = 1;
-            } else if (strcasecmp(token, "/script") == 0) {
-              insidescript = 0;
-            }
-            break;
-          default:
-            lastcharwasaspace = 0;
-            if (insidetoken >= 0) {
-              if (insidetoken < 7) token[insidetoken++] = (*history)->cache[x];
-              continue;
-            }
-            if ((insidespecialchar < 0) && ((*history)->cache[x] == '&')) {
-              insidespecialchar = 0;
-              continue;
-            }
-            if ((insidespecialchar >= 0) && (insidespecialchar < 7)) {
-              if ((*history)->cache[x] != ';') {
-                specialchar[insidespecialchar++] = (*history)->cache[x];
-                continue;
-              }
-              specialchar[insidespecialchar] = 0;
-              if (strcasecmp(specialchar, "nbsp") == 0) {
-                buffer[bufferlen++] = ' ';
-              } else {
-                buffer[bufferlen++] = '_';
-              }
-              insidespecialchar = -1;
-              continue;
-            }
-            if ((*history)->cache[x] < 32) break; /* ignore ascii control chars */
-            if (insidebody == 0) break; /* ignore everything until <body> starts */
-            buffer[bufferlen++] = (*history)->cache[x]; /* copy everything else */
-            break;
-        }
-      }
-    } else { /* process content as raw text */
-      for (x = 0; x < (*history)->cachesize; x++) {
-        switch ((*history)->cache[x]) {
-          case 8:     /* replace tabs by 8 spaces */
-            for (y = 0; y < 8; y++) buffer[bufferlen++] = ' ';
-            break;
-          case '\n':  /* preserve line feeds */
+    int lastcharwasaspace = 0;
+    int insidetoken = -1;
+    int insidescript = 0;
+    int insidebody = 0;
+    char token[8];
+    char specialchar[8];
+    int insidespecialchar = -1;
+    for (x = 0; x < (*history)->cachesize; x++) {
+      if ((insidescript != 0) && (insidetoken < 0) && ((*history)->cache[x] != '<')) continue;
+      switch ((*history)->cache[x]) {
+        case '\t':  /* replace whitespaces by single spaces */
+        case '\n':
+        case '\r':
+        case ' ':
+          if (insidetoken >= 0) {
+            if (insidetoken < 7) token[insidetoken++] = 0;
+            continue;
+          }
+          if (lastcharwasaspace == 0) {
+            buffer[bufferlen++] = ' ';
+            lastcharwasaspace = 1;
+          }
+          break;
+        case '<':
+          lastcharwasaspace = 0;
+          insidetoken = 0;
+          break;
+        case '>':
+          lastcharwasaspace = 0;
+          if (insidetoken < 0) continue;
+          token[insidetoken] = 0;
+          insidetoken = -1;
+          if ((strcasecmp(token, "/p") == 0) || (strcasecmp(token, "br") == 0) || (strcasecmp(token, "/tr") == 0) || (strcasecmp(token, "/title") == 0)) {
             buffer[bufferlen++] = '\n';
-            break;
-          case '\r':  /* ignore CR chars */
-          case 127:   /* as well as DEL chars */
-            break;
-          default:
-            if ((*history)->cache[x] < 32) break; /* ignore ascii control chars */
-            buffer[bufferlen++] = (*history)->cache[x]; /* copy everything else */
-            break;
-        }
+          } else if (strcasecmp(token, "script") == 0) {
+            insidescript = 1;
+          } else if (strcasecmp(token, "body") == 0) {
+            insidebody = 1;
+          } else if (strcasecmp(token, "/script") == 0) {
+            insidescript = 0;
+          }
+          break;
+        default:
+          lastcharwasaspace = 0;
+          if (insidetoken >= 0) {
+            if (insidetoken < 7) token[insidetoken++] = (*history)->cache[x];
+            continue;
+          }
+          if ((insidespecialchar < 0) && ((*history)->cache[x] == '&')) {
+            insidespecialchar = 0;
+            continue;
+          }
+          if ((insidespecialchar >= 0) && (insidespecialchar < 7)) {
+            if ((*history)->cache[x] != ';') {
+              specialchar[insidespecialchar++] = (*history)->cache[x];
+              continue;
+            }
+            specialchar[insidespecialchar] = 0;
+            if (strcasecmp(specialchar, "nbsp") == 0) {
+              buffer[bufferlen++] = ' ';
+            } else {
+              buffer[bufferlen++] = '_';
+            }
+            insidespecialchar = -1;
+            continue;
+          }
+          if ((*history)->cache[x] < 32) break; /* ignore ascii control chars */
+          if (insidebody == 0) break; /* ignore everything until <body> starts */
+          buffer[bufferlen++] = (*history)->cache[x]; /* copy everything else */
+          break;
       }
-      /* check if there is a single . on the last line */
-      if ((buffer[bufferlen - 1] == '\n') && (buffer[bufferlen - 2] == '.')) bufferlen -= 2;
+    }
+  } else { /* process content as raw text */
+    for (x = 0; x < (*history)->cachesize; x++) {
+      switch ((*history)->cache[x]) {
+        case 8:     /* replace tabs by 8 spaces */
+          for (y = 0; y < 8; y++) buffer[bufferlen++] = ' ';
+          break;
+        case '\n':  /* preserve line feeds */
+          buffer[bufferlen++] = '\n';
+          break;
+        case '\r':  /* ignore CR chars */
+        case 127:   /* as well as DEL chars */
+          break;
+        default:
+          if ((*history)->cache[x] < 32) break; /* ignore ascii control chars */
+          buffer[bufferlen++] = (*history)->cache[x]; /* copy everything else */
+          break;
+      }
+    }
+    /* check if there is a single . on the last line */
+    if ((buffer[bufferlen - 1] == '\n') && (buffer[bufferlen - 2] == '.')) bufferlen -= 2;
   }
   /* terminate the buffer with a NULL terminator */
   buffer[bufferlen] = 0;
@@ -736,12 +736,12 @@ static int display_text(struct historytype **history, struct gopherusconfig *cfg
       if (y > lastline) break;
     }
     if (y <= lastline) {
-        eof_flag = 1;
-        for (; y <= lastline ; y++) { /* fill the rest of the screen (if any left) with blanks */
-          for (x = 0; x < 80; x++) ui_putchar(' ', cfg->attr_textnorm, x, y + 1 - firstline);
-        }
-      } else {
-        eof_flag = 0;
+      eof_flag = 1;
+      for (; y <= lastline ; y++) { /* fill the rest of the screen (if any left) with blanks */
+        for (x = 0; x < 80; x++) ui_putchar(' ', cfg->attr_textnorm, x, y + 1 - firstline);
+      }
+    } else {
+      eof_flag = 0;
     }
     draw_statusbar(statusbar, cfg);
     ui_refresh();
@@ -769,18 +769,18 @@ static int display_text(struct historytype **history, struct gopherusconfig *cfg
         break;
       case 0x148: /* UP */
         if (firstline > 0) {
-            firstline -= 1;
-            lastline -= 1;
-          } else {
-            set_statusbar(statusbar, "Reached the top of the file");
+          firstline -= 1;
+          lastline -= 1;
+        } else {
+          set_statusbar(statusbar, "Reached the top of the file");
         }
         break;
       case 0x150: /* DOWN */
         if (eof_flag == 0) {
-            firstline += 1;
-            lastline += 1;
-          } else {
-            set_statusbar(statusbar, "Reached end of file");
+          firstline += 1;
+          lastline += 1;
+        } else {
+          set_statusbar(statusbar, "Reached end of file");
         }
         break;
       case 0x147: /* HOME */
@@ -789,21 +789,21 @@ static int display_text(struct historytype **history, struct gopherusconfig *cfg
         break;
       case 0x149: /* PGUP */
         if (firstline > 0) {
-            firstline -= ui_getrowcount() - 3;
-            if (firstline < 0) firstline = 0;
-            lastline = firstline + ui_getrowcount() - 3;
-          } else {
-            set_statusbar(statusbar, "Reached the top of the file");
+          firstline -= ui_getrowcount() - 3;
+          if (firstline < 0) firstline = 0;
+          lastline = firstline + ui_getrowcount() - 3;
+        } else {
+          set_statusbar(statusbar, "Reached the top of the file");
         }
         break;
       case 0x14F: /* END */
         break;
       case 0x151: /* PGDOWN */
         if (eof_flag == 0) {
-            firstline += ui_getrowcount() - 3;
-            lastline += ui_getrowcount() - 3;
-          } else {
-            set_statusbar(statusbar, "Reached end of file");
+          firstline += ui_getrowcount() - 3;
+          lastline += ui_getrowcount() - 3;
+        } else {
+          set_statusbar(statusbar, "Reached end of file");
         }
         break;
       case 0xFF: /* QUIT IMMEDIATELY */
@@ -877,9 +877,9 @@ static long loadfile_buff(int protocol, char *hostaddr, unsigned int hostport, c
     return(-1);
   }
   if (protocol == PARSEURL_PROTO_HTTP) { /* http */
-      sprintf(buffer, "GET /%s HTTP/1.0\r\nHOST: %s\r\nUSER-AGENT: Gopherus v%s\r\n\r\n", selector, hostaddr, pVer);
-    } else { /* gopher */
-      sprintf(buffer, "%s\r\n", selector);
+    sprintf(buffer, "GET /%s HTTP/1.0\r\nHOST: %s\r\nUSER-AGENT: Gopherus v%s\r\n\r\n", selector, hostaddr, pVer);
+  } else { /* gopher */
+    sprintf(buffer, "%s\r\n", selector);
   }
   if (net_send(sock, buffer, strlen(buffer)) != (int)strlen(buffer)) {
     set_statusbar(statusbar, "!send() error!");
@@ -930,54 +930,54 @@ static long loadfile_buff(int protocol, char *hostaddr, unsigned int hostport, c
         reslength += byteread;
         /* if protocol is http, ignore headers */
         if ((protocol == PARSEURL_PROTO_HTTP) && (headersdone == 0)) {
-            int i;
-            for (i = 0; i < reslength - 2; i++) {
-              if (buffer[i] == '\n') {
-                if (buffer[i + 1] == '\r') i++; /* skip CR if following */
-                if (buffer[i + 1] == '\n') {
-                  i += 2;
-                  headersdone = reslength;
-                  for (reslength = 0; i < headersdone; i++) buffer[reslength++] = buffer[i];
-                  break;
-                }
+          int i;
+          for (i = 0; i < reslength - 2; i++) {
+            if (buffer[i] == '\n') {
+              if (buffer[i + 1] == '\r') i++; /* skip CR if following */
+              if (buffer[i + 1] == '\n') {
+                i += 2;
+                headersdone = reslength;
+                for (reslength = 0; i < headersdone; i++) buffer[reslength++] = buffer[i];
+                break;
               }
             }
-          } else {
-            /* refresh the status bar once every second */
-            if (curtime != lastrefresh) {
-              lastrefresh = curtime;
-              sprintf(statusmsg, "Downloading... [%ld bytes]", reslength);
-              if (notui == 0) {
-                draw_statusbar(statusmsg, cfg);
-              } else {
-                ui_puts(statusmsg);
-              }
-            }
-            /* if downloading to file, write stuff to disk */
-            if ((fd != NULL) && (reslength - fdlen > 4096)) {
-              int writeres = fwrite(buffer, 1, reslength - fdlen, fd);
-              if (writeres < 0) writeres = 0;
-              fdlen += writeres;
-            }
-        }
-      } else {
-        if (curtime - lastactivity > 2) {
-          if (curtime - lastactivity > 20) { /* TIMEOUT! */
-            set_statusbar(statusbar, "!Timeout while waiting for data!");
-            reslength = -1;
-            break;
-          } else {
-            timer_milisleep(250);  /* give the cpu some time up (250ms), the transfer is really slow */
           }
+        } else {
+          /* refresh the status bar once every second */
+          if (curtime != lastrefresh) {
+            lastrefresh = curtime;
+            sprintf(statusmsg, "Downloading... [%ld bytes]", reslength);
+            if (notui == 0) {
+              draw_statusbar(statusmsg, cfg);
+            } else {
+              ui_puts(statusmsg);
+            }
+          }
+          /* if downloading to file, write stuff to disk */
+          if ((fd != NULL) && (reslength - fdlen > 4096)) {
+            int writeres = fwrite(buffer, 1, reslength - fdlen, fd);
+            if (writeres < 0) writeres = 0;
+            fdlen += writeres;
+          }
+      }
+    } else {
+      if (curtime - lastactivity > 2) {
+        if (curtime - lastactivity > 20) { /* TIMEOUT! */
+          set_statusbar(statusbar, "!Timeout while waiting for data!");
+          reslength = -1;
+          break;
+        } else {
+          timer_milisleep(250);  /* give the cpu some time up (250ms), the transfer is really slow */
         }
+      }
     }
   }
   if (reslength >= 0) {
-      statusmsg[0] = 0;
-      if (notui == 0) draw_statusbar(statusmsg, cfg);
-      net_close(sock);
-    } else {
-      net_abort(sock);
+    statusmsg[0] = 0;
+    if (notui == 0) draw_statusbar(statusmsg, cfg);
+    net_close(sock);
+  } else {
+    net_abort(sock);
   }
   if (fd != NULL) { /* finish the buffer */
     char tmpmsg[80];
@@ -1104,62 +1104,62 @@ int main(int argc, char **argv) {
 
   for (;;) {
     if ((history->itemtype == '0') || (history->itemtype == '1') || (history->itemtype == '7') || (history->itemtype == 'h')) { /* if it's a displayable item type... */
-        draw_urlbar(history, &cfg);
-        if (history->cache == NULL) { /* reload the resource if not in cache already */
-          bufferlen = loadfile_buff(history->protocol, history->host, history->port, history->selector, buffer, buffersize, statusbar, NULL, &cfg, 0);
-          if (bufferlen < 0) {
-              history_back(&history);
-              continue;
-            } else {
-              history_cleanupcache(history);
-              history->cache = malloc(bufferlen);
-              if (history->cache == NULL) {
-                sprintf(statusbar, "Out of memory!");
-                exitflag = 1;
-                break;
-              }
-              if (bufferlen > 0) memcpy(history->cache, buffer, bufferlen);
-              history->cachesize = bufferlen;
+      draw_urlbar(history, &cfg);
+      if (history->cache == NULL) { /* reload the resource if not in cache already */
+        bufferlen = loadfile_buff(history->protocol, history->host, history->port, history->selector, buffer, buffersize, statusbar, NULL, &cfg, 0);
+        if (bufferlen < 0) {
+          history_back(&history);
+          continue;
+        } else {
+          history_cleanupcache(history);
+          history->cache = malloc(bufferlen);
+          if (history->cache == NULL) {
+            sprintf(statusbar, "Out of memory!");
+            exitflag = 1;
+            break;
           }
+          if (bufferlen > 0) memcpy(history->cache, buffer, bufferlen);
+          history->cachesize = bufferlen;
         }
-        switch (history->itemtype) {
-          case '0': /* text file */
-            exitflag = display_text(&history, &cfg, buffer, statusbar, TXT_FORMAT_RAW);
-            break;
-          case 'h': /* html file */
-            exitflag = display_text(&history, &cfg, buffer, statusbar, TXT_FORMAT_HTM);
-            break;
-          case '1': /* menu */
-          case '7': /* query result (also a menu) */
-            exitflag = display_menu(&history, &cfg, buffer, statusbar);
-            break;
-          default:
-            set_statusbar(statusbar, "Fatal error: got an unhandled itemtype!");
-            exitflag = DISPLAY_ORDER_QUIT;
-            break;
-        }
-        if (exitflag == DISPLAY_ORDER_BACK) {
-            history_back(&history);
-          } else if (exitflag == DISPLAY_ORDER_REFR) {
-            free(history->cache);
-            history->cache = NULL;
-            history->cachesize = 0;
-            history->displaymemory[0] = -1;
-            history->displaymemory[1] = -1;
-          } else if (exitflag == DISPLAY_ORDER_QUIT) {
-            break;
-        }
-      } else { /* the itemtype is not one of the internally displayable types -> ask to download it */
-        char filename[64] = {0};
-        const char *prompt = "Download as: ";
-        int i;
-        set_statusbar(filename, ""); /* make sure to clear out the status bar */
-        draw_statusbar(filename, &cfg);
-        for (i = 0; prompt[i] != 0; i++) ui_putchar(prompt[i], 0x70, i, ui_getrowcount() - 1);
-        if (editstring(filename, 63, 63, i, ui_getrowcount() - 1, 0x70) != 0) {
-          loadfile_buff(history->protocol, history->host, history->port, history->selector, buffer, buffersize, statusbar, filename, &cfg, 0);
-        }
+      }
+      switch (history->itemtype) {
+        case '0': /* text file */
+          exitflag = display_text(&history, &cfg, buffer, statusbar, TXT_FORMAT_RAW);
+          break;
+        case 'h': /* html file */
+          exitflag = display_text(&history, &cfg, buffer, statusbar, TXT_FORMAT_HTM);
+          break;
+        case '1': /* menu */
+        case '7': /* query result (also a menu) */
+          exitflag = display_menu(&history, &cfg, buffer, statusbar);
+          break;
+        default:
+          set_statusbar(statusbar, "Fatal error: got an unhandled itemtype!");
+          exitflag = DISPLAY_ORDER_QUIT;
+          break;
+      }
+      if (exitflag == DISPLAY_ORDER_BACK) {
         history_back(&history);
+      } else if (exitflag == DISPLAY_ORDER_REFR) {
+        free(history->cache);
+        history->cache = NULL;
+        history->cachesize = 0;
+        history->displaymemory[0] = -1;
+        history->displaymemory[1] = -1;
+      } else if (exitflag == DISPLAY_ORDER_QUIT) {
+        break;
+      }
+    } else { /* the itemtype is not one of the internally displayable types -> ask to download it */
+      char filename[64] = {0};
+      const char *prompt = "Download as: ";
+      int i;
+      set_statusbar(filename, ""); /* make sure to clear out the status bar */
+      draw_statusbar(filename, &cfg);
+      for (i = 0; prompt[i] != 0; i++) ui_putchar(prompt[i], 0x70, i, ui_getrowcount() - 1);
+      if (editstring(filename, 63, 63, i, ui_getrowcount() - 1, 0x70) != 0) {
+        loadfile_buff(history->protocol, history->host, history->port, history->selector, buffer, buffersize, statusbar, filename, &cfg, 0);
+      }
+      history_back(&history);
     }
   }
   ui_cursor_show(); /* unhide the cursor */
