@@ -622,6 +622,7 @@ static int display_text(struct historytype **history, struct gopherusconfig *cfg
       int lastcharwasaspace = 0;
       int insidetoken = -1;
       int insidescript = 0;
+      int insidebody = 0;
       char token[8];
       char specialchar[8];
       int insidespecialchar = -1;
@@ -651,11 +652,13 @@ static int display_text(struct historytype **history, struct gopherusconfig *cfg
             token[insidetoken] = 0;
             insidetoken = -1;
             if ((strcasecmp(token, "/p") == 0) || (strcasecmp(token, "br") == 0) || (strcasecmp(token, "/tr") == 0) || (strcasecmp(token, "/title") == 0)) {
-                buffer[bufferlen++] = '\n';
-              } else if (strcasecmp(token, "script") == 0) {
-                insidescript = 1;
-              } else if (strcasecmp(token, "/script") == 0) {
-                insidescript = 0;
+              buffer[bufferlen++] = '\n';
+            } else if (strcasecmp(token, "script") == 0) {
+              insidescript = 1;
+            } else if (strcasecmp(token, "body") == 0) {
+              insidebody = 1;
+            } else if (strcasecmp(token, "/script") == 0) {
+              insidescript = 0;
             }
             break;
           default:
@@ -675,14 +678,15 @@ static int display_text(struct historytype **history, struct gopherusconfig *cfg
               }
               specialchar[insidespecialchar] = 0;
               if (strcasecmp(specialchar, "nbsp") == 0) {
-                  buffer[bufferlen++] = ' ';
-                } else {
-                  buffer[bufferlen++] = '_';
+                buffer[bufferlen++] = ' ';
+              } else {
+                buffer[bufferlen++] = '_';
               }
               insidespecialchar = -1;
               continue;
             }
             if ((*history)->cache[x] < 32) break; /* ignore ascii control chars */
+            if (insidebody == 0) break; /* ignore everything until <body> starts */
             buffer[bufferlen++] = (*history)->cache[x]; /* copy everything else */
             break;
         }
