@@ -22,11 +22,20 @@ wraptest.exe: wraptest.c wordwrap.o
 pkg: gopherus.exe
 	if exist pkg_dos\nul deltree /y pkg_dos
 	mkdir pkg_dos
-	copy gopherus.exe pkg_dos
-	copy gopherus.txt pkg_dos
-	copy license.txt pkg_dos
-	copy history.txt pkg_dos
-	copy gopherus.ico pkg_dos
+	mkdir pkg_dos\progs
+	mkdir pkg_dos\progs\gopherus
+	mkdir pkg_dos\appinfo
+	mkdir pkg_dos\links
+	mkdir pkg_dos\source
+	mkdir pkg_dos\source\gopherus
+	copy gopherus.exe pkg_dos\progs\gopherus
+	copy gopherus.txt pkg_dos\progs\gopherus
+	copy license.txt pkg_dos\progs\gopherus
+	copy history.txt pkg_dos\progs\gopherus
+	copy gopherus.ico pkg_dos\progs\gopherus
+	copy dos\gopherus.lsm pkg_dos\appinfo
+	copy dos\gopherus.bat pkg_dos\links
+	echo ADD PKG_DOS\SOURCE\GOPHERUS AND ZIP IT ALL
 
 clean:
 	del *.o
