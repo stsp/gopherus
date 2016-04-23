@@ -2,12 +2,12 @@
 Gopherus changelog
 
 
-Gopherus v1.0c [xx xxx xxxx]:
- - [new] Linux ports uses the curses output by default instead of SDL,
+Gopherus v1.0c [23 Apr 2016]:
+ - [new] Linux port uses the curses interface by default instead of SDL,
  - [fix] Gopherus accepts URLs with only a hostname followed by a slash,
- - [fix] DOS port is UPXed without LZMA to speed up launching on 386 machines,
- - [fix] Fixed freeze of gopherus when trying to display some '0' items,
- - ...
+ - [fix] Fixed gopherus freezes when trying to display some '0' items,
+ - [mnt] DOS port is UPXed without LZMA to speed up launching on 386 machines,
+ - [mnt] DOS port is compiled using DJGPP v2.05 instead of v2.04.
 
 Gopherus v1.0b [29 Jul 2015]:
  - [new] Added support for scripted downloading (-o=xxx),
@@ -18,10 +18,13 @@ Gopherus v1.0b [29 Jul 2015]:
  - [fix] DOS exe linked with a 387 emu lib so gopherus can run on a 386SX.
 
 Gopherus v1.0a [30 Mar 2013]:
- - [fix] When refreshing a location, the display properties (position of the file on screen) are reset as well now. This prevents corrupt rendering if the file changes between refreshes,
- - [fix] Fixed a bug leading to random crashes when the URL inside a menu was longer than 128 bytes,
- - [new] F9 (save) works from within text content locations (not only from menus),
- - [new] Added configurable color schemes, via the GOPHERUSCOLOR environment variable (see the manual for details).
+ - [fix] When refreshing a location, the display properties (position of the
+         file on screen) are reset as well now. This prevents corrupt rendering
+         if the file changes between refreshes,
+ - [fix] Fixed a bug leading to random crashes when the URL inside a menu was
+         longer than 128 bytes,
+ - [new] F9 (save) works from within text content (not only from menus),
+ - [new] Added configurable color schemes, via the GOPHERUSCOLOR env. variable.
 
 Gopherus v1.0 [10 Mar 2013]:
  - first public release.

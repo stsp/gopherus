@@ -1,6 +1,6 @@
 /**************************************************************************
  * Gopherus - a console-mode gopher client                                *
- * Copyright (C) Mateusz Viste 2013-2015                                  *
+ * Copyright (C) 2013-2016 Mateusz Viste                                  *
  *                                                                        *
  * This program is free software: you can redistribute it and/or modify   *
  * it under the terms of the GNU General Public License as published by   *
@@ -33,7 +33,7 @@
 #include "startpg.h"
 
 #define pVer "1.0c"
-#define pDate "2013-2015"
+#define pDate "2013-2016"
 
 
 #define DISPLAY_ORDER_NONE 0
@@ -1026,7 +1026,7 @@ int main(int argc, char **argv) {
         saveas[sizeof(saveas) - 1] = 0; /* make sure the string is NULL-terminated */
         continue;
       } else if ((argv[i][0] == '/') || (argv[i][0] == '-')) { /* unknown parameter */
-        ui_puts("Gopherus v" pVer " Copyright (C) Mateusz Viste " pDate);
+        ui_puts("Gopherus v" pVer " Copyright (C) " pDate " Mateusz Viste");
         ui_puts("");
         ui_puts("Usage: gopherus [url [-o=outfile]]");
         ui_puts("");

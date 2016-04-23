@@ -140,13 +140,13 @@ int loadembeddedstartpage(char *buffer, char *token, char *pVer, char *pDate) {
                      "   RFC 4266: The gopher URI Scheme\n";
 
   if (token[0] == 'l') { /* license */
-      sprintf(linebuff, "\n Gopherus v%s Copyright (C) Mateusz Viste %s\n", pVer, pDate);
+      sprintf(linebuff, "\n Gopherus v%s Copyright (C) %s Mateusz Viste\n", pVer, pDate);
       for (y = 0; linebuff[y] != 0; ) buffer[x++] = linebuff[y++];
       for (y = 0; lic1[y] != 0; ) buffer[x++] = lic1[y++];
       for (y = 0; lic2[y] != 0; ) buffer[x++] = lic2[y++];
       return(x);
     } else if (token[0] == 'm') { /* manual */
-      sprintf(linebuff, "\n Gopherus v%s Copyright (C) Mateusz Viste %s\n", pVer, pDate);
+      sprintf(linebuff, "\n Gopherus v%s Copyright (C) %s Mateusz Viste\n", pVer, pDate);
       for (y = 0; linebuff[y] != 0; ) buffer[x++] = linebuff[y++];
       for (y = 0; man1[y] != 0; ) buffer[x++] = man1[y++];
       for (y = 0; man2[y] != 0; ) buffer[x++] = man2[y++];
@@ -157,7 +157,7 @@ int loadembeddedstartpage(char *buffer, char *token, char *pVer, char *pDate) {
       for (y = 0; man7[y] != 0; ) buffer[x++] = man7[y++];
       return(x);
     } else { /* welcome screen */
-      sprintf(linebuff, "i\ni          ***  Gopherus v%s Copyright (C) Mateusz Viste %s  ***\n", pVer, pDate);
+      sprintf(linebuff, "i\ni          ***  Gopherus v%s Copyright (C) %s Mateusz Viste  ***\n", pVer, pDate);
       for (y = 0; linebuff[y] != 0; ) buffer[x++] = linebuff[y++];
       for (y = 0; wel1[y] != 0; ) buffer[x++] = wel1[y++];
       for (y = 0; wel2[y] != 0; ) buffer[x++] = wel2[y++];
