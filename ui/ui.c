@@ -2,15 +2,25 @@
  * This file is part of the gopherus project.
  * It provides abstract functions to draw on screen.
  *
- * Copyright (C) Mateusz Viste 2013-2015
+ * Copyright (C) Mateusz Viste 2013-2016
  *
- * Provides all UI functions used by Gopherus, basing on DJGPP conio facilities.
+ * Provides all UI functions used by Gopherus, based on DJGPP conio facilities.
  */
 
 #include <conio.h>
 #include <pc.h>    /* ScreenRows() */
 
 #include "ui.h"  /* include self for control */
+
+
+/* inits the UI subsystem */
+void ui_init(void) {
+}
+
+
+void ui_close(void) {
+}
+
 
 int ui_getrowcount(void) {
  return(ScreenRows());
