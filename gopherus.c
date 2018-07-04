@@ -32,8 +32,8 @@
 #include "wordwrap.h"
 #include "startpg.h"
 
-#define pVer "1.0c"
-#define pDate "2013-2016"
+#define pVer "1.1 beta"
+#define pDate "2013-2018"
 
 
 #define DISPLAY_ORDER_NONE 0
@@ -304,7 +304,7 @@ static int isitemtypeselectable(char itemtype) {
 }
 
 
-static int display_menu(struct historytype **history, struct gopherusconfig *cfg, char *buffer, char *statusbar) {
+static int display_menu(struct historytype **history, struct gopherusconfig *cfg, char *buffer, long buffersize, char *statusbar) {
   char *description, *cursor, *selector, *host, *port, itemtype;
   int endofline;
   long bufferlen;
@@ -323,7 +323,8 @@ static int display_menu(struct historytype **history, struct gopherusconfig *cfg
   if (*screenlineoffset < 0) *screenlineoffset = 0;
   /* copy the history content into buffer - we need to do this because we'll perform changes on the data */
   bufferlen = (*history)->cachesize;
-  memcpy(buffer, (*history)->cache, (*history)->cachesize);
+  if (bufferlen > buffersize) bufferlen = buffersize;
+  memcpy(buffer, (*history)->cache, bufferlen);
   buffer[bufferlen] = 0;
   /* */
   linecount = 0;
@@ -609,13 +610,15 @@ static int display_menu(struct historytype **history, struct gopherusconfig *cfg
 }
 
 
-static int display_text(struct historytype **history, struct gopherusconfig *cfg, char *buffer, char *statusbar, int txtformat) {
+static int display_text(struct historytype **history, struct gopherusconfig *cfg, char *buffer, long buffersize, char *statusbar, int txtformat) {
   char *txtptr;
   char linebuff[128];
   long x, y, firstline, lastline, bufferlen;
   int eof_flag;
-  sprintf(linebuff, "file loaded (%ld bytes)", (*history)->cachesize);
-  set_statusbar(statusbar, linebuff);
+  if (statusbar[0] == 0) {
+    sprintf(linebuff, "file loaded (%ld bytes)", (*history)->cachesize);
+    set_statusbar(statusbar, linebuff);
+  }
   /* copy the content of the file into buffer, and take care to modify dangerous chars and apply formating (if any) */
   bufferlen = 0;
   if (txtformat == TXT_FORMAT_HTM) { /* HTML format */
@@ -627,6 +630,7 @@ static int display_text(struct historytype **history, struct gopherusconfig *cfg
     char specialchar[8];
     int insidespecialchar = -1;
     for (x = 0; x < (*history)->cachesize; x++) {
+      if ((bufferlen + 4) > buffersize) break;
       if ((insidescript != 0) && (insidetoken < 0) && ((*history)->cache[x] != '<')) continue;
       switch ((*history)->cache[x]) {
         case '\t':  /* replace whitespaces by single spaces */
@@ -693,6 +697,7 @@ static int display_text(struct historytype **history, struct gopherusconfig *cfg
     }
   } else { /* process content as raw text */
     for (x = 0; x < (*history)->cachesize; x++) {
+      if (bufferlen + 10 > buffersize) break;
       switch ((*history)->cache[x]) {
         case 8:     /* replace tabs by 8 spaces */
           for (y = 0; y < 8; y++) buffer[bufferlen++] = ' ';
@@ -822,6 +827,7 @@ static int display_text(struct historytype **history, struct gopherusconfig *cfg
 static long loadfile_buff(int protocol, char *hostaddr, unsigned int hostport, char *selector, char *buffer, long buffer_max, char *statusbar, char *filename, struct gopherusconfig *cfg, int notui) {
   unsigned long int ipaddr;
   long reslength, byteread, fdlen = 0;
+  int warnflag = 0;
   char statusmsg[128];
   time_t lastrefresh = 0;
   FILE *fd = NULL;
@@ -910,8 +916,8 @@ static long loadfile_buff(int protocol, char *hostaddr, unsigned int hostport, c
   reslength = 0;
   for (;;) {
     if (buffer_max + fdlen - reslength < 1) { /* too much data! */
-      set_statusbar(statusbar, "!Error: Server's answer is too long!");
-      reslength = -1;
+      set_statusbar(statusbar, "!Error: Server's answer is too long! (truncated)");
+      warnflag = 1;
       break;
     }
     byteread = net_recv(sock, buffer + (reslength - fdlen), buffer_max + fdlen - reslength);
@@ -972,7 +978,7 @@ static long loadfile_buff(int protocol, char *hostaddr, unsigned int hostport, c
       }
     }
   }
-  if (reslength >= 0) {
+  if ((reslength >= 0) && (warnflag == 0)) {
     statusmsg[0] = 0;
     if (notui == 0) draw_statusbar(statusmsg, cfg);
     net_close(sock);
@@ -1124,14 +1130,14 @@ int main(int argc, char **argv) {
       }
       switch (history->itemtype) {
         case '0': /* text file */
-          exitflag = display_text(&history, &cfg, buffer, statusbar, TXT_FORMAT_RAW);
+          exitflag = display_text(&history, &cfg, buffer, buffersize, statusbar, TXT_FORMAT_RAW);
           break;
         case 'h': /* html file */
-          exitflag = display_text(&history, &cfg, buffer, statusbar, TXT_FORMAT_HTM);
+          exitflag = display_text(&history, &cfg, buffer, buffersize, statusbar, TXT_FORMAT_HTM);
           break;
         case '1': /* menu */
         case '7': /* query result (also a menu) */
-          exitflag = display_menu(&history, &cfg, buffer, statusbar);
+          exitflag = display_menu(&history, &cfg, buffer, buffersize, statusbar);
           break;
         default:
           set_statusbar(statusbar, "Fatal error: got an unhandled itemtype!");

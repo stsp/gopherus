@@ -2,6 +2,10 @@
 Gopherus changelog
 
 
+Gopherus v1.1 [xx xxx xxxx]:
+ - better checking for content overflows,
+ - ...
+
 Gopherus v1.0c [23 Apr 2016]:
  - [new] Linux port uses the curses interface by default instead of SDL,
  - [fix] Gopherus accepts URLs with only a hostname followed by a slash,
