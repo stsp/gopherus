@@ -1,6 +1,6 @@
 /**************************************************************************
  * Gopherus - a console-mode gopher client                                *
- * Copyright (C) 2013-2016 Mateusz Viste                                  *
+ * Copyright (C) 2013-2018 Mateusz Viste                                  *
  *                                                                        *
  * This program is free software: you can redistribute it and/or modify   *
  * it under the terms of the GNU General Public License as published by   *
@@ -24,6 +24,7 @@
 #include <time.h>    /* time_t */
 
 #include "dnscache.h"
+#include "config.h"
 #include "history.h"
 #include "net/net.h"
 #include "parseurl.h"
@@ -31,10 +32,7 @@
 #include "timer/timer.h"
 #include "wordwrap.h"
 #include "startpg.h"
-
-#define pVer "1.1 beta"
-#define pDate "2013-2018"
-
+#include "version.h"
 
 #define DISPLAY_ORDER_NONE 0
 #define DISPLAY_ORDER_QUIT 1
@@ -835,7 +833,7 @@ static long loadfile_buff(int protocol, char *hostaddr, unsigned int hostport, c
   struct net_tcpsocket *sock;
   time_t lastactivity, curtime;
   if (hostaddr[0] == '#') { /* embedded start page */
-    reslength = loadembeddedstartpage(buffer, hostaddr + 1, pVer, pDate);
+    reslength = loadembeddedstartpage(buffer, buffer_max, hostaddr + 1);
     /* open file, if downloading to a file */
     if (filename != NULL) {
       fd = fopen(filename, "rb"); /* try to open for read - this should fail */
@@ -998,9 +996,6 @@ static long loadfile_buff(int protocol, char *hostaddr, unsigned int hostport, c
 }
 
 
-
-#define buffersize 1024*1024
-
 int main(int argc, char **argv) {
   int exitflag;
   char statusbar[128] = {0};
@@ -1056,10 +1051,10 @@ int main(int argc, char **argv) {
     }
   }
 
-  buffer = malloc(buffersize);
+  buffer = malloc(PAGEBUFSZ);
   if (buffer == NULL) {
     char message[128];
-    sprintf(message, "Out of memory. Could not allocate buffer of %d bytes.", buffersize);
+    sprintf(message, "Out of memory. Could not allocate buffer of %d bytes.", PAGEBUFSZ);
     ui_puts(message);
     return(2);
   }
@@ -1077,7 +1072,7 @@ int main(int argc, char **argv) {
       ui_puts("You must provide an URL when using -o=...");
       res = -1;
     } else {
-      res = loadfile_buff(history->protocol, history->host, history->port, history->selector, buffer, buffersize, statusbar, saveas, &cfg, 1);
+      res = loadfile_buff(history->protocol, history->host, history->port, history->selector, buffer, PAGEBUFSZ, statusbar, saveas, &cfg, 1);
     }
     /* Free the main buffer */
     free(buffer);
@@ -1112,7 +1107,7 @@ int main(int argc, char **argv) {
     if ((history->itemtype == '0') || (history->itemtype == '1') || (history->itemtype == '7') || (history->itemtype == 'h')) { /* if it's a displayable item type... */
       draw_urlbar(history, &cfg);
       if (history->cache == NULL) { /* reload the resource if not in cache already */
-        bufferlen = loadfile_buff(history->protocol, history->host, history->port, history->selector, buffer, buffersize, statusbar, NULL, &cfg, 0);
+        bufferlen = loadfile_buff(history->protocol, history->host, history->port, history->selector, buffer, PAGEBUFSZ, statusbar, NULL, &cfg, 0);
         if (bufferlen < 0) {
           history_back(&history);
           continue;
@@ -1130,14 +1125,14 @@ int main(int argc, char **argv) {
       }
       switch (history->itemtype) {
         case '0': /* text file */
-          exitflag = display_text(&history, &cfg, buffer, buffersize, statusbar, TXT_FORMAT_RAW);
+          exitflag = display_text(&history, &cfg, buffer, PAGEBUFSZ, statusbar, TXT_FORMAT_RAW);
           break;
         case 'h': /* html file */
-          exitflag = display_text(&history, &cfg, buffer, buffersize, statusbar, TXT_FORMAT_HTM);
+          exitflag = display_text(&history, &cfg, buffer, PAGEBUFSZ, statusbar, TXT_FORMAT_HTM);
           break;
         case '1': /* menu */
         case '7': /* query result (also a menu) */
-          exitflag = display_menu(&history, &cfg, buffer, buffersize, statusbar);
+          exitflag = display_menu(&history, &cfg, buffer, PAGEBUFSZ, statusbar);
           break;
         default:
           set_statusbar(statusbar, "Fatal error: got an unhandled itemtype!");
@@ -1163,7 +1158,7 @@ int main(int argc, char **argv) {
       draw_statusbar(filename, &cfg);
       for (i = 0; prompt[i] != 0; i++) ui_putchar(prompt[i], 0x70, i, ui_getrowcount() - 1);
       if (editstring(filename, 63, 63, i, ui_getrowcount() - 1, 0x70) != 0) {
-        loadfile_buff(history->protocol, history->host, history->port, history->selector, buffer, buffersize, statusbar, filename, &cfg, 0);
+        loadfile_buff(history->protocol, history->host, history->port, history->selector, buffer, PAGEBUFSZ, statusbar, filename, &cfg, 0);
       }
       history_back(&history);
     }

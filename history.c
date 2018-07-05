@@ -5,10 +5,10 @@
 
 #include <stdlib.h>  /* malloc(), NULL */
 #include <string.h>  /* strcasecmp(), ... */
+
+#include "config.h"
 #include "history.h" /* include self for control and type declaration */
 
-
-#define MAXALLOWEDCACHE 1024*1024*2
 
 static void history_free_node(struct historytype *node) {
   if (node->cache != NULL) free(node->cache);
@@ -30,7 +30,7 @@ void history_back(struct historytype **history) {
   }
   /* check if the last request was a query, and if not in cache, put a message instead to avoid reloading a query again */
   if (((*history)->itemtype == '7') && ((*history)->cache == NULL)) {
-    char *msg = "3Query not in cache\ni\niThis location is not avaiable in the local cache. Gopherus is not reissuing custom queries automatically. If you wish to force a reload, press F5.\n";
+    char *msg = "3Query not in cache\ni\niThis location is not available in the local cache. Gopherus is not reissuing custom queries automatically. If you wish to force a reload, press F5.\n";
     (*history)->cachesize = strlen(msg);
     (*history)->cache = malloc((*history)->cachesize + 1);
     if ((*history)->cache == NULL) { /* oops, out of memory! */
