@@ -195,7 +195,7 @@ void ui_cursor_hide(void) {
 
 void ui_refresh(void) {
   int x, y, xx, yy, pitch, attr;
-  char c;
+  unsigned char c;
   uint32_t *glyphbuff, *screenptr;
   const unsigned long attrpal[16] = {0x000000l, 0x0000AAl, 0x00AA00l, 0x00AAAAl, 0xAA0000l, 0xAA00AAl, 0xAA5500l, 0xAAAAAAl, 0x555555l, 0x5555FFl, 0x55FF55l, 0x55FFFFl, 0xFF5555l, 0xFF55FFl, 0xFFFF55l, 0xFFFFFFl};
 
@@ -209,7 +209,7 @@ void ui_refresh(void) {
 
       for (yy = 0; yy < 16; yy++) {
         for (xx = 0; xx < 8; xx++) {
-          if ((ascii_font[((unsigned)c << 4) + yy] & (1 << xx)) != 0) {
+          if ((ascii_font[(c << 4) + yy] & (1 << xx)) != 0) {
             glyphbuff[(7 - xx) + yy * (pitch / 4)] = attrpal[attr & 0x0f];
           } else {
             glyphbuff[(7 - xx) + yy * (pitch / 4)] = attrpal[attr >> 4];
