@@ -86,7 +86,7 @@ void ui_locate(int y, int x) {
 
 void ui_putchar(char c, int attr, int x, int y) {
   if ((x >= SCREENWIDTH) || (y >= SCREENHEIGHT) || (x < 0) || (y < 0)) return;
-  screenbuffer[y][x] = (attr << 8) | c;
+  screenbuffer[y][x] = (attr << 8) | (unsigned char)c;
 }
 
 
