@@ -7,12 +7,12 @@ LIB = watt32/bin/386watt.a -lemu
 
 all: gopherus.exe
 
-gopherus.exe: gopherus.o dnscache.o history.o int2str.o net.o parseurl.o startpg.o timer.o ui-dj.o wordwrap.o
-	gcc gopherus.o dnscache.o history.o int2str.o net.o parseurl.o startpg.o timer.o ui-dj.o wordwrap.o -o gopherus.exe $(LIB) $(CFLAGS)
+gopherus.exe: gopherus.o dnscache.o history.o int2str.o net-w32.o parseurl.o startpg.o timer.o ui-dj.o wordwrap.o
+	gcc gopherus.o dnscache.o history.o int2str.o net-w32.o parseurl.o startpg.o timer.o ui-dj.o wordwrap.o -o gopherus.exe $(LIB) $(CFLAGS)
 	upx -9 gopherus.exe
 
-net.o: net/net.c
-	gcc -c net/net.c -o net.o $(CFLAGS)
+net-w32.o: net/net-w32.c
+	gcc -c net/net-w32.c -o net-w32.o $(CFLAGS)
 
 ui-dj.o: ui/ui-dj.c
 	gcc -c ui/ui-dj.c -o ui-dj.o $(CFLAGS)
