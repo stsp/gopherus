@@ -1015,8 +1015,8 @@ int main(int argc, char **argv) {
 
   if (argc > 1) { /* if some params have been received, parse them */
     char itemtype;
-    char hostaddr[1024];
-    char selector[1024];
+    char hostaddr[64];
+    char selector[256];
     unsigned short hostport, i;
     int protocol;
     int goturl = 0;
@@ -1054,7 +1054,7 @@ int main(int argc, char **argv) {
   buffer = malloc(PAGEBUFSZ);
   if (buffer == NULL) {
     char message[128];
-    sprintf(message, "Out of memory. Could not allocate buffer of %d bytes.", PAGEBUFSZ);
+    sprintf(message, "Out of memory. Could not allocate buffer of %ld bytes.", PAGEBUFSZ);
     ui_puts(message);
     return(2);
   }
