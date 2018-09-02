@@ -14,3 +14,7 @@ DOS 16-bit build (with reduced memory buffers and using picoTCP)
 display_text() and display_menu() shouldn't need to copy content into another buffer before displaying it.
 
 loadfile_buff() shouldn't use the buffer if it writes to a file anyway
+
+parseurl() should perform proper array boundary checks
+
+investigate the DNS cache - seems to appear in two different places (in dnscache.c and in net-w32.c)
