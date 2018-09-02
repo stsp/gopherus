@@ -14,10 +14,24 @@
 #ifndef CONFIG_H
 #define CONFIG_H
 
-#define DNS_MAXENTRIES 16
-#define DNS_MAXHOSTLEN 31
-#define DNS_CACHETIME 120
-#define PAGEBUFSZ 1024*1024
-#define MAXALLOWEDCACHE 1024*1024*2
+#ifndef DNS_MAXENTRIES
+#define DNS_MAXENTRIES 16l
+#endif
+
+#ifndef DNS_MAXHOSTLEN
+#define DNS_MAXHOSTLEN 31l
+#endif
+
+#ifndef DNS_CACHETIME
+#define DNS_CACHETIME 120l
+#endif
+
+#ifndef PAGEBUFSZ
+#define PAGEBUFSZ 1024l*1024
+#endif
+
+#ifndef MAXALLOWEDCACHE
+#define MAXALLOWEDCACHE 1024l*1024*2
+#endif
 
 #endif
