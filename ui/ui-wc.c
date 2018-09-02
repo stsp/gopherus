@@ -2,14 +2,11 @@
  * This file is part of the gopherus project.
  * It provides abstract functions to draw on screen.
  *
- * Copyright (C) Mateusz Viste 2013-2015
+ * Copyright (C) Mateusz Viste 2013-2018
  *
- * Provides all UI functions used by Gopherus, basing on OpenWatcom facilities.
- *
- * THIS CODE IS NOT FUNCTIONAL - PROTOTYPE ONLY!
+ * Provides all UI functions used by Gopherus, relying on BIOS and DOS
  */
 
-#include <conio.h>
 #include <dos.h>
 
 #include "ui.h"  /* include self for control */
@@ -18,6 +15,25 @@ unsigned char far *vmem; /* video memory pointer (beginning of page 0) */
 int term_width = 0, term_height = 0;
 int cursor_start = 0, cursor_end = 0; /* remember the cursor's shape */
 
+/* inits the UI subsystem */
+void ui_init(void) {
+  union REGS regs;
+  regs.h.ah = 0x0F;  /* get current video mode */
+  int86(0x10, &regs, &regs);
+  term_width = regs.h.ah; /* int10,F provides number of columns in AH */
+  /* read screen length from BIOS at 0040:0084 */
+  term_height = (*(unsigned char far *) MK_FP(0x40, 0x84)) + 1;
+  if (term_height < 10) term_height = 25; /* assume 25 rows if weird value */
+  /* select the correct VRAM address */
+  if (regs.h.al == 7) { /* MDA/HERC mode */
+    vmem = MK_FP(0xB000, 0); /* B000:0000 video memory addess */
+  } else {
+    vmem = MK_FP(0xB800, 0); /* B800:0000 video memory address */
+  }
+}
+
+void ui_close(void) {
+}
 
 static void cursor_set(int startscanline, int endscanline) {
   union REGS regs;
@@ -28,24 +44,49 @@ static void cursor_set(int startscanline, int endscanline) {
 }
 
 int ui_getrowcount(void) {
-  /* TODO */
-  return(25);
+  return(term_height);
 }
 
 
 int ui_getcolcount(void) {
-  /* TODO */
-  return(80);
+  return(term_width);
 }
 
 
 void ui_cls(void) {
-  /* TODO */
+  union REGS regs;
+  regs.x.ax = 0x0600;  /* Scroll window up, entire window */
+  regs.h.bh = 0x07;    /* Attribute to write to screen */
+  regs.h.bl = 0;
+  regs.x.cx = 0x0000;  /* Upper left */
+  regs.h.dh = term_height - 1;
+  regs.h.dl = term_width - 1; /* Lower right */
+  int86(0x10, &regs, &regs);
+  ui_locate(0, 0);
 }
 
 
 void ui_puts(char *str) {
-  cprintf("%s\r\n", str);
+  union REGS regs;
+  struct SREGS sregs;
+  unsigned short slen;
+  /* change the string terminator from 0 to $ */
+  for (slen = 0; str[slen] != 0; slen++);
+  str[slen] = '$';
+  /* call DOS */
+  regs.h.ah = 0x09; /* DOS 1+ - WRITE STRING TO STDOUT */
+  regs.x.dx = FP_OFF(str);
+  sregs.ds = FP_SEG(str);
+  int86x(0x21, &regs, &regs, &sregs);
+  /* restore the string terminator to 0 */
+  str[slen] = 0;
+  /* write a CR/LF pair to screen */
+  regs.h.ah = 0x02; /* DOS 1+ - WRITE CHARACTER TO STDOUT */
+  regs.h.dl = '\r';
+  int86(0x21, &regs, &regs);
+  regs.h.ah = 0x02; /* DOS 1+ - WRITE CHARACTER TO STDOUT */
+  regs.h.dl = '\n';
+  int86(0x21, &regs, &regs);
 }
 
 
@@ -71,12 +112,19 @@ int ui_getkey(void) {
   union REGS regs;
   regs.h.ah = 0x08;
   int86(0x21, &regs, &regs);
-  return(regs.h.al);
+  if (regs.h.al != 0) return(regs.h.al);
+  /* extended key, read again */
+  regs.h.ah = 0x08;
+  int86(0x21, &regs, &regs);
+  return(0x100 | regs.h.al);
 }
 
 
 int ui_kbhit(void) {
-  return(kbhit());
+  union REGS regs;
+  regs.h.ah = 0x0b; /* DOS 1+ - GET STDIN STATUS */
+  int86(0x21, &regs, &regs);
+  return(regs.h.al);
 }
 
 
