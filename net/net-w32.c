@@ -2,9 +2,10 @@
  *  This file is part of the Gopherus project.
  *  It provides a set of basic network-related functions.
  *
- *  Copyright (C) Mateusz Viste 2013-2015
+ *  Copyright (C) Mateusz Viste 2013-2018
  *
- * Provides all network functions used by Gopherus, wrapped around the Watt32 TCP/IP stack.
+ * Provides all network functions used by Gopherus, wrapped around the Watt32
+ * TCP/IP stack.
  */
 
 #include <stdlib.h>

@@ -1,8 +1,9 @@
 /*
  * This file is part of the Gopherus project
- * Copyright (C) Mateusz Viste 2013
+ * Copyright (C) Mateusz Viste 2013-2018
  *
- * Provides all network functions used by Gopherus, wrapped around POSIX (BSD) sockets.
+ * Provides all network functions used by Gopherus, wrapped around windows
+ * sockets.
  */
 
 #include <stdlib.h>  /* NULL */

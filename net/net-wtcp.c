@@ -4,7 +4,8 @@
  *
  *  Copyright (C) Mateusz Viste 2013-2015
  *
- * Provides all network functions used by Gopherus, wrapped around the WatTCP TCP/IP stack.
+ * Provides all network functions used by Gopherus, wrapped around the WatTCP
+ * TCP/IP stack.
  *
  * THIS CODE IS NOT FUNCTIONAL - PROTOTYPE ONLY!
  */
