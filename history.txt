@@ -4,7 +4,8 @@ Gopherus changelog
 
 Gopherus v1.1 [xx xxx xxxx]:
  - better checking for content overflows,
- - fixed crashes in SDL output module,
+ - fixed crashes in the SDL output module,
+ - the DOS build is availble in two flavours: real-mode 8086 and 386+,
  - ...
 
 Gopherus v1.0c [23 Apr 2016]:

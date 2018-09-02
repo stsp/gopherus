@@ -1,17 +1,21 @@
+#
+# Gopherus Makefile for DJGPP (protected mode DOS)
+#
+
 CFLAGS = -std=gnu89 -O3 -Wall -Wno-long-long -Wextra -pedantic -I watt32/inc
 LIB = watt32/bin/386watt.a -lemu
 
 all: gopherus.exe
 
-gopherus.exe: gopherus.o dnscache.o history.o int2str.o net.o parseurl.o startpg.o timer.o ui.o wordwrap.o
-	gcc gopherus.o dnscache.o history.o int2str.o net.o parseurl.o startpg.o timer.o ui.o wordwrap.o -o gopherus.exe $(LIB) $(CFLAGS)
+gopherus.exe: gopherus.o dnscache.o history.o int2str.o net.o parseurl.o startpg.o timer.o ui-dj.o wordwrap.o
+	gcc gopherus.o dnscache.o history.o int2str.o net.o parseurl.o startpg.o timer.o ui-dj.o wordwrap.o -o gopherus.exe $(LIB) $(CFLAGS)
 	upx -9 gopherus.exe
 
 net.o: net/net.c
 	gcc -c net/net.c -o net.o $(CFLAGS)
 
-ui.o: ui/ui.c
-	gcc -c ui/ui.c -o ui.o $(CFLAGS)
+ui-dj.o: ui/ui-dj.c
+	gcc -c ui/ui-dj.c -o ui-dj.o $(CFLAGS)
 
 timer.o: timer/timer.c
 	gcc -c timer/timer.c -o timer.o $(CFLAGS)
