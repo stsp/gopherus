@@ -34,7 +34,7 @@ void ui_init(void) {
   SDL_Surface *icosurface;
   SDL_Init(SDL_INIT_VIDEO);
   window = SDL_CreateWindow("Gopherus", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 640, 480, 0);
-  renderer = SDL_CreateRenderer(window, -1, 0);
+  renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_SOFTWARE);
   screen = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, 640, 480);
   /* load the gopherus icon to titlebar */
   icosurface = SDL_CreateRGBSurfaceFrom(icopixels,64,64,16,64*2,0x0f00,0x00f0,0x000f,0xf000);
