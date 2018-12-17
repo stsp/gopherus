@@ -86,7 +86,10 @@ int parsegopherurl(char *url, char *host, unsigned short *port, char *itemtype, 
           }
         }
         parserstate = 3; /* go right to the url part now */
+        goto DOURL;  /* I could remove this and the break that follows, but */
+        break;       /* gcc-8 is bitching about 'implicit fallthrough'...   */
       case 3:
+        DOURL:
         if (*url == 0) {
             *selector = 0;
             parserstate = 4;
