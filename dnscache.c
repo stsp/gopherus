@@ -24,7 +24,7 @@ unsigned long dnscache_ask(char *host) {
   int x;
   time_t curtime = time(NULL);
   for (x = 0; x < DNS_MAXENTRIES; x++) {
-    if (curtime - dnscache_table4[x].inserttime < DNS_CACHETIME) {
+    if ((curtime - dnscache_table4[x].inserttime) < DNS_CACHETIME) {
       if (strcasecmp(host, dnscache_table4[x].host) == 0) return(dnscache_table4[x].addr);
     }
   }
@@ -35,7 +35,6 @@ unsigned long dnscache_ask(char *host) {
 /* adds a new entry to the DNS cache */
 void dnscache_add(char *host, unsigned long ipaddr) {
   int x, oldest = 0;
-  /* time_t curtime = time(NULL); */
   if (strlen(host) > DNS_MAXHOSTLEN) return; /* if host len too long, abort */
   for (x = 0; x < DNS_MAXENTRIES; x++) {
     if (dnscache_table4[x].inserttime < dnscache_table4[oldest].inserttime) oldest = x; /* remember the oldest entry */
@@ -46,8 +45,8 @@ void dnscache_add(char *host, unsigned long ipaddr) {
       }
     }
   }
-  /* remove the oldest entry */
-  /* dnscache_table4[oldest].inserttime = curtime;
-  strcpy(dnscache_table4[oldest].host, host); */
+  /* replace the oldest entry */
+  dnscache_table4[oldest].inserttime = time(NULL);
+  strcpy(dnscache_table4[oldest].host, host);
   dnscache_table4[oldest].addr = ipaddr;
 }
