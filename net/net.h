@@ -20,15 +20,15 @@ unsigned long net_dnsresolve(const char *name);
 int net_init(void);
 
 /* connects to a IPv4 host and returns a socket pointer on success, NULL otherwise */
-struct net_tcpsocket *net_connect(unsigned long ipaddr, int port);
+struct net_tcpsocket *net_connect(unsigned long ipaddr, unsigned short port);
 
 /* Sends data on socket 'socket'.
 Returns the number of bytes sent on success, and <0 otherwise. The error code can be translated into a human error message via libtcp_strerr(). */
-int net_send(struct net_tcpsocket *socket, char *line, int len);
+int net_send(struct net_tcpsocket *socket, char *line, long len);
 
 /* Reads data from socket 'sock' and write it into buffer 'buff', until end of connection. Will fall into error if the amount of data is bigger than 'maxlen' bytes.
 Returns the amount of data read (in bytes) on success, or a negative value otherwise. The error code can be translated into a human error message via libtcp_strerr(). */
-int net_recv(struct net_tcpsocket *socket, char *buff, int maxlen);
+int net_recv(struct net_tcpsocket *socket, char *buff, long maxlen);
 
 /* Close the 'sock' socket. */
 void net_close(struct net_tcpsocket *socket);
