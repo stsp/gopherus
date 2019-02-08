@@ -308,8 +308,8 @@ static int display_menu(struct historytype **history, struct gopherusconfig *cfg
   char *line_description[MAXMENULINES];
   char *line_selector[MAXMENULINES];
   char *line_host[MAXMENULINES];
-  char curURL[512];
-  int line_port[MAXMENULINES];
+  char curURL[256];
+  unsigned short line_port[MAXMENULINES];
   char line_itemtype[MAXMENULINES];
   unsigned char line_description_len[MAXMENULINES];
   int linecount = 0, x, y, column;
@@ -399,7 +399,7 @@ static int display_menu(struct historytype **history, struct gopherusconfig *cfg
   for (;;) {
     curURL[0] = 0;
     if (*selectedline >= 0) {   /* if any position is selected, print the url in status bar */
-      buildgopherurl(curURL, 512, PARSEURL_PROTO_GOPHER, line_host[*selectedline], line_port[*selectedline], line_itemtype[*selectedline], line_selector[*selectedline]);
+      buildgopherurl(curURL, sizeof(curURL), PARSEURL_PROTO_GOPHER, line_host[*selectedline], line_port[*selectedline], line_itemtype[*selectedline], line_selector[*selectedline]);
       set_statusbar(statusbar, curURL);
     }
     /* start drawing lines of the menu */
