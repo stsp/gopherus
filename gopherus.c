@@ -999,7 +999,7 @@ static long loadfile_buff(int protocol, char *hostaddr, unsigned short hostport,
 int main(int argc, char **argv) {
   int exitflag;
   char statusbar[128] = {0};
-  char *buffer;
+  static char buffer[PAGEBUFSZ];
   char saveas[256] = {0};
   int bufferlen;
   struct historytype *history = NULL;
@@ -1051,17 +1051,8 @@ int main(int argc, char **argv) {
     }
   }
 
-  buffer = malloc(PAGEBUFSZ);
-  if (buffer == NULL) {
-    char message[128];
-    sprintf(message, "Out of memory. Could not allocate buffer of %ld bytes.", PAGEBUFSZ);
-    ui_puts(message);
-    return(2);
-  }
-
   if (net_init() != 0) {
     ui_puts("Network subsystem initialization failed!");
-    free(buffer);
     return(3);
   }
 
@@ -1074,8 +1065,6 @@ int main(int argc, char **argv) {
     } else {
       res = loadfile_buff(history->protocol, history->host, history->port, history->selector, buffer, PAGEBUFSZ, statusbar, saveas, &cfg, 1);
     }
-    /* Free the main buffer */
-    free(buffer);
     /* unallocate all the history */
     history_flush(history);
     /* */
@@ -1166,8 +1155,6 @@ int main(int argc, char **argv) {
   ui_cursor_show(); /* unhide the cursor */
   ui_cls();
   if (statusbar[0] != 0) ui_puts(statusbar); /* we might have here an error message to show */
-  /* Free the main buffer */
-  free(buffer);
   /* unallocate all the history */
   history_flush(history);
 
