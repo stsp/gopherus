@@ -1,44 +1,44 @@
 #
-# Makefile for DOS 16-bit, cross-compiling using a Linux host with OpenWatcom
+# Makefile for DOS 16-bit (OpenWatcom 1.9)
 #
 
-CFLAGS = -ml -0 -bt=dos -wx -we -d0 -ox -dPAGEBUFSZ=30000 -dMAXALLOWEDCACHE=30000 -i=ptcp4dos/include -dDOS_WATCOM
-LIB = ptcp4dos/picodosl.lib ptcp4dos/picotcpl.lib
+CFLAGS = -ml -0 -bt=dos -wx -we -d0 -ox -dPAGEBUFSZ=30000 -dMAXALLOWEDCACHE=30000 -i=watt32\inc
+LIB = watt32\bin\wattcpwl.lib
 
 all: gopherus.exe
 
-gopherus.exe: gopherus.o dnscache.o history.o int2str.o net-pico.o parseurl.o startpg.o timer-wc.o ui-dos.o wordwrap.o
-	wcl -lr -k8196 *.o -fe=gopherus.exe $(LIB) $(CFLAGS)
+gopherus.exe: gopherus.obj dnscache.obj history.obj int2str.obj net-w32.obj parseurl.obj startpg.obj timer-wc.obj ui-dos.obj wordwrap.obj
+	wcl -lr -k8196 $(LIB) *.obj -fe=gopherus.exe
 
-gopherus.o: gopherus.c
-	wcc gopherus.c $(CFLAGS)
+gopherus.obj: gopherus.c
+	*wcc gopherus.c $(CFLAGS)
 
-history.o: history.c
-	wcc history.c $(CFLAGS)
+history.obj: history.c
+	*wcc history.c $(CFLAGS)
 
-int2str.o: int2str.c
-	wcc int2str.c $(CFLAGS)
+int2str.obj: int2str.c
+	*wcc int2str.c $(CFLAGS)
 
-parseurl.o: parseurl.c
-	wcc parseurl.c $(CFLAGS)
+parseurl.obj: parseurl.c
+	*wcc parseurl.c $(CFLAGS)
 
-startpg.o: startpg.c
-	wcc startpg.c $(CFLAGS)
+startpg.obj: startpg.c
+	*wcc startpg.c $(CFLAGS)
 
-wordwrap.o: wordwrap.c
-	wcc wordwrap.c $(CFLAGS)
+wordwrap.obj: wordwrap.c
+	*wcc wordwrap.c $(CFLAGS)
 
-dnscache.o: dnscache.c
-	wcc dnscache.c $(CFLAGS)
+dnscache.obj: dnscache.c
+	*wcc dnscache.c $(CFLAGS)
 
-net-pico.o: net/net-pico.c
-	wcc net/net-pico.c $(CFLAGS)
+net-w32.obj: net\net-w32.c
+	*wcc $(CFLAGS) net\net-w32.c
 
-ui-dos.o: ui/ui-dos.c
-	wcc ui/ui-dos.c $(CFLAGS)
+ui-dos.obj: ui\ui-dos.c
+	*wcc ui\ui-dos.c $(CFLAGS)
 
-timer-wc.o: timer/timer-wc.c
-	wcc timer/timer-wc.c $(CFLAGS)
+timer-wc.obj: timer\timer-wc.c
+	*wcc timer\timer-wc.c $(CFLAGS)
 
 pkg: gopherus.exe
 	if exist pkg_dos\nul deltree /y pkg_dos
@@ -59,5 +59,5 @@ pkg: gopherus.exe
 	echo ADD PKG_DOS\SOURCE\GOPHERUS AND ZIP IT ALL
 
 clean: .symbolic
-	rm *.o
-	rm gopherus.exe
+	del *.obj
+	del gopherus.exe
