@@ -29,7 +29,6 @@
 #include "net/net.h"
 #include "parseurl.h"
 #include "ui/ui.h"
-#include "timer/timer.h"
 #include "wordwrap.h"
 #include "startpg.h"
 #include "version.h"
@@ -965,14 +964,10 @@ static long loadfile_buff(int protocol, char *hostaddr, unsigned short hostport,
           }
       }
     } else {
-      if (curtime - lastactivity > 2) {
-        if (curtime - lastactivity > 20) { /* TIMEOUT! */
-          set_statusbar(statusbar, "!Timeout while waiting for data!");
-          reslength = -1;
-          break;
-        } else {
-          timer_milisleep(250);  /* give the cpu some time up (250ms), the transfer is really slow */
-        }
+      if (curtime - lastactivity > 20) { /* TIMEOUT! */
+        set_statusbar(statusbar, "!Timeout while waiting for data!");
+        reslength = -1;
+        break;
       }
     }
   }

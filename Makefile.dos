@@ -7,8 +7,8 @@ LIB = watt32\bin\wattcpwl.lib
 
 all: gopherus.exe
 
-gopherus.exe: gopherus.obj dnscache.obj history.obj int2str.obj net-w32.obj parseurl.obj startpg.obj timer-wc.obj ui-dos.obj wordwrap.obj
-	wcl -lr -k8196 $(LIB) *.obj -fe=gopherus.exe
+gopherus.exe: gopherus.obj dnscache.obj history.obj int2str.obj net-w32.obj parseurl.obj startpg.obj ui-dos.obj wordwrap.obj
+	wcl -lr -k8192 $(LIB) *.obj -fe=gopherus.exe
 
 gopherus.obj: gopherus.c
 	*wcc gopherus.c $(CFLAGS)
@@ -36,9 +36,6 @@ net-w32.obj: net\net-w32.c
 
 ui-dos.obj: ui\ui-dos.c
 	*wcc ui\ui-dos.c $(CFLAGS)
-
-timer-wc.obj: timer\timer-wc.c
-	*wcc timer\timer-wc.c $(CFLAGS)
 
 pkg: gopherus.exe
 	if exist pkg_dos\nul deltree /y pkg_dos
