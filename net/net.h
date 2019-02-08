@@ -9,8 +9,7 @@
 
 struct net_tcpsocket {
   void *sock;
-  char *buffer;
-  int buffersize;
+  char buffer[1];
 };
 
 /* this is a wrapper around the wattcp lookup_host(), but with a small integrated cache */

@@ -32,32 +32,10 @@
 
 
 
-/* this is a wrapper around the wattcp lookup_host(), but with a small integrated cache.
-   returns 0 if resolutin fails. */
+/* returns 0 if resolution fails */
 unsigned long net_dnsresolve(const char *name) {
-  unsigned long hostaddr = 0;
-  static unsigned long cacheaddr[16];
-  static char  cachename[16][64] = {{0},{0},{0},{0},{0},{0},{0},{0},{0},{0},{0},{0},{0},{0},{0},{0}};
-  int x, freeentry = -1;
-  int namelen = strlen(name);
-  if (namelen < 64) {
-    for (x = 0 ; x < 16 ; x++) {
-      if (cachename[x][0] == 0) { /* empty (free) entry */
-          if (freeentry == -1) freeentry = x; /* remember it for later */
-        } else { /* else check if it's what we need */
-          if (strcmp(cachename[x], name) == 0) return(cacheaddr[x]); /* if found in cache, stop here */
-      }
-    }
-  }
-  hostaddr = lookup_host(name,NULL);
-  if (hostaddr == 0) return(0); /* dns resolving error */
-  if ((namelen < 64) && (freeentry >= 0)) { /* if not longer than maxlen, and cache not full, then save it */
-    strcpy(cachename[freeentry], name); /* save name in cache */
-    cacheaddr[freeentry] = hostaddr; /* save addr in cache */
-  }
-  return(hostaddr);
+  return(resolve(name));
 }
-
 
 
 static int dummy_printf(const char * format, ...) {
@@ -75,14 +53,15 @@ int net_init(void) {
 
 struct net_tcpsocket *net_connect(unsigned long ipaddr, unsigned short port) {
   struct net_tcpsocket *resultsock;
-  resultsock = malloc(sizeof(struct net_tcpsocket));
+  resultsock = malloc(sizeof(struct net_tcpsocket) + BUFFERSIZE);
   if (resultsock == NULL) return(NULL);
-  resultsock->buffersize = BUFFERSIZE;
-  resultsock->buffer = malloc(resultsock->buffersize);
-  resultsock->sock   = malloc(sizeof(tcp_Socket));
-  if ((resultsock->buffer == NULL) || (resultsock->sock == NULL)) goto sock_err;
+  resultsock->sock   = calloc(1, sizeof(tcp_Socket));
+  if (resultsock->sock == NULL) {
+    free(resultsock);
+    return(NULL);
+  }
 
-  sock_setbuf (resultsock->sock, resultsock->buffer, resultsock->buffersize);
+  sock_setbuf (resultsock->sock, resultsock->buffer, BUFFERSIZE);
   if (!tcp_open(resultsock->sock, 0, ipaddr, port, NULL)) goto sock_err;
 
   /* wait for connection, jump to sock_err on timeout */
@@ -93,7 +72,6 @@ struct net_tcpsocket *net_connect(unsigned long ipaddr, unsigned short port) {
 
  sock_err:
   sock_abort(resultsock->sock);
-  free(resultsock->buffer);
   free(resultsock->sock);
   free(resultsock);
   return(NULL);
