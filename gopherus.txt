@@ -1,5 +1,5 @@
 
-             Gopherus v1.0c Copyright (C) 2013-2016 Mateusz Viste
+             Gopherus v1.1 Copyright (C) 2013-2019 Mateusz Viste
                        http://gopherus.sourceforge.net
 
 
@@ -87,12 +87,11 @@ license.txt file for details.
  *** Requirements ***
 
  Gopherus has been designed with hardware sparseness in mind, hence it doesn't
- need much to run. But still, the DOS version requires at least:
+ need much to run. But still, the 16-bit DOS version requires at least:
   - a CGA card
-  - 80386SX CPU
-  - 1M of available RAM
+  - some kind of CPU
+  - 400K of available RAM
   - an ethernet card with a working packet driver
-  - a DPMI environment (like CWSDPMI.EXE)
 
 
  *** Final notes ***
