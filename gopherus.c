@@ -1,6 +1,6 @@
 /**************************************************************************
  * Gopherus - a console-mode gopher client                                *
- * Copyright (C) 2013-2018 Mateusz Viste                                  *
+ * Copyright (C) 2013-2019 Mateusz Viste                                  *
  *                                                                        *
  * This program is free software: you can redistribute it and/or modify   *
  * it under the terms of the GNU General Public License as published by   *
@@ -305,13 +305,13 @@ static int display_menu(struct historytype **history, struct gopherusconfig *cfg
   char *description, *cursor, *selector, *host, *port, itemtype;
   int endofline;
   long bufferlen;
-  char *line_description[1024];
-  char *line_selector[1024];
-  char *line_host[1024];
+  char *line_description[MAXMENULINES];
+  char *line_selector[MAXMENULINES];
+  char *line_host[MAXMENULINES];
   char curURL[512];
-  int line_port[1024];
-  char line_itemtype[1024];
-  unsigned char line_description_len[1024];
+  int line_port[MAXMENULINES];
+  char line_itemtype[MAXMENULINES];
+  unsigned char line_description_len[MAXMENULINES];
   int linecount = 0, x, y, column;
   char singlelinebuf[128];
   int *selectedline = &(*history)->displaymemory[0];
@@ -354,7 +354,7 @@ static int display_menu(struct historytype **history, struct gopherusconfig *cfg
       }
     }
     if (itemtype == '.') continue; /* ignore lines starting by '.' - it's most probably the end of menu terminator */
-    if (linecount < 1024) {
+    if (linecount < MAXMENULINES) {
       char *wrapptr = description;
       int wraplen;
       int firstiteration = 0;
@@ -383,7 +383,7 @@ static int display_menu(struct historytype **history, struct gopherusconfig *cfg
         }
         linecount += 1;
         if (wrapptr == NULL) break;
-        if (linecount >= 1024) break;
+        if (linecount >= MAXMENULINES) break;
       }
     }
   }
