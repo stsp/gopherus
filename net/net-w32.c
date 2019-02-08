@@ -75,25 +75,24 @@ int net_init(void) {
 
 struct net_tcpsocket *net_connect(unsigned long ipaddr, int port) {
   struct net_tcpsocket *resultsock;
-  int status = 0;
-  int *statusptr = &status;
-  resultsock = malloc(sizeof(*resultsock));
+  resultsock = malloc(sizeof(struct net_tcpsocket));
+  if (resultsock == NULL) return(NULL);
   resultsock->buffersize = BUFFERSIZE;
   resultsock->buffer = malloc(resultsock->buffersize);
   resultsock->sock   = malloc(sizeof(tcp_Socket));
+  if ((resultsock->buffer == NULL) || (resultsock->sock == NULL)) goto sock_err;
 
-  if (!tcp_open(resultsock->sock, 0, ipaddr, port, NULL)) {
-    free(resultsock->buffer);
-    free(resultsock->sock);
-    free(resultsock);
-    return(NULL);
-  }
   sock_setbuf (resultsock->sock, resultsock->buffer, resultsock->buffersize);
-  sock_wait_established (resultsock->sock, sock_delay, NULL, &status);
-  sock_tick (resultsock->sock, statusptr);      /* in case they sent reset */
+  if (!tcp_open(resultsock->sock, 0, ipaddr, port, NULL)) goto sock_err;
+
+  /* wait for connection, jump to sock_err on timeout */
+  sock_wait_established (resultsock->sock, sock_delay, NULL, NULL);
+
+  if (tcp_tick(resultsock->sock) == 0) goto sock_err;  /* in case they sent reset */
   return(resultsock);
 
  sock_err:
+  sock_abort(resultsock->sock);
   free(resultsock->buffer);
   free(resultsock->sock);
   free(resultsock);
@@ -119,13 +118,10 @@ int net_send(struct net_tcpsocket *socket, char *line, int len) {
 Returns the amount of data read (in bytes) on success, or a negative value otherwise. The error code can be translated into a human error message via libtcp_strerr(). */
 int net_recv(struct net_tcpsocket *socket, char *buff, int maxlen) {
   int i;
-  int status = 0;
-  int *statusptr = &status;
-  sock_tick (socket->sock, statusptr);  /* call this to let WatTCP hanle its internal stuff */
+  /* call this to let WatTCP hanle its internal stuff */
+  if (tcp_tick(socket->sock) == 0) return(-1);
   i = sock_fastread(socket->sock, buff, maxlen);
   return(i);
- sock_err:
-  return(-1);
 }
 
 
