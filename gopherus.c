@@ -822,8 +822,8 @@ static int display_text(struct historytype **history, struct gopherusconfig *cfg
 
 
 /* downloads a gopher or http resource and write it to a file or a memory buffer. if *filename is not NULL, the resource will be written in the file (but a valid *buffer is still required) */
-static long loadfile_buff(int protocol, char *hostaddr, unsigned int hostport, char *selector, char *buffer, long buffer_max, char *statusbar, char *filename, struct gopherusconfig *cfg, int notui) {
-  unsigned long int ipaddr;
+static long loadfile_buff(int protocol, char *hostaddr, unsigned short hostport, char *selector, char *buffer, long buffer_max, char *statusbar, char *filename, struct gopherusconfig *cfg, int notui) {
+  unsigned long ipaddr;
   long reslength, byteread, fdlen = 0;
   int warnflag = 0;
   char statusmsg[128];
@@ -868,7 +868,7 @@ static long loadfile_buff(int protocol, char *hostaddr, unsigned int hostport, c
     }
     dnscache_add(hostaddr, ipaddr);
   }
-  sprintf(statusmsg, "Connecting to %d.%d.%d.%d...", (int)(ipaddr >> 24) & 0xFF, (int)(ipaddr >> 16) & 0xFF, (int)(ipaddr >> 8) & 0xFF, (int)(ipaddr & 0xFF));
+  sprintf(statusmsg, "Connecting to %lu.%lu.%lu.%lu...", (ipaddr >> 24) & 0xFF, (ipaddr >> 16) & 0xFF, (ipaddr >> 8) & 0xFF, (ipaddr & 0xFF));
   if (notui == 0) {
     draw_statusbar(statusmsg, cfg);
   } else {
@@ -971,7 +971,7 @@ static long loadfile_buff(int protocol, char *hostaddr, unsigned int hostport, c
           reslength = -1;
           break;
         } else {
-          timer_milisleep(250);  /* give the cpu some time up (250ms), the transfer is really slow */
+          //timer_milisleep(250);  /* give the cpu some time up (250ms), the transfer is really slow */
         }
       }
     }
