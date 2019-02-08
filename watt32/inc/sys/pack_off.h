@@ -1,4 +1,4 @@
-/*!\file sys/packoff.h
+/*!\file sys/pack_off.h
  *
  * Default packing of structures.
  */
@@ -9,7 +9,7 @@ Copyright (c) 1990,91  Microsoft Corporation
 
 Module Name:
 
-    packoff.h
+    pack_off.h
 
 Abstract:
 
@@ -17,8 +17,8 @@ Abstract:
     automatic alignment of structure fields.)  An include file is needed
     because various compilers do this in different ways.
 
-    packoff.h is the complement to packon.h.  An inclusion of packoff.h
-    MUST ALWAYS be preceded by an inclusion of packon.h, in one-to-one
+    pack_off.h is the complement to pack_on.h.  An inclusion of pack_off.h
+    MUST ALWAYS be preceded by an inclusion of pack_on.h, in one-to-one
     correspondence.
 
 Author:
@@ -41,11 +41,11 @@ Revision History:
 
 --*/
 
-#if defined(__BORLANDC__) && (__BORLANDC__ >= 0x550)
-  #pragma option push -b -a8 -pc -A- /*P_O_Push*/
-#endif
-
 #if !(defined(lint) || defined(_lint))
+  #if defined(__BORLANDC__) && (__BORLANDC__ >= 0x550)
+    #pragma option push -b -a8 -pc -A- /*P_O_Push*/
+  #endif
+
   #if defined(_MSC_VER) && (_MSC_VER >= 800)
     #pragma warning(disable:4103)
   #endif
@@ -56,15 +56,18 @@ Revision History:
     #pragma pop_align_members();
   #elif defined(__WATCOMC__) && (__WATCOMC__ >= 1000)
     #pragma pack(__pop);
-  #elif (defined(_MSC_VER) && (_MSC_VER > 800)) || \
+  #elif (defined(_MSC_VER) && (_MSC_VER > 800))            || \
+        (defined(__GNUC__) && ((__GNUC__ > 2)              || \
+              (__GNUC__ == 2 && __GNUC_MINOR__ > 95)))     || \
         (defined(__BORLANDC__) && (__BORLANDC__ >= 0x500)) || \
          defined(__POCC__) || defined(__LCC__)
     #pragma pack(pop)
   #else
     #pragma pack()
   #endif
+
+  #if defined(__BORLANDC__) && (__BORLANDC__ >= 0x550)
+    #pragma option pop  /*P_O_Pop*/
+  #endif
 #endif
 
-#if defined(__BORLANDC__) && (__BORLANDC__ >= 0x550)
-  #pragma option pop  /*P_O_Pop*/
-#endif

@@ -1,5 +1,5 @@
-#ifndef _WATT32_FAKE_WINSOCK_H
-#define _WATT32_FAKE_WINSOCK_H
+#ifndef _WATT32_FAKE_WINSOCK2_H
+#define _WATT32_FAKE_WINSOCK2_H
 
 #ifndef __SYS_W32API_H
 #include <sys/w32api.h>
@@ -17,7 +17,12 @@
 #error This file is only for Watt-32 targeting Windows programs.
 #endif
 
-#if !defined(_WATT32_FAKE_WINSOCK2_H)
+#if !defined(_WATT32_FAKE_WINSOCK_H)
+
+typedef struct _SOCKET_ADDRESS {
+        struct sockaddr lpSockaddr;
+        int             iSockaddrLength;
+      } SOCKET_ADDRESS, *PSOCKET_ADDRESS, *LPSOCKET_ADDRESS;
 
 #define WSADESCRIPTION_LEN  256
 #define WSASYS_STATUS_LEN   128
@@ -35,6 +40,7 @@ typedef struct WSAData {
 W32_FUNC int __stdcall WSAStartup (unsigned short wVersionRequired,
                                    WSADATA *WSAData);
 
+W32_FUNC int __stdcall WSACleanup (void);
 
 #ifndef FD_SETSIZE
 #define FD_SETSIZE  64
@@ -51,6 +57,6 @@ typedef struct winsock_fd_set {
 
 W32_FUNC int __stdcall __WSAFDIsSet (int s, winsock_fd_set *fd);
 
+#endif  /* _WATT32_FAKE_WINSOCK_H */
 #endif  /* _WATT32_FAKE_WINSOCK2_H */
-#endif
 

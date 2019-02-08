@@ -1,4 +1,4 @@
-/*!\file sys/packon.h
+/*!\file sys/pack_on.h
  *
  * Sets structure packing to 1 byte.
  */
@@ -9,7 +9,7 @@ Copyright (c) 1990,91  Microsoft Corporation
 
 Module Name:
 
-    packon.h
+    pack_on.h
 
 Abstract:
 
@@ -17,7 +17,7 @@ Abstract:
     automatic alignment of structure fields.)  An include file is needed
     because various compilers do this in different ways.
 
-    The file packoff.h is the complement to this file.
+    The file pack_off.h is the complement to this file.
 
 Author:
 
@@ -39,11 +39,11 @@ Revision History:
 
 --*/
 
-#if defined(__BORLANDC__) && (__BORLANDC__ >= 0x550)
-  #pragma option push -b -a8 -pc -A- /*P_O_Push*/
-#endif
-
 #if !(defined(lint) || defined(_lint))
+  #if defined(__BORLANDC__) && (__BORLANDC__ >= 0x550)
+    #pragma option push -b -a8 -pc -A- /*P_O_Push*/
+  #endif
+
   #if defined(_MSC_VER) && (_MSC_VER >= 800)
     #pragma warning(disable:4103)
   #endif
@@ -52,15 +52,18 @@ Revision History:
     #pragma push_align_members(1);
   #elif defined(__WATCOMC__) && (__WATCOMC__ >= 1000)
     #pragma pack(__push,1);
-  #elif (defined(_MSC_VER) && (_MSC_VER > 800)) || \
+  #elif (defined(_MSC_VER) && (_MSC_VER > 800))            || \
+        (defined(__GNUC__) && ((__GNUC__ > 2)              || \
+              (__GNUC__ == 2 && __GNUC_MINOR__ > 95)))     || \
         (defined(__BORLANDC__) && (__BORLANDC__ >= 0x500)) || \
-         defined(__POCC__) || defined(__LCC__)
+        defined(__POCC__) || defined(__LCC__)
     #pragma pack(push,1)
   #else
     #pragma pack(1)
   #endif
+
+  #if defined(__BORLANDC__) && (__BORLANDC__ >= 0x550)
+    #pragma option pop  /*P_O_Pop*/
+  #endif
 #endif
 
-#if defined(__BORLANDC__) && (__BORLANDC__ >= 0x550)
-  #pragma option pop  /*P_O_Pop*/
-#endif
