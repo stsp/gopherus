@@ -971,7 +971,7 @@ static long loadfile_buff(int protocol, char *hostaddr, unsigned short hostport,
           reslength = -1;
           break;
         } else {
-          //timer_milisleep(250);  /* give the cpu some time up (250ms), the transfer is really slow */
+          timer_milisleep(250);  /* give the cpu some time up (250ms), the transfer is really slow */
         }
       }
     }
