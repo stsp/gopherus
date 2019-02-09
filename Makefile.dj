@@ -7,8 +7,8 @@ LIB = watt32/bin/libwatt.a
 
 all: gopherus.exe
 
-gopherus.exe: gopherus.o dnscache.o history.o int2str.o net-w32.o parseurl.o startpg.o timer.o ui-dj.o wordwrap.o
-	gcc gopherus.o dnscache.o history.o int2str.o net-w32.o parseurl.o startpg.o timer.o ui-dj.o wordwrap.o -o gopherus.exe $(LIB) $(CFLAGS)
+gopherus.exe: gopherus.o dnscache.o history.o int2str.o net-w32.o parseurl.o startpg.o ui-dj.o wordwrap.o
+	gcc gopherus.o dnscache.o history.o int2str.o net-w32.o parseurl.o startpg.o ui-dj.o wordwrap.o -o gopherus.exe $(LIB) $(CFLAGS)
 	upx -9 gopherus.exe
 
 net-w32.o: net/net-w32.c
@@ -16,9 +16,6 @@ net-w32.o: net/net-w32.c
 
 ui-dj.o: ui/ui-dj.c
 	gcc -c ui/ui-dj.c -o ui-dj.o $(CFLAGS)
-
-timer.o: timer/timer.c
-	gcc -c timer/timer.c -o timer.o $(CFLAGS)
 
 wraptest.exe: wraptest.c wordwrap.o
 	gcc wraptest.c wordwrap.o -o wraptest.exe $(CFLAGS)
