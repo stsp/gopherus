@@ -274,10 +274,8 @@ static int edit_url(struct historytype **history, struct gopherusconfig *cfg) {
 
 /* Asks for a confirmation to quit. Returns 0 if Quit aborted, non-zero otherwise. */
 static int askQuitConfirmation(struct gopherusconfig *cfg) {
-  char confirm[80];
   int keypress;
-  strcpy(confirm, "!YOU ARE ABOUT TO QUIT. PRESS ESC TO CONFIRM, OR ANY OTHER KEY TO ABORT.");
-  draw_statusbar(confirm, cfg);
+  draw_statusbar("!YOU ARE ABOUT TO QUIT. PRESS ESC TO CONFIRM, OR ANY OTHER KEY TO ABORT.", cfg);
   ui_refresh();
   while ((keypress = ui_getkey()) == 0x00); /* fetch the next recognized keypress */
   if ((keypress == 0x1B) || (keypress == 0xFF)) {
@@ -993,12 +991,14 @@ static long loadfile_buff(int protocol, char *hostaddr, unsigned short hostport,
 
 int main(int argc, char **argv) {
   int exitflag;
-  char statusbar[128] = {0};
+  char statusbar[96];
   static char buffer[PAGEBUFSZ];
-  char saveas[256] = {0};
+  char *saveas = NULL;
   int bufferlen;
   struct historytype *history = NULL;
   struct gopherusconfig cfg;
+
+  statusbar[0] = 0; /* this is cheaper than preinitialization */
 
   /* Load configuration (or defaults) */
   loadcfg(&cfg);
@@ -1017,9 +1017,8 @@ int main(int argc, char **argv) {
     int goturl = 0;
     for (i = 1; i < argc; i++) {
       /* recognize valid options */
-      if ((argv[i][0] == '-') && (argv[i][1] == 'o') && (argv[i][2] == '=') && (saveas[0] == 0)) {
-        strncpy(saveas, &(argv[i][3]), sizeof(saveas));
-        saveas[sizeof(saveas) - 1] = 0; /* make sure the string is NULL-terminated */
+      if ((argv[i][0] == '-') && (argv[i][1] == 'o') && (argv[i][2] == '=') && (saveas == NULL)) {
+        saveas = argv[i] + 3;
         continue;
       } else if ((argv[i][0] == '/') || (argv[i][0] == '-')) { /* unknown parameter */
         ui_puts("Gopherus v" pVer " Copyright (C) " pDate " Mateusz Viste");
@@ -1052,7 +1051,7 @@ int main(int argc, char **argv) {
   }
 
   /* if in non-interactive mode (-o=...), then fetch the resource and quit */
-  if (saveas[0] != 0) {
+  if (saveas != NULL) {
     long res;
     if ((history == NULL) || (history->host[0] == '#')) {
       ui_puts("You must provide an URL when using -o=...");
@@ -1135,9 +1134,10 @@ int main(int argc, char **argv) {
         break;
       }
     } else { /* the itemtype is not one of the internally displayable types -> ask to download it */
-      char filename[64] = {0};
+      char filename[64];
       const char *prompt = "Download as: ";
       int i;
+      filename[0] = 0;
       set_statusbar(filename, ""); /* make sure to clear out the status bar */
       draw_statusbar(filename, &cfg);
       for (i = 0; prompt[i] != 0; i++) ui_putchar(prompt[i], 0x70, i, ui_getrowcount() - 1);
