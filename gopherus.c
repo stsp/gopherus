@@ -1063,14 +1063,12 @@ static void genfnamefromselector(char *fname, unsigned short maxlen, const char 
 
 int main(int argc, char **argv) {
   int exitflag;
-  char statusbar[96];
+  char *fatalerr = NULL;
   static char buffer[PAGEBUFSZ];
   char *saveas = NULL;
   int bufferlen;
   struct historytype *history = NULL;
   struct gopherusconfig cfg;
-
-  statusbar[0] = 0; /* this is cheaper than preinitialization */
 
   /* Load configuration (or defaults) */
   loadcfg(&cfg);
@@ -1135,21 +1133,9 @@ int main(int argc, char **argv) {
     history_flush(history);
     /* */
     if (res < 1) {
-      switch (statusbar[0]) {
-        case 0:
-          ui_puts("Error: failed to fetch the remote resource");
-          break;
-        case '!':
-          sprintf(buffer, "Error: %s", statusbar + 1);
-          ui_puts(buffer);
-          break;
-        default:
-          ui_puts(statusbar);
-          break;
-      }
+      ui_puts("Error: failed to fetch the remote resource");
       return(1);
     }
-    if (statusbar[0] != 0) ui_puts(statusbar);
     /* return to the OS */
     return(0);
   }
@@ -1170,7 +1156,7 @@ int main(int argc, char **argv) {
           history_cleanupcache(history);
           history->cache = malloc(bufferlen);
           if (history->cache == NULL) {
-            sprintf(statusbar, "Out of memory!");
+            fatalerr = "Out of memory!";
             exitflag = 1;
             break;
           }
@@ -1190,7 +1176,7 @@ int main(int argc, char **argv) {
           exitflag = display_menu(&history, &cfg, buffer, PAGEBUFSZ);
           break;
         default:
-          set_statusbar("Fatal error: got an unhandled itemtype!");
+          fatalerr = "Fatal error: got an unhandled itemtype!";
           exitflag = DISPLAY_ORDER_QUIT;
           break;
       }
@@ -1221,7 +1207,7 @@ int main(int argc, char **argv) {
   }
   ui_cursor_show(); /* unhide the cursor */
   ui_cls();
-  if (statusbar[0] != 0) ui_puts(statusbar); /* we might have here an error message to show */
+  if (fatalerr != NULL) ui_puts(fatalerr); /* display error message, if any */
   /* unallocate all the history */
   history_flush(history);
 
