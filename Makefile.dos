@@ -2,7 +2,7 @@
 # Makefile for DOS 16-bit (OpenWatcom 1.9)
 #
 
-CFLAGS = -ml -0 -bt=dos -wx -we -d0 -ox -dPAGEBUFSZ=30000 -dMAXALLOWEDCACHE=30000 -dMAXMENULINES=64 -i=watt32\inc
+CFLAGS = -ml -0 -bt=dos -wx -we -d0 -ox -dPAGEBUFSZ=30000 -dMAXALLOWEDCACHE=30000 -dMAXMENULINES=64 -dNOLFN -i=watt32\inc
 LIB = watt32\bin\wattcpwl.lib
 
 all: gopherus.exe

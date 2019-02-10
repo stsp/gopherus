@@ -11,6 +11,7 @@
  * PAGEBUFSZ       - page buffer size (max size of a single page, bytes)
  * MAXMENULINES    - max amount of lines in a gopher menu page
  * MAXALLOWEDCACHE - max size of cacheable page (bytes)
+ * NOLFN           - environment is assumed to be 8+3
  */
 
 #ifndef CONFIG_H
