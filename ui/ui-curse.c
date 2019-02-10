@@ -58,18 +58,12 @@ void ui_close(void) {
 
 
 int ui_getrowcount(void) {
-  int termheight, termwidth;
-  getmaxyx(mywindow, termheight, termwidth);
-  termwidth = termwidth; /* for gcc to not complain */
-  return(termheight);
+  return(getmaxy(mywindow));
 }
 
 
 int ui_getcolcount(void) {
-  int termheight, termwidth;
-  getmaxyx(mywindow, termheight, termwidth);
-  termheight = termheight; /* for gcc to not complain */
-  return(termwidth);
+  return(getmaxx(mywindow));
 }
 
 
