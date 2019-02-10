@@ -1064,7 +1064,7 @@ static void genfnamefromselector(char *fname, unsigned short maxlen, const char 
 int main(int argc, char **argv) {
   int exitflag;
   char *fatalerr = NULL;
-  static char buffer[PAGEBUFSZ];
+  char *buffer;
   char *saveas = NULL;
   int bufferlen;
   struct historytype *history = NULL;
@@ -1073,7 +1073,11 @@ int main(int argc, char **argv) {
   /* Load configuration (or defaults) */
   loadcfg(&cfg);
 
-  if (history_add(&history, PARSEURL_PROTO_GOPHER, "#welcome", 70, '1', "") != 0) {
+  /* alloc page buffer */
+  buffer = malloc(PAGEBUFSZ);
+
+  if ((buffer == NULL) || (history_add(&history, PARSEURL_PROTO_GOPHER, "#welcome", 70, '1', "") != 0)) {
+    free(buffer);
     ui_puts("Out of memory.");
     return(2);
   }
@@ -1095,21 +1099,25 @@ int main(int argc, char **argv) {
         ui_puts("");
         ui_puts("Usage: gopherus [url [-o=outfile]]");
         ui_puts("");
+        free(buffer);
         return(1);
       }
       /* assume it is an url then */
       if (goturl != 0) {
         ui_puts("Invalid parameters list.");
+        free(buffer);
         return(1);
       }
       if ((protocol = parsegopherurl(argv[i], hostaddr, &hostport, &itemtype, selector)) < 0) {
         ui_puts("Invalid URL!");
+        free(buffer);
         return(1);
       }
       goturl = 1;
       history_add(&history, protocol, hostaddr, hostport, itemtype, selector);
       if (history == NULL) {
         ui_puts("Out of memory.");
+        free(buffer);
         return(2);
       }
     }
@@ -1117,6 +1125,7 @@ int main(int argc, char **argv) {
 
   if (net_init() != 0) {
     ui_puts("Network subsystem initialization failed!");
+    free(buffer);
     return(3);
   }
 
@@ -1134,9 +1143,11 @@ int main(int argc, char **argv) {
     /* */
     if (res < 1) {
       ui_puts("Error: failed to fetch the remote resource");
+      free(buffer);
       return(1);
     }
     /* return to the OS */
+    free(buffer);
     return(0);
   }
 
@@ -1212,6 +1223,7 @@ int main(int argc, char **argv) {
   history_flush(history);
 
   ui_close();
+  free(buffer);
 
   return(0);
 }
