@@ -1,0 +1,13 @@
+i                 ____             _
+i                / ___| ___  _ __ | |__   ___ _ __ _   _ ___
+i               | |  _ / _ \| '_ \| '_ \ / _ \ '__| | | / __|
+i               | |_| | (_) | |_) | | | |  __/ |  | |_| \__ \
+i                \____|\___/| .__/|_| |_|\___|_|   \__,_|___/
+i                           |_|
+i
+iWelcome to Gopherus: a multi-platform, console-mode client for the gopherspace.
+i
+iGopherus (offline) documentation:
+0The Gopherus manual		#manual
+0Licensing terms (GNU GPL v3)		#license
+i
