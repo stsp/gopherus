@@ -8,6 +8,7 @@
 
 #include <stdlib.h>  /* NULL */
 #include <sys/socket.h> /* socket() */
+#include <sys/select.h> /* select(), fd_set() */
 #include <arpa/inet.h>
 #include <netdb.h>
 #include <stdio.h> /* sprintf() */
