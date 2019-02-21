@@ -3,16 +3,30 @@ CFLAGS = -std=gnu89 -O3 -Wall -Wextra -pedantic
 
 all: gopherus gopherus-sdl
 
-gopherus: gopherus.o dnscache.o history.o int2str.o net.o parseurl.o startpg.o ui.o wordwrap.o
-	$(CC) gopherus.o dnscache.o history.o int2str.o net.o parseurl.o startpg.o ui.o wordwrap.o -o gopherus -lncurses $(CFLAGS)
+gopherus: gopherus.o dnscache.o history.o int2str.o net.o parseurl.o startpg.o ui-curse.o wordwrap.o
+	$(CC) gopherus.o dnscache.o history.o int2str.o net.o parseurl.o startpg.o ui-curse.o wordwrap.o -o gopherus -lncurses $(CFLAGS)
 
 gopherus-sdl: gopherus.o dnscache.o history.o int2str.o net.o parseurl.o startpg.o ui-sdl.o wordwrap.o
 	$(CC) gopherus.o dnscache.o history.o int2str.o net.o parseurl.o startpg.o ui-sdl.o wordwrap.o -o gopherus-sdl -lSDL2 $(CFLAGS)
 
+gopherus.o: gopherus.c
+
+dnscache.o: dnscache.c
+
+history.o: history.c
+
+int2str.o: int2str.c
+
+parseurl.o: parseurl.c
+
+startpg.o: startpg.c
+
+wordwrap.o: wordwrap.c
+
 net.o: net/net-lin.c
 	$(CC) -c net/net-lin.c -o net.o $(CFLAGS)
 
-ui.o: ui/ui-curse.c
+ui-curse.o: ui/ui-curse.c
 	$(CC) -c ui/ui-curse.c -o ui.o $(CFLAGS)
 
 ui-sdl.o: ui/ui-sdl.c
