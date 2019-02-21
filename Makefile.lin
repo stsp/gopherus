@@ -27,7 +27,7 @@ net.o: net/net-lin.c
 	$(CC) -c net/net-lin.c -o net.o $(CFLAGS)
 
 ui-curse.o: ui/ui-curse.c
-	$(CC) -c ui/ui-curse.c -o ui.o $(CFLAGS)
+	$(CC) -c ui/ui-curse.c -o ui-curse.o $(CFLAGS)
 
 ui-sdl.o: ui/ui-sdl.c
 	$(CC) -c ui/ui-sdl.c -o ui-sdl.o $(CFLAGS)
