@@ -1,6 +1,6 @@
 /*
  * This file is part of the Gopherus project
- * Copyright (C) Mateusz Viste 2013-2018
+ * Copyright (C) Mateusz Viste 2013-2019
  *
  * Provides all network functions used by Gopherus, wrapped around POSIX (BSD)
  * sockets.
@@ -115,6 +115,7 @@ int net_recv(struct net_tcpsocket *socket, char *buff, long maxlen) {
 void net_close(struct net_tcpsocket *socket) {
   close(((struct netwrap *)(socket->sock))->fd);
   free(socket->sock);
+  free(socket);
 }
 
 
