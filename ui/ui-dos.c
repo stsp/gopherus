@@ -14,22 +14,30 @@
 unsigned char far *vmem; /* video memory pointer (beginning of page 0) */
 int term_width = 0, term_height = 0;
 int cursor_start = 0, cursor_end = 0; /* remember the cursor's shape */
+unsigned short videomode = 0;
 
 /* inits the UI subsystem */
 void ui_init(void) {
   union REGS regs;
   regs.h.ah = 0x0F;  /* get current video mode */
   int86(0x10, &regs, &regs);
+  videomode = regs.h.al;
   term_width = regs.h.ah; /* int10,F provides number of columns in AH */
   /* read screen length from BIOS at 0040:0084 */
   term_height = (*(unsigned char far *) MK_FP(0x40, 0x84)) + 1;
   if (term_height < 10) term_height = 25; /* assume 25 rows if weird value */
   /* select the correct VRAM address */
-  if (regs.h.al == 7) { /* MDA/HERC mode */
+  if (videomode == 7) { /* MDA/HERC mode */
     vmem = MK_FP(0xB000, 0); /* B000:0000 video memory addess */
   } else {
     vmem = MK_FP(0xB800, 0); /* B800:0000 video memory address */
   }
+  /* get cursor shape */
+  regs.h.ah = 3;
+  regs.h.bh = 0;
+  int86(0x10, &regs, &regs);
+  cursor_start = regs.h.ch;
+  cursor_end = regs.h.cl;
 }
 
 void ui_close(void) {
@@ -38,6 +46,7 @@ void ui_close(void) {
 static void cursor_set(int startscanline, int endscanline) {
   union REGS regs;
   regs.h.ah = 0x01;
+  regs.h.al = videomode; /* RBIL says some BIOSes require video mode in AL */
   regs.h.ch = startscanline;
   regs.h.cl = endscanline;
   int86(0x10, &regs, &regs);
