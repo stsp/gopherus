@@ -443,6 +443,7 @@ static int display_menu(struct historytype **history, struct gopherusconfig *cfg
             prefix = "ASK";
             break;
           case 'I':
+          case 'g': /* GIF */
             prefix = "IMG";
             break;
           case 'P':
