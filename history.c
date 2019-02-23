@@ -45,7 +45,6 @@ void history_back(struct historytype **history) {
 /* adds a new node to the history list. Returns 0 on success, non-zero otherwise. */
 int history_add(struct historytype **history, char protocol, char *host, unsigned short port, char itemtype, char *selector) {
   struct historytype *result;
-  int tmplen;
 
   /* shortcut - if the new node is identical to the previous page, the user is doing a 'back' action */
   if (*history != NULL) { /* do we have any history at all? */
@@ -67,26 +66,22 @@ int history_add(struct historytype **history, char protocol, char *host, unsigne
   /* add the node */
   result = malloc(sizeof(struct historytype));
   if (result == NULL) return(-1);
-  tmplen = strlen(host) + 1;
-  result->host = malloc(tmplen);
+  result->host = strdup(host);
   if (result->host == NULL) {
     free(result);
     return(-1);
   }
-  memcpy(result->host, host, tmplen);
   result->protocol = protocol;
   result->port = port;
   result->itemtype = itemtype;
   result->displaymemory[0] = -1;
   result->displaymemory[1] = -1;
-  tmplen = strlen(selector) + 1;
-  result->selector = malloc(tmplen);
+  result->selector = strdup(selector);
   if (result->selector == NULL) {
     free(result->host);
     free(result);
     return(-1);
   }
-  memcpy(result->selector, selector, tmplen);
   result->cache = NULL;
   result->cachesize = 0;
   result->next = *history;
