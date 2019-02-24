@@ -5,7 +5,7 @@ all: gopherus-sdl.exe
 
 gopherus-sdl.exe: gopherus.o dnscache.o history.o int2str.o net.o parseurl.o startpg.o ui-sdl.o wordwrap.o
 	windres gopherus.rc -O coff -o gopherus.res
-	gcc -mwindows gopherus.o dnscache.o history.o int2str.o net.o parseurl.o startpg.o ui-sdl.o wordwrap.o gopherus.res -o gopherus.exe -lSDL2 -lws2_32 $(CFLAGS)
+	gcc -mwindows gopherus.o dnscache.o history.o int2str.o net.o parseurl.o startpg.o ui-sdl.o wordwrap.o gopherus.res -o gopherus-sdl.exe -lSDL2 -lws2_32 $(CFLAGS)
 
 net.o: net/net-win.c
 	gcc -c net/net-win.c -o net.o $(CFLAGS)
