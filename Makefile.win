@@ -21,7 +21,6 @@ pkg: gopherus.exe gopherus-sdl.exe
 	copy gopherus-sdl.exe pkg_win
 	copy sdl2.dll pkg_win
 	copy gopherus.txt pkg_win
-	copy license.txt pkg_win
 	copy history.txt pkg_win
 	echo Subdirectory pkg_win ready to be ziped!
 

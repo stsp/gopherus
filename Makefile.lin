@@ -26,7 +26,6 @@ pkg: gopherus
 	mkdir pkg_lin
 	cp gopherus pkg_lin
 	cp gopherus.txt pkg_lin
-	cp license.txt pkg_lin
 	cp history.txt pkg_lin
 	cp icon.svg pkg_lin/gopherus.svg
 

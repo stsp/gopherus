@@ -31,7 +31,6 @@ pkg: gopherus.exe
 	mkdir pkg_dos\source\gopherus
 	copy gopherus.exe pkg_dos\progs\gopherus
 	copy gopherus.txt pkg_dos\progs\gopherus
-	copy license.txt pkg_dos\progs\gopherus
 	copy history.txt pkg_dos\progs\gopherus
 	copy gopherus.ico pkg_dos\progs\gopherus
 	copy dos\gopherus.lsm pkg_dos\appinfo
