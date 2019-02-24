@@ -4,7 +4,7 @@ Display graphic files (bmp, png, jpg, gif..)
 
 configuration file (for memory settings)
 
-aggressive timeout when in resolving... phase
+user should be able to cancel the connecting... and resolving... phases
 
 Bookmarks (favorites)
 
