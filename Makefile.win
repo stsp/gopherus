@@ -1,4 +1,5 @@
 CFLAGS = -std=gnu89 -O3 -Wall -Wextra -pedantic
+CC = gcc
 
 all: gopherus-sdl.exe
 
