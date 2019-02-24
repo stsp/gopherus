@@ -12,7 +12,7 @@
   DOS 32 bit: DJGPP (+Watt32)
   Linux: gcc or clang (+curses and/or SDL2)
   BSD: same as Linux
-  Windows: Mingw (+curses and/or SDL2)
+  Windows: Mingw64 (+SDL2)
 
 
  * Customization *
