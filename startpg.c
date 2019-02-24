@@ -29,9 +29,7 @@ static int idoc_unpack(char *buf, unsigned short bufsz, const unsigned char *ido
 int loadembeddedstartpage(char *buffer, unsigned long buffer_max, const char *token) {
   int res;
   if (buffer_max > 0xffff) buffer_max = 0xffff; /* avoid 16 bit clipping */
-  if (token[0] == 'l') { /* license */
-    res = idoc_unpack(buffer, buffer_max, idoc_license, sizeof(idoc_license));
-  } else if (token[0] == 'm') { /* manual */
+  if (token[0] == 'm') { /* manual */
     res = idoc_unpack(buffer, buffer_max, idoc_manual, sizeof(idoc_manual));
   } else { /* welcome screen */
     res = idoc_unpack(buffer, buffer_max, idoc_welcome, sizeof(idoc_welcome));

@@ -9,5 +9,4 @@ iWelcome to Gopherus: a multi-platform, console-mode client for the gopherspace.
 i
 iGopherus (offline) documentation:
 0The Gopherus manual		#manual
-0Licensing terms (GNU GPL v3)		#license
 i
