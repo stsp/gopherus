@@ -7,6 +7,7 @@ Gopherus v1.1 [xx xxx xxxx]:
  - [fix] better checking for content overflows,
  - [fix] fixed crashes in the SDL output module,
  - [fix] lots of minor memory/speed optimizations,
+ - [fix] improved up/down keys logic in menus,
  - [mnt] small adjustments so Gopherus compiles fine on OpenBSD,
  - [mnt] relicensed to the '2-clause' BSD license.
 

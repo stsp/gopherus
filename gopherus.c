@@ -568,7 +568,17 @@ static int display_menu(struct historytype **history, struct gopherusconfig *cfg
         break;
       case 0x148: /* UP */
         if (*selectedline > firstlinkline) {
-          while (isitemtypeselectable(line_itemtype[--(*selectedline)]) == 0); /* select the next item that is selectable */
+          unsigned short prevlink = *selectedline;
+          /* find the next item that is selectable */
+          while (isitemtypeselectable(line_itemtype[--prevlink]) == 0);
+          /* if prevlink is on screen, select it */
+          if (prevlink >= *screenlineoffset) {
+            *selectedline = prevlink;
+          } else { /* move screen up, if possible... */
+            if (*screenlineoffset > 0) *screenlineoffset -= 1;
+            /* ...and recheck */
+            if (prevlink >= *screenlineoffset) *selectedline = prevlink;
+          }
         } else {
           if (*screenlineoffset > 0) *screenlineoffset -= 1;
           continue; /* do not force the selected line to be on screen */
@@ -590,10 +600,29 @@ static int display_menu(struct historytype **history, struct gopherusconfig *cfg
           *screenlineoffset += 1;
           continue;
         }
+        /* select next link, if possible */
         if (*selectedline < lastlinkline) {
-          while (isitemtypeselectable(line_itemtype[++(*selectedline)]) == 0); /* select the next item that is selectable */
+          unsigned short nextlink = *selectedline;
+          /* find the next selectable item */
+          while (isitemtypeselectable(line_itemtype[++nextlink]) == 0);
+          /* if next link is within screen area, select it */
+          if ((nextlink >= *screenlineoffset) && (nextlink <= (*screenlineoffset + (ui_getrowcount() - 3)))) {
+            *selectedline = nextlink;
+          } else {
+            /* move screen down */
+            if (*screenlineoffset < linecount - (ui_getrowcount() - 3)) {
+              *screenlineoffset += 1;
+            }
+            /* if next link is within screen area, select it */
+            if ((nextlink >= *screenlineoffset) && (nextlink <= (*screenlineoffset + (ui_getrowcount() - 3)))) {
+              *selectedline = nextlink;
+            }
+          }
         } else {
-          if (*screenlineoffset < linecount - (ui_getrowcount() - 3)) *screenlineoffset += 1;
+          /* just move screen down, if not at last line already */
+          if (*screenlineoffset < linecount - (ui_getrowcount() - 3)) {
+            *screenlineoffset += 1;
+          }
           continue; /* do not force the selected line to be on screen */
         }
         break;
