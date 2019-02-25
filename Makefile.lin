@@ -26,14 +26,6 @@ ui-sdl.o: ui/ui-sdl.c
 wraptest: wraptest.c wordwrap.o
 	$(CC) wraptest.c wordwrap.o -o wraptest $(CFLAGS)
 
-pkg: gopherus
-	rm -rf pkg_lin
-	mkdir pkg_lin
-	cp gopherus pkg_lin
-	cp gopherus.txt pkg_lin
-	cp history.txt pkg_lin
-	cp icon.svg pkg_lin/gopherus.svg
-
 clean:
 	rm -f *.o
 	rm -f gopherus
