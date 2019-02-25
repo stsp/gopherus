@@ -354,16 +354,16 @@ static int display_menu(struct historytype **history, struct gopherusconfig *cfg
       if ((*cursor == '\t') || (*cursor == '\n')) { /* delimiter */
         if (*cursor == '\n') endofline = 1;
         *cursor = 0; /* put a NULL instead to terminate previous string */
+        if (endofline != 0) {
+          cursor += 1;
+          break;
+        }
         if (column == 0) {
           selector = cursor + 1;
         } else if (column == 1) {
           host = cursor + 1;
         } else if (column == 2) {
           port = cursor + 1;
-        }
-        if (endofline != 0) {
-          cursor += 1;
-          break;
         }
         if (column < 16) column += 1;
       }
