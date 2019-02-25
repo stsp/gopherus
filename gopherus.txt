@@ -6,7 +6,7 @@
 Gopherus is a free, multiplatform, console-mode gopher client available for
 DOS, Linux and Windows. It provides a classic text interface to the
 gopherspace. Altough primarily targeted for DOS, ports to Windows and Linux
-are also available. These use SDL to emulate a pseudo terminal.
+are also available. These may use SDL to emulate a pseudo terminal.
 This program is released under the terms of the '2-clause' BSD license.
 
 
