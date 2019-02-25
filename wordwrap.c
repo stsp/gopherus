@@ -1,6 +1,6 @@
 /*
  * This file is part of the Gopherus project.
- * Copyright (C) 2013-2016 Mateusz Viste
+ * Copyright (C) 2013-2019 Mateusz Viste
  */
 
 #include <stdlib.h>    /* NULL */
