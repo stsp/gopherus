@@ -927,7 +927,7 @@ static long loadfile_buff(int protocol, char *hostaddr, unsigned short hostport,
     return(-1);
   }
   if (protocol == PARSEURL_PROTO_HTTP) { /* http */
-    sprintf(buffer, "GET /%s HTTP/1.0\r\nHOST: %s\r\nUSER-AGENT: Gopherus v%s\r\n\r\n", selector, hostaddr, pVer);
+    sprintf(buffer, "GET /%s HTTP/1.0\r\nHOST: %s\r\nUSER-AGENT: Gopherus\r\n\r\n", selector, hostaddr);
   } else { /* gopher */
     sprintf(buffer, "%s\r\n", selector);
   }
