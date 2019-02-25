@@ -2,7 +2,7 @@
 # Makefile for DOS 16-bit (OpenWatcom 1.9)
 #
 
-CFLAGS = -ml -0 -bt=dos -wx -we -d0 -ox -dPAGEBUFSZ=30000 -dMAXALLOWEDCACHE=30000 -dMAXMENULINES=64 -dNOLFN -i=watt32\inc
+CFLAGS = -ml -0 -bt=dos -wx -we -d0 -ox -dPAGEBUFSZ=30000 -dMAXALLOWEDCACHE=30000 -dMAXMENULINES=64 -dDNS_MAXENTRIES=4 -dNOLFN -i=watt32\inc
 LIB = watt32\lib\wattcpwl.lib
 
 all: gopherus.exe
@@ -37,22 +37,26 @@ net-w32.obj: net\net-w32.c
 ui-dos.obj: ui\ui-dos.c
 	*wcc ui\ui-dos.c $(CFLAGS)
 
-pkg: gopherus.exe
-	if exist pkg_dos\nul deltree /y pkg_dos
-	mkdir pkg_dos
-	mkdir pkg_dos\progs
-	mkdir pkg_dos\progs\gopherus
-	mkdir pkg_dos\appinfo
-	mkdir pkg_dos\links
-	mkdir pkg_dos\source
-	mkdir pkg_dos\source\gopherus
-	copy gopherus.exe pkg_dos\progs\gopherus
-	copy gopherus.txt pkg_dos\progs\gopherus
-	copy history.txt pkg_dos\progs\gopherus
-	copy gopherus.ico pkg_dos\progs\gopherus
-	copy dos\gopherus.lsm pkg_dos\appinfo
-	copy dos\gopherus.bat pkg_dos\links
+pkg: gopherus.exe .symbolic
+	if exist pkg_d16\nul deltree /y pkg_d16
+	mkdir pkg_d16
+	mkdir pkg_d16\progs
+	mkdir pkg_d16\progs\gopherus
+	mkdir pkg_d16\appinfo
+	mkdir pkg_d16\links
+	mkdir pkg_d16\source
+	mkdir pkg_d16\source\gopherus
+	copy gopherus.exe pkg_d16\progs\gopherus
+	copy gopherus.txt pkg_d16\progs\gopherus
+	copy history.txt pkg_d16\progs\gopherus
+	copy dos\gopherus.lsm pkg_d16\appinfo
+	copy dos\gopherus.bat pkg_d16\links
 	echo ADD PKG_DOS\SOURCE\GOPHERUS AND ZIP IT ALL
+
+release: gopherus.exe .symbolic
+	if exist pkg_d16\nul deltree /y pkg_d16
+	mkdir pkg_d16
+	zip -9 pkg_d16\gopherus.zip gopherus.exe gopherus.txt history.txt
 
 clean: .symbolic
 	del *.obj

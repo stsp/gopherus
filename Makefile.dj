@@ -1,5 +1,5 @@
 #
-# Gopherus Makefile for DJGPP (protected mode DOS)
+# Gopherus Makefile for DOS 32-bit (DJGPP v2.05)
 #
 
 CFLAGS = -std=gnu89 -O3 -Wall -Wno-long-long -Wextra -pedantic -I watt32/inc
@@ -21,21 +21,25 @@ wraptest.exe: wraptest.c wordwrap.o
 	gcc wraptest.c wordwrap.o -o wraptest.exe $(CFLAGS)
 
 pkg: gopherus.exe
-	if exist pkg_dos\nul deltree /y pkg_dos
-	mkdir pkg_dos
-	mkdir pkg_dos\progs
-	mkdir pkg_dos\progs\gopherus
-	mkdir pkg_dos\appinfo
-	mkdir pkg_dos\links
-	mkdir pkg_dos\source
-	mkdir pkg_dos\source\gopherus
-	copy gopherus.exe pkg_dos\progs\gopherus
-	copy gopherus.txt pkg_dos\progs\gopherus
-	copy history.txt pkg_dos\progs\gopherus
-	copy gopherus.ico pkg_dos\progs\gopherus
-	copy dos\gopherus.lsm pkg_dos\appinfo
-	copy dos\gopherus.bat pkg_dos\links
+	if exist pkg_d32\nul deltree /y pkg_d32
+	mkdir pkg_d32
+	mkdir pkg_d32\progs
+	mkdir pkg_d32\progs\gopherus
+	mkdir pkg_d32\appinfo
+	mkdir pkg_d32\links
+	mkdir pkg_d32\source
+	mkdir pkg_d32\source\gopherus
+	copy gopherus.exe pkg_d32\progs\gopherus
+	copy gopherus.txt pkg_d32\progs\gopherus
+	copy history.txt pkg_d32\progs\gopherus
+	copy dos\gopherus.lsm pkg_d32\appinfo
+	copy dos\gopherus.bat pkg_d32\links
 	echo ADD PKG_DOS\SOURCE\GOPHERUS AND ZIP IT ALL
+
+release: gopherus.exe
+	if exist pkg_d32\nul deltree /y pkg_d32
+	mkdir pkg_d32
+	zip -9 pkg_d32\gopherus.zip gopherus.exe gopherus.txt history.txt
 
 clean:
 	del *.o
