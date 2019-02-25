@@ -1,3 +1,8 @@
+#
+# Gopherus Makefile for Linux (and BSD, and probably other POSIX systems)
+# Copyright (C) 2013-2019 Mateusz Viste
+#
+
 CC ?= gcc
 CFLAGS = -std=gnu89 -O3 -Wall -Wextra -pedantic
 
