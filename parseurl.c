@@ -1,6 +1,6 @@
 /*
  * This file is part of the Gopherus project.
- * Copyright (C) 2013-2016 Mateusz Viste
+ * Copyright (C) 2013-2019 Mateusz Viste
  */
 
 #include <string.h>   /* strstr() */
@@ -8,7 +8,7 @@
 #include "int2str.h"  /* int2str() is used to convert the port into a string */
 #include "parseurl.h" /* include self for control */
 
-int parsegopherurl(char *url, char *host, unsigned short *port, char *itemtype, char *selector) {
+int parsegopherurl(char *url, char *host, unsigned short hostlen, unsigned short *port, char *itemtype, char *selector, unsigned short selectorlen) {
   int parserstate = 0;
   int protocol = PARSEURL_PROTO_GOPHER, x;
   char *curtoken;
@@ -61,6 +61,8 @@ int parsegopherurl(char *url, char *host, unsigned short *port, char *itemtype, 
             parserstate = 4;
           } else { /* still part of the host */
             *host = *url;
+            hostlen--;
+            if (hostlen == 0) return(-1);
             host += 1;
         }
         break;
@@ -94,6 +96,8 @@ int parsegopherurl(char *url, char *host, unsigned short *port, char *itemtype, 
           } else {
             *selector = *url;
             selector += 1;
+            selectorlen--;
+            if (selectorlen == 0) return(-2);
         }
         break;
     }

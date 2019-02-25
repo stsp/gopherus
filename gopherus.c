@@ -161,7 +161,7 @@ static void draw_urlbar(struct historytype *history, struct gopherusconfig *cfg)
   int url_len, x;
   char urlstr[80];
   ui_putchar('[', cfg->attr_urlbardeco, 0, 0);
-  url_len = buildgopherurl(urlstr, 79, history->protocol, history->host, history->port, history->itemtype, history->selector);
+  url_len = buildgopherurl(urlstr, sizeof(urlstr) - 1, history->protocol, history->host, history->port, history->itemtype, history->selector);
   for (x = 0; x < 79; x++) {
     if (x < url_len) {
       ui_putchar(urlstr[x], cfg->attr_urlbar, x+1, 0);
@@ -267,17 +267,17 @@ static int editstring(char *url, int maxlen, int maxdisplaylen, int xx, int yy, 
 
 /* returns 0 if a new URL has been entered, non-zero otherwise */
 static int edit_url(struct historytype **history, struct gopherusconfig *cfg) {
-  char url[256];
+  char url[MAXURLLEN];
   int urllen;
-  urllen = buildgopherurl(url, 256, (*history)->protocol, (*history)->host, (*history)->port, (*history)->itemtype, (*history)->selector);
+  urllen = buildgopherurl(url, sizeof(url), (*history)->protocol, (*history)->host, (*history)->port, (*history)->itemtype, (*history)->selector);
   if (urllen < 0) return(-1);
-  if (editstring(url, 256, 78, 1, 0, cfg->attr_urlbar) != 0) {
+  if (editstring(url, sizeof(url), 78, 1, 0, cfg->attr_urlbar) != 0) {
     char itemtype;
-    char hostaddr[256];
-    char selector[256];
+    char hostaddr[MAXHOSTLEN];
+    char selector[MAXSELLEN];
     unsigned short hostport;
     int protocol;
-    if ((protocol = parsegopherurl(url, hostaddr, &hostport, &itemtype, selector)) >= 0) {
+    if ((protocol = parsegopherurl(url, hostaddr, sizeof(hostaddr), &hostport, &itemtype, selector, sizeof(selector))) >= 0) {
       history_add(history, protocol, hostaddr, hostport, itemtype, selector);
       draw_urlbar(*history, cfg);
       return(0);
@@ -323,7 +323,7 @@ static int display_menu(struct historytype **history, struct gopherusconfig *cfg
   char *line_description[MAXMENULINES];
   char *line_selector[MAXMENULINES];
   char *line_host[MAXMENULINES];
-  char curURL[256];
+  char curURL[MAXURLLEN];
   unsigned short line_port[MAXMENULINES];
   char line_itemtype[MAXMENULINES];
   unsigned char line_description_len[MAXMENULINES];
@@ -520,12 +520,12 @@ static int display_menu(struct historytype **history, struct gopherusconfig *cfg
       case 0x0D: /* ENTER */
         if (*selectedline >= 0) {
           if ((line_itemtype[*selectedline] == '7') && (keypress != 0x143)) { /* a query needs to be issued */
-            char query[64];
+            char query[MAXQUERYLEN];
             char *finalselector;
             set_statusbar("Enter a query: ");
             draw_statusbar(cfg);
             query[0] = 0;
-            if (editstring(query, 64, 64, 15, ui_getrowcount() - 1, cfg->attr_statusbarinfo) == 0) break;
+            if (editstring(query, sizeof(query), 64, 15, ui_getrowcount() - 1, cfg->attr_statusbarinfo) == 0) break;
             finalselector = malloc(strlen(line_selector[*selectedline]) + strlen(query) + 2); /* add 1 for the TAB, and 1 for the NULL terminator */
             if (finalselector == NULL) {
               set_statusbar("Out of memory");
@@ -539,11 +539,11 @@ static int display_menu(struct historytype **history, struct gopherusconfig *cfg
           } else { /* itemtype is anything else than type 7 */
             int tmpproto;
             unsigned short tmpport;
-            char tmphost[512], tmpitemtype, tmpselector[512];
-            tmpproto = parsegopherurl(curURL, tmphost, &tmpport, &tmpitemtype, tmpselector);
+            char tmphost[MAXHOSTLEN], tmpitemtype, tmpselector[MAXSELLEN];
+            tmpproto = parsegopherurl(curURL, tmphost, sizeof(tmphost), &tmpport, &tmpitemtype, tmpselector, sizeof(tmpselector));
             if (keypress == 0x143) tmpitemtype = '9'; /* force the itemtype to 'binary' if 'save as' was requested */
             if (tmpproto < 0) {
-              set_statusbar("!Unknown protocol");
+              set_statusbar("!Bad URL");
               break;
             } else {
               history_add(history, tmpproto, tmphost, tmpport, tmpitemtype, tmpselector);
@@ -1124,8 +1124,8 @@ int main(int argc, char **argv) {
 
   if (argc > 1) { /* if some params have been received, parse them */
     char itemtype;
-    char hostaddr[64];
-    char selector[256];
+    char hostaddr[MAXHOSTLEN];
+    char selector[MAXSELLEN];
     unsigned short hostport, i;
     int protocol;
     int goturl = 0;
@@ -1148,7 +1148,7 @@ int main(int argc, char **argv) {
         free(buffer);
         return(1);
       }
-      if ((protocol = parsegopherurl(argv[i], hostaddr, &hostport, &itemtype, selector)) < 0) {
+      if ((protocol = parsegopherurl(argv[i], hostaddr, sizeof(hostaddr), &hostport, &itemtype, selector, sizeof(selector))) < 0) {
         ui_puts("Invalid URL!");
         free(buffer);
         return(1);
