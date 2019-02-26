@@ -328,7 +328,7 @@ static int display_menu(struct historytype **history, struct gopherusconfig *cfg
   char line_itemtype[MAXMENULINES];
   unsigned char line_description_len[MAXMENULINES];
   int linecount, x, y, column;
-  char singlelinebuf[128];
+  char singlelinebuf[82];
   int *selectedline = &(*history)->displaymemory[0];
   int *screenlineoffset = &(*history)->displaymemory[1];
   int firstlinkline = -1, lastlinkline = -1, keypress;
