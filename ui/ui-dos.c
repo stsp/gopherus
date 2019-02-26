@@ -144,7 +144,14 @@ void ui_cursor_show(void) {
 
 
 void ui_cursor_hide(void) {
-  cursor_set(0x0F, 0x0E); /* hide the cursor */
+  cursor_set(0x2F, 0x0E); /* hide the cursor */
+  /* the 'start position' of cursor_set() is a bitfield:
+   *
+   * Bit(s)  Description     (Table 00013)
+   *  7      should be zero
+   *  6,5    cursor blink (00=normal, 01=invisible)
+   *  4-0    topmost scan line containing cursor
+   */
 }
 
 
