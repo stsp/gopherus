@@ -1205,7 +1205,11 @@ int main(int argc, char **argv) {
           continue;
         } else {
           history_cleanupcache(history);
-          history->cache = malloc(bufferlen);
+          if (bufferlen == 0) { /* malloc(0) may return NULL on some platforms */
+            history->cache = malloc(1);
+          } else {
+            history->cache = malloc(bufferlen);
+          }
           if (history->cache == NULL) {
             history_back(&history);
             set_statusbar("!Out of memory!");
