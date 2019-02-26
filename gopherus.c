@@ -327,7 +327,7 @@ static int display_menu(struct historytype **history, struct gopherusconfig *cfg
   unsigned short line_port[MAXMENULINES];
   char line_itemtype[MAXMENULINES];
   unsigned char line_description_len[MAXMENULINES];
-  int linecount = 0, x, y, column;
+  int linecount, x, y, column;
   char singlelinebuf[128];
   int *selectedline = &(*history)->displaymemory[0];
   int *screenlineoffset = &(*history)->displaymemory[1];
@@ -398,8 +398,10 @@ static int display_menu(struct historytype **history, struct gopherusconfig *cfg
         }
         linecount += 1;
         if (wrapptr == NULL) break;
-        if (linecount >= MAXMENULINES) break;
       }
+    } else {
+      set_statusbar("!ERROR: Too many lines, the document has been truncated.");
+      break;
     }
   }
 
@@ -415,7 +417,7 @@ static int display_menu(struct historytype **history, struct gopherusconfig *cfg
     curURL[0] = 0;
     if (*selectedline >= 0) {   /* if any position is selected, print the url in status bar */
       buildgopherurl(curURL, sizeof(curURL), PARSEURL_PROTO_GOPHER, line_host[*selectedline], line_port[*selectedline], line_itemtype[*selectedline], line_selector[*selectedline]);
-      set_statusbar(curURL);
+      if (glob_statusbar[0] == 0) set_statusbar(curURL);
     }
     /* start drawing lines of the menu */
     for (x = *screenlineoffset; x < *screenlineoffset + (ui_getrowcount() - 2); x++) {
