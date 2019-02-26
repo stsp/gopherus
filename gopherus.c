@@ -415,7 +415,8 @@ static int display_menu(struct historytype **history, struct gopherusconfig *cfg
 
   for (;;) {
     curURL[0] = 0;
-    if (*selectedline >= 0) {   /* if any position is selected, print the url in status bar */
+    /* if any position is selected, print the url in status bar */
+    if (*selectedline >= 0) {
       buildgopherurl(curURL, sizeof(curURL), PARSEURL_PROTO_GOPHER, line_host[*selectedline], line_port[*selectedline], line_itemtype[*selectedline], line_selector[*selectedline]);
       if (glob_statusbar[0] == 0) set_statusbar(curURL);
     }
@@ -427,8 +428,6 @@ static int display_menu(struct historytype **history, struct gopherusconfig *cfg
         attr = cfg->attr_menuselectable;
         if (x == *selectedline) { /* change the background if item is selected */
           attr = cfg->attr_menucurrent;
-          /* attr &= 0x0F;
-          attr |= 0x20; */
         } else {
           attr = cfg->attr_menutype;
         }
@@ -476,23 +475,17 @@ static int display_menu(struct historytype **history, struct gopherusconfig *cfg
           z = 4;
         }
         /* select foreground color */
-        /* attr &= 0xF0; */
         if (x == *selectedline) {
-          /* attr |= 0x00; */
           attr = cfg->attr_menucurrent;
         } else if (line_itemtype[x] == 'i') {
-          /* attr |= 0x07; */
           attr = cfg->attr_textnorm;
         } else if (line_itemtype[x] == '3') {
           attr = cfg->attr_menuerr;
-          /* attr |= 0x04; */
         } else {
           if (isitemtypeselectable(line_itemtype[x]) != 0) {
             attr = cfg->attr_menuselectable;
-            /* attr |= 0x02; */
           } else {
             attr = cfg->attr_textnorm;
-            /* attr |= 0x08; */
           }
         }
         /* print the the line's description */
