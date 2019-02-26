@@ -15,3 +15,5 @@ IPv6 support
 display_text() and display_menu() shouldn't need to copy content into another buffer before displaying it.
 
 loadfile_buff() shouldn't use the buffer if it writes to a file anyway
+
+menu continuations (word-wrapped) should be of same color than parent
