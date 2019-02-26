@@ -1207,9 +1207,9 @@ int main(int argc, char **argv) {
           history_cleanupcache(history);
           history->cache = malloc(bufferlen);
           if (history->cache == NULL) {
-            fatalerr = "Out of memory!";
-            exitflag = 1;
-            break;
+            history_back(&history);
+            set_statusbar("!Out of memory!");
+            continue;
           }
           if (bufferlen > 0) memcpy(history->cache, buffer, bufferlen);
           history->cachesize = bufferlen;
