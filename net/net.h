@@ -1,6 +1,6 @@
 /*
  * This file is part of the Gopherus project.
- * Copyright (C) Mateusz Viste 2013
+ * Copyright (C) Mateusz Viste 2013-2019
  */
 
 
@@ -8,7 +8,8 @@
 #define libtcp_hdr
 
 struct net_tcpsocket {
-  void *sock;
+  int s;       /* used by platforms with BSD-style sockets */
+  void *sock;  /* used by other exotic things (like Watt-32) */
   char buffer[1];
 };
 

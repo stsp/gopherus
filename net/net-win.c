@@ -16,11 +16,6 @@
 #include "net.h" /* include self for control */
 
 
-struct netwrap {
-  int fd;
-};
-
-
 /* this is a wrapper around the wattcp lookup_host(). returns 0 if resolution fails. */
 unsigned long net_dnsresolve(const char *name) {
   struct hostent *hent;
@@ -43,34 +38,29 @@ int net_init(void) {
 
 
 struct net_tcpsocket *net_connect(unsigned long ipaddr, unsigned short port) {
-  struct netwrap *s;
   struct sockaddr_in remote;
   struct net_tcpsocket *result;
   char ipstr[64];
   sprintf(ipstr, "%lu.%lu.%lu.%lu", (ipaddr >> 24) & 0xFF, (ipaddr >> 16) & 0xFF, (ipaddr >> 8) & 0xFF, ipaddr & 0xFF);
-  s = malloc(sizeof(struct netwrap));
-  if (s == NULL) return(NULL);
-  s->fd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-  if (s->fd < 0) {
-    free(s);
-    return(NULL);
-  }
+
   result = malloc(sizeof(struct net_tcpsocket));
   if (result == NULL) {
-    closesocket(s->fd);
-    free(s);
+    return(NULL);
+  }
+
+  result->s = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+  if (result->s < 0) {
+    free(result);
     return(NULL);
   }
   remote.sin_family = AF_INET;  /* Proto family (IPv4) */
   remote.sin_addr.s_addr = inet_addr(ipstr); /* set dst IP address */
   remote.sin_port = htons(port); /* set the dst port */
-  if (connect(s->fd, (struct sockaddr *)&remote, sizeof(struct sockaddr)) < 0) {
-    closesocket(s->fd);
-    free(s);
+  if (connect(result->s, (struct sockaddr *)&remote, sizeof(struct sockaddr)) < 0) {
+    closesocket(result->s);
     free(result);
     return(NULL);
   }
-  result->sock = s;
   return(result);
 }
 
@@ -79,7 +69,7 @@ struct net_tcpsocket *net_connect(unsigned long ipaddr, unsigned short port) {
    Returns the number of bytes sent on success, and <0 otherwise. The error code can be translated into a human error message via libtcp_strerr(). */
 int net_send(struct net_tcpsocket *socket, char *line, long len) {
   int res;
-  res = send(((struct netwrap *)(socket->sock))->fd, line, len, 0);
+  res = send(socket->s, line, len, 0);
   return(res);
 }
 
@@ -88,20 +78,18 @@ int net_send(struct net_tcpsocket *socket, char *line, long len) {
 Returns the amount of data read (in bytes) on success, or a negative value otherwise. The error code can be translated into a human error message via libtcp_strerr(). */
 int net_recv(struct net_tcpsocket *socket, char *buff, long maxlen) {
   int res;
-  int realsocket;
   fd_set rfds;
   struct timeval tv;
-  realsocket = ((struct netwrap *)socket->sock)->fd;
   /* Use select() to wait up to 100ms if nothing awaits on the socket (spares some CPU time) */
   FD_ZERO(&rfds);
-  FD_SET(realsocket, &rfds);
+  FD_SET(socket->s, &rfds);
   tv.tv_sec = 0;
   tv.tv_usec = 100000;
-  res = select(realsocket + 1, &rfds, NULL, NULL, &tv);
+  res = select(socket->s + 1, &rfds, NULL, NULL, &tv);
   if (res < 0) return(-1);
   if (res == 0) return(0);
   /* read the stuff now (if any) */
-  res = recv(realsocket, buff, maxlen, 0);
+  res = recv(socket->s, buff, maxlen, 0);
   if (res == 0) return(-1); /* the peer performed an orderly shutdown */
   return(res);
 }
@@ -109,9 +97,7 @@ int net_recv(struct net_tcpsocket *socket, char *buff, long maxlen) {
 
 /* Close the 'sock' socket. */
 void net_close(struct net_tcpsocket *socket) {
-  struct netwrap *s = (struct netwrap *)socket->sock;
-  closesocket(s->fd);
-  free(socket->sock);
+  closesocket(socket->s);
   free(socket);
 }
 
