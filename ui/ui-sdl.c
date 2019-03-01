@@ -2,7 +2,7 @@
  * This file is part of the gopherus project.
  * It provides abstract functions to draw on screen.
  *
- * Copyright (C) Mateusz Viste 2013-2015
+ * Copyright (C) Mateusz Viste 2013-2019
  *
  * Provides all UI functions used by Gopherus, wrapped around a virtual
  * terminal emulated via SDL2 calls.
@@ -33,7 +33,7 @@ void ui_init(void) {
   SDL_Window *window;
   SDL_Surface *icosurface;
   SDL_Init(SDL_INIT_VIDEO);
-  window = SDL_CreateWindow("Gopherus", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 640, 480, 0);
+  window = SDL_CreateWindow("Gopherus", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 640, 480, SDL_WINDOW_RESIZABLE);
   renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_SOFTWARE);
   screen = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, 640, 480);
   /* load the gopherus icon to titlebar */
