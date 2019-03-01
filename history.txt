@@ -2,6 +2,10 @@
 Gopherus changelog
 
 
+Gopherus v1.x [xx xxx xxxx]:
+ - [fix] Windows sockets are properly closed now (patch by Gisle Vanem),
+ - ...
+
 Gopherus v1.1 [26 Feb 2019]:
  - [new] two DOS builds are available: 16 bit (real-mode) or 32 bit (386+),
  - [fix] better checking for content overflows,

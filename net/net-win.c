@@ -9,7 +9,7 @@
 #include <stdlib.h>  /* NULL */
 #include <winsock2.h> /* socket() */
 #include <stdio.h> /* sprintf() */
-#include <unistd.h> /* close() */
+#include <io.h>     /* close() */
 #include <errno.h> /* EAGAIN, EWOULDBLOCK... */
 #include <stdint.h> /* uint32_t */
 
@@ -57,7 +57,7 @@ struct net_tcpsocket *net_connect(unsigned long ipaddr, unsigned short port) {
   }
   result = malloc(sizeof(struct net_tcpsocket));
   if (result == NULL) {
-    close(s->fd);
+    closesocket(s->fd);
     free(s);
     return(NULL);
   }
@@ -65,7 +65,7 @@ struct net_tcpsocket *net_connect(unsigned long ipaddr, unsigned short port) {
   remote.sin_addr.s_addr = inet_addr(ipstr); /* set dst IP address */
   remote.sin_port = htons(port); /* set the dst port */
   if (connect(s->fd, (struct sockaddr *)&remote, sizeof(struct sockaddr)) < 0) {
-    close(s->fd);
+    closesocket(s->fd);
     free(s);
     free(result);
     return(NULL);
@@ -109,7 +109,8 @@ int net_recv(struct net_tcpsocket *socket, char *buff, long maxlen) {
 
 /* Close the 'sock' socket. */
 void net_close(struct net_tcpsocket *socket) {
-  close(((struct netwrap *)(socket->sock))->fd);
+  struct netwrap *s = (struct netwrap *)socket->sock;
+  closesocket(s->fd);
   free(socket->sock);
   free(socket);
 }
