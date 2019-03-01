@@ -7,7 +7,7 @@ Gopherus v1.x [xx xxx xxxx]:
  - ...
 
 Gopherus v1.1 [26 Feb 2019]:
- - [new] two DOS builds are available: 16 bit (real-mode) or 32 bit (386+),
+ - [new] two DOS builds are available: 16 bit (real-mode) and 32 bit (386+),
  - [fix] better checking for content overflows,
  - [fix] fixed crashes in the SDL output module,
  - [fix] lots of minor memory/speed optimizations,
