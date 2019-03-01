@@ -127,16 +127,20 @@ int ui_getkey(void) {
         case SDLK_HOME:   /* HOME */
           return(0x147);
         case SDLK_UP:     /* UP */
+        case SDLK_KP_8:
           return(0x148);
         case SDLK_PAGEUP: /* PGUP */
           return(0x149);
         case SDLK_LEFT:   /* LEFT */
+        case SDLK_KP_4:
           return(0x14B);
         case SDLK_RIGHT:  /* RIGHT */
+        case SDLK_KP_6:
           return(0x14D);
         case SDLK_END:    /* END */
           return(0x14F);
         case SDLK_DOWN:   /* DOWN */
+        case SDLK_KP_2:
           return(0x150);
         case SDLK_PAGEDOWN: /* PGDOWN */
           return(0x151);

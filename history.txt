@@ -4,6 +4,7 @@ Gopherus changelog
 
 Gopherus v1.x [xx xxx xxxx]:
  - [new] SDL versions have a resizeable (scalable) window,
+ - [new] SDL versions react to keypad arrows as well as normal arrows,
  - [fix] Windows sockets are properly closed now (patch by Gisle Vanem),
  - ...
 
