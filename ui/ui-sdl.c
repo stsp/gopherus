@@ -36,6 +36,8 @@ void ui_init(void) {
   window = SDL_CreateWindow("Gopherus", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 640, 480, SDL_WINDOW_RESIZABLE);
   renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_SOFTWARE);
   screen = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, 640, 480);
+  SDL_SetWindowMinimumSize(window, 640, 480);
+
   /* load the gopherus icon to titlebar */
   icosurface = SDL_CreateRGBSurfaceFrom(icopixels,64,64,16,64*2,0x0f00,0x00f0,0x000f,0xf000);
   SDL_SetWindowIcon(window, icosurface);
@@ -103,6 +105,7 @@ int ui_getkey(void) {
         case SDLK_TAB:    /* TAB */
           return(0x09);
         case SDLK_RETURN: /* ENTER */
+        case SDLK_KP_ENTER:
           return(0x0D);
         case SDLK_F1:     /* F1 */
           return(0x13B);
