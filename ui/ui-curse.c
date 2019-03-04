@@ -147,6 +147,16 @@ int ui_getkey(void) {
     case KEY_NPAGE:     return(0x151);  /* PGDOWN */
     case KEY_HOME:      return(0x147);
     case KEY_END:       return(0x14F);
+    case KEY_F(1):      return(0x13b);
+    case KEY_F(2):      return(0x13c);
+    case KEY_F(3):      return(0x13d);
+    case KEY_F(4):      return(0x13e);
+    case KEY_F(5):      return(0x13f);
+    case KEY_F(6):      return(0x140);
+    case KEY_F(7):      return(0x141);
+    case KEY_F(8):      return(0x142);
+    case KEY_F(9):      return(0x143);
+    case KEY_F(10):     return(0x144);
     default:            return(res); /* return the scancode as-is otherwise */
   }
 }
