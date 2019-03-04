@@ -316,34 +316,20 @@ static int isitemtypeselectable(char itemtype) {
 }
 
 
-static int display_menu(struct historytype **history, struct gopherusconfig *cfg, char *buffer, long buffersize) {
+/* explodes a gopher menu into separate lines. returns amount of lines */
+static long menu_explode(char *buffer, long bufferlen, char *line_itemtype, char **line_description, unsigned char *line_description_len, char **line_selector, char **line_host, unsigned short *line_port, long maxlines, long *firstlinkline, long *lastlinkline) {
   char *description, *cursor, *selector, *host, *port, itemtype;
   int endofline;
-  long bufferlen;
-  char *line_description[MAXMENULINES];
-  char *line_selector[MAXMENULINES];
-  char *line_host[MAXMENULINES];
-  char curURL[MAXURLLEN];
-  unsigned short line_port[MAXMENULINES];
-  char line_itemtype[MAXMENULINES];
-  unsigned char line_description_len[MAXMENULINES];
-  int linecount, x, y, column;
   char singlelinebuf[82];
-  int *selectedline = &(*history)->displaymemory[0];
-  int *screenlineoffset = &(*history)->displaymemory[1];
-  int firstlinkline = -1, lastlinkline = -1, keypress;
-  if (*screenlineoffset < 0) *screenlineoffset = 0;
-  /* copy the history content into buffer - we need to do this because we'll perform changes on the data */
-  bufferlen = (*history)->cachesize;
-  if (bufferlen > buffersize) bufferlen = buffersize;
-  memcpy(buffer, (*history)->cache, bufferlen);
-  buffer[bufferlen] = 0;
-  /* */
-  linecount = 0;
+  long linecount = 0;
+
+  *firstlinkline = -1;
+  *lastlinkline = -1;
+
   for (cursor = buffer; cursor < (buffer + bufferlen) ;) {
+    int column = 0;
     itemtype = *cursor;
     cursor += 1;
-    column = 0;
     description = cursor;
     selector = NULL;
     host = NULL;
@@ -369,13 +355,13 @@ static int display_menu(struct historytype **history, struct gopherusconfig *cfg
       }
     }
     if (itemtype == '.') continue; /* ignore lines starting by '.' - it's most probably the end of menu terminator */
-    if (linecount < MAXMENULINES) {
+    if (linecount < maxlines) {
       char *wrapptr = description;
       int wraplen;
       int firstiteration = 0;
       if (isitemtypeselectable(itemtype) != 0) {
-        if (firstlinkline < 0) firstlinkline = linecount;
-        lastlinkline = linecount;
+        if (*firstlinkline < 0) *firstlinkline = linecount;
+        *lastlinkline = linecount;
       }
       for (;; firstiteration += 1) {
         if ((firstiteration > 0) && (itemtype != 'i') && (itemtype != '3')) itemtype = 0;
@@ -409,6 +395,32 @@ static int display_menu(struct historytype **history, struct gopherusconfig *cfg
   if (linecount > 0) {
     if (line_itemtype[linecount - 1] == '.') linecount -= 1;
   }
+  return(linecount);
+}
+
+
+static int display_menu(struct historytype **history, struct gopherusconfig *cfg, char *buffer, long buffersize) {
+  long bufferlen, linecount;
+  char *line_description[MAXMENULINES];
+  char *line_selector[MAXMENULINES];
+  char *line_host[MAXMENULINES];
+  char curURL[MAXURLLEN];
+  unsigned short line_port[MAXMENULINES];
+  char line_itemtype[MAXMENULINES];
+  unsigned char line_description_len[MAXMENULINES];
+  int x, y;
+  int *selectedline = &(*history)->displaymemory[0];
+  int *screenlineoffset = &(*history)->displaymemory[1];
+  long firstlinkline, lastlinkline;
+  int keypress;
+  if (*screenlineoffset < 0) *screenlineoffset = 0;
+  /* copy the history content into buffer - we need to do this because we'll perform changes on the data */
+  bufferlen = (*history)->cachesize;
+  if (bufferlen > buffersize) bufferlen = buffersize;
+  memcpy(buffer, (*history)->cache, bufferlen);
+  buffer[bufferlen] = 0;
+  /* */
+  linecount = menu_explode(buffer, bufferlen, line_itemtype, line_description, line_description_len, line_selector, line_host, line_port, MAXMENULINES, &firstlinkline, &lastlinkline);
 
   /* if there is at least one position, and nothing is selected yet, make it active */
   if ((firstlinkline >= 0) && (*selectedline < 0)) *selectedline = firstlinkline;
