@@ -303,6 +303,244 @@ static int askQuitConfirmation(struct gopherusconfig *cfg) {
 }
 
 
+/* downloads a gopher or http resource and write it to a file or a memory
+ * buffer. if *filename is not NULL, the resource will be written in the file
+ * (but a valid *buffer is still required) */
+static long loadfile_buff(int protocol, char *hostaddr, unsigned short hostport, char *selector, char *buffer, long buffer_max, char *filename, struct gopherusconfig *cfg, int notui) {
+  unsigned long ipaddr;
+  long reslength, byteread, fdlen = 0;
+  int warnflag = 0;
+  char statusmsg[128];
+  time_t lastrefresh = 0;
+  FILE *fd = NULL;
+  int headersdone = 0; /* used notably for HTTP, to localize the end of headers */
+  struct net_tcpsocket *sock;
+  time_t lastactivity, curtime;
+  if (hostaddr[0] == '#') { /* embedded start page */
+    reslength = loadembeddedstartpage(buffer, buffer_max, hostaddr + 1);
+    /* open file, if downloading to a file */
+    if (filename != NULL) {
+      fd = fopen(filename, "rb"); /* try to open for read - this should fail */
+      if (fd != NULL) {
+        set_statusbar("!File already exists! Operation aborted.");
+        fclose(fd);
+        return(-1);
+      }
+      fd = fopen(filename, "wb"); /* now open for write - this will create the file */
+      if (fd == NULL) { /* this should not fail */
+        set_statusbar("!Error: could not create the file on disk!");
+        fclose(fd);
+        return(-1);
+      }
+      fwrite(buffer, 1, reslength, fd);
+      fclose(fd);
+    }
+    return(reslength);
+  }
+  ipaddr = dnscache_ask(hostaddr);
+  if (ipaddr == 0) {
+    sprintf(statusmsg, "Resolving '%s'...", hostaddr);
+    if (notui == 0) {
+      set_statusbar(statusmsg);
+      draw_statusbar(cfg);
+    } else {
+      ui_puts(statusmsg);
+    }
+    ipaddr = net_dnsresolve(hostaddr);
+    if (ipaddr == 0) {
+      set_statusbar("!DNS resolution failed!");
+      return(-1);
+    }
+    dnscache_add(hostaddr, ipaddr);
+  }
+  sprintf(statusmsg, "Connecting to %lu.%lu.%lu.%lu...", (ipaddr >> 24) & 0xFF, (ipaddr >> 16) & 0xFF, (ipaddr >> 8) & 0xFF, (ipaddr & 0xFF));
+  if (notui == 0) {
+    set_statusbar(statusmsg);
+    draw_statusbar(cfg);
+  } else {
+    ui_puts(statusmsg);
+  }
+
+  sock = net_connect(ipaddr, hostport);
+  if (sock == NULL) {
+    set_statusbar("!Connection error!");
+    return(-1);
+  }
+  if (protocol == PARSEURL_PROTO_HTTP) { /* http */
+    sprintf(buffer, "GET /%s HTTP/1.0\r\nHOST: %s\r\nUSER-AGENT: Gopherus\r\n\r\n", selector, hostaddr);
+  } else { /* gopher */
+    sprintf(buffer, "%s\r\n", selector);
+  }
+  if (net_send(sock, buffer, strlen(buffer)) != (int)strlen(buffer)) {
+    set_statusbar("!send() error!");
+    net_close(sock);
+    return(-1);
+  }
+  /* prepare timers */
+  lastactivity = time(NULL);
+  curtime = lastactivity;
+  /* open file, if downloading to a file */
+  if (filename != NULL) {
+    fd = fopen(filename, "rb"); /* try to open for read - this should fail */
+    if (fd != NULL) {
+      set_statusbar("!File already exists! Operation aborted.");
+      fclose(fd);
+      net_abort(sock);
+      return(-1);
+    }
+    fd = fopen(filename, "wb"); /* now open for write - this will create the file */
+    if (fd == NULL) { /* this should not fail */
+      set_statusbar("!Error: could not create the file on disk!");
+      fclose(fd);
+      net_abort(sock);
+      return(-1);
+    }
+  }
+  /* receive answer */
+  reslength = 0;
+  for (;;) {
+    if (buffer_max + fdlen - reslength < 1) { /* too much data! */
+      set_statusbar("!Error: Server's answer is too long! (truncated)");
+      warnflag = 1;
+      break;
+    }
+    byteread = net_recv(sock, buffer + (reslength - fdlen), buffer_max + fdlen - reslength);
+    curtime = time(NULL);
+    if (byteread < 0) break; /* end of connection */
+    if (ui_kbhit() != 0) { /* a key has been pressed - read it */
+      int presskey = ui_getkey();
+      if ((presskey == 0x1B) || (presskey == 0x08)) { /* if it's escape or backspace, abort the connection */
+        set_statusbar("Connection aborted by the user.");
+        reslength = -1;
+        break;
+      }
+    }
+    if (byteread > 0) {
+        lastactivity = curtime;
+        reslength += byteread;
+        /* if protocol is http, ignore headers */
+        if ((protocol == PARSEURL_PROTO_HTTP) && (headersdone == 0)) {
+          int i;
+          for (i = 0; i < reslength - 2; i++) {
+            if (buffer[i] == '\n') {
+              if (buffer[i + 1] == '\r') i++; /* skip CR if following */
+              if (buffer[i + 1] == '\n') {
+                i += 2;
+                headersdone = reslength;
+                for (reslength = 0; i < headersdone; i++) buffer[reslength++] = buffer[i];
+                break;
+              }
+            }
+          }
+        } else {
+          /* refresh the status bar once every second */
+          if (curtime != lastrefresh) {
+            lastrefresh = curtime;
+            sprintf(statusmsg, "Downloading... [%ld bytes]", reslength);
+            if (notui == 0) {
+              set_statusbar(statusmsg);
+              draw_statusbar(cfg);
+            } else {
+              ui_puts(statusmsg);
+            }
+          }
+          /* if downloading to file, write stuff to disk */
+          if ((fd != NULL) && (reslength - fdlen > (buffer_max / 2))) {
+            int writeres = fwrite(buffer, 1, reslength - fdlen, fd);
+            if (writeres < 0) writeres = 0;
+            fdlen += writeres;
+          }
+      }
+    } else {
+      if (curtime - lastactivity > 20) { /* TIMEOUT! */
+        set_statusbar("!Timeout while waiting for data!");
+        reslength = -1;
+        break;
+      }
+    }
+  }
+  if ((reslength >= 0) && (warnflag == 0)) {
+    if (notui == 0) set_statusbar("");
+    net_close(sock);
+  } else {
+    net_abort(sock);
+  }
+  if (fd != NULL) { /* finish the buffer */
+    if (reslength - fdlen > 0) { /* if anything left in the buffer, write it now */
+      fdlen += fwrite(buffer, 1, reslength - fdlen, fd);
+    }
+    fclose(fd);
+    sprintf(statusmsg, "Saved %ld bytes on disk", fdlen);
+    set_statusbar(statusmsg);
+  }
+  return(reslength);
+}
+
+
+/* compute a filename proposition based on url - this is used to suggest a
+ * filename when user downloads something from the gopherspace */
+static void genfnamefromselector(char *fname, unsigned short maxlen, const char *selector) {
+  unsigned short i, lastdot = 0xffffu, flen, extlen = 0;
+  if (maxlen < 1) return;
+  *fname = 0; /* worst case scenario - nothing is suggested */
+  maxlen -= 1; /* make room for the null terminator */
+  /* find where the last filename may start, as well as locate last dot and compute length */
+  for (i = 0; selector[i] != 0; i++) {
+    if (selector[i] == '/') {
+      selector += i + 1;
+      i = 0;
+      flen = 0;
+      lastdot = 0xffff;
+    } else if (selector[i] == '.') {
+      lastdot = i;
+    }
+  }
+  /* compute lengths */
+  if (lastdot != 0xffffu) {
+    flen = lastdot;
+    extlen = (i - lastdot) - 1;
+    if (extlen > 0) extlen++;  /* count the dot separateor as part of ext */
+  } else {
+    flen = i;
+  }
+#ifdef NOLFN
+  /* adjust flen & extlen to 8+3 */
+  if (flen > 8) flen = 8;
+  if (extlen > 4) extlen = 4;
+#endif
+  /* adjust length to maxlen */
+  if (flen + extlen > maxlen) {
+    flen = maxlen - extlen;
+  }
+  if (flen < 1) return;
+  /* fill fname */
+  memcpy(fname, selector, flen);
+  if (extlen > 0) memcpy(fname + flen, selector + lastdot, extlen);
+  fname[flen + extlen] = 0;
+  /* replace shady chars by underscores */
+  for (i = 0; fname[i] != 0; i++) {
+    if ((fname[i] >= 'a') && (fname[i] <= 'z')) continue;
+    if ((fname[i] >= 'A') && (fname[i] <= 'Z')) continue;
+    if ((fname[i] >= '0') && (fname[i] <= '9')) continue;
+    if ((fname[i] == '.') && (i == flen)) continue; /* dot is okay, but only before ext */
+    switch (fname[i]) {
+      case '_':
+      case '-':
+      case '@':
+      case '$':
+      case '(':
+      case ')':
+      case '.':
+      case '!':
+      case '&':
+        continue;
+    }
+    /* anything else gets to be replaced */
+    fname[i] = '_';
+  }
+}
+
+
 /* used by display_menu to tell whether an itemtype is selectable or not */
 static int isitemtypeselectable(char itemtype) {
   switch (itemtype) {
@@ -408,12 +646,13 @@ static int display_menu(struct historytype **history, struct gopherusconfig *cfg
   unsigned short line_port[MAXMENULINES];
   char line_itemtype[MAXMENULINES];
   unsigned char line_description_len[MAXMENULINES];
-  int x, y;
-  int *selectedline = &(*history)->displaymemory[0];
-  int *screenlineoffset = &(*history)->displaymemory[1];
+  long x, y;
+  long *selectedline = &(*history)->displaymemory[0];
+  long *screenlineoffset = &(*history)->displaymemory[1];
   long firstlinkline, lastlinkline;
   int keypress;
   if (*screenlineoffset < 0) *screenlineoffset = 0;
+
   /* copy the history content into buffer - we need to do this because we'll perform changes on the data */
   bufferlen = (*history)->cachesize;
   if (bufferlen > buffersize) bufferlen = buffersize;
@@ -557,6 +796,18 @@ static int display_menu(struct historytype **history, struct gopherusconfig *cfg
               return(DISPLAY_ORDER_NONE);
             }
           }
+        }
+        break;
+      case 0x144: /* F10 - download all items from current directory */
+        for (x = firstlinkline; x <= lastlinkline; x++) {
+          char fname[32];
+          char b[512];
+          if (isitemtypeselectable(line_itemtype[x]) == 0) continue;
+          /* generate a filename for the target */
+          genfnamefromselector(fname, sizeof(fname), line_selector[x]);
+          /* TODO watch out for already-existing files! */
+          /* download the file */
+          loadfile_buff(PARSEURL_PROTO_GOPHER, line_host[x], line_port[x], line_selector[x], b, sizeof(b), fname, cfg, 0);
         }
         break;
       case 0x1B: /* Esc */
@@ -871,241 +1122,6 @@ static int display_text(struct historytype **history, struct gopherusconfig *cfg
   }
 }
 
-
-/* downloads a gopher or http resource and write it to a file or a memory buffer. if *filename is not NULL, the resource will be written in the file (but a valid *buffer is still required) */
-static long loadfile_buff(int protocol, char *hostaddr, unsigned short hostport, char *selector, char *buffer, long buffer_max, char *filename, struct gopherusconfig *cfg, int notui) {
-  unsigned long ipaddr;
-  long reslength, byteread, fdlen = 0;
-  int warnflag = 0;
-  char statusmsg[128];
-  time_t lastrefresh = 0;
-  FILE *fd = NULL;
-  int headersdone = 0; /* used notably for HTTP, to localize the end of headers */
-  struct net_tcpsocket *sock;
-  time_t lastactivity, curtime;
-  if (hostaddr[0] == '#') { /* embedded start page */
-    reslength = loadembeddedstartpage(buffer, buffer_max, hostaddr + 1);
-    /* open file, if downloading to a file */
-    if (filename != NULL) {
-      fd = fopen(filename, "rb"); /* try to open for read - this should fail */
-      if (fd != NULL) {
-        set_statusbar("!File already exists! Operation aborted.");
-        fclose(fd);
-        return(-1);
-      }
-      fd = fopen(filename, "wb"); /* now open for write - this will create the file */
-      if (fd == NULL) { /* this should not fail */
-        set_statusbar("!Error: could not create the file on disk!");
-        fclose(fd);
-        return(-1);
-      }
-      fwrite(buffer, 1, reslength, fd);
-      fclose(fd);
-    }
-    return(reslength);
-  }
-  ipaddr = dnscache_ask(hostaddr);
-  if (ipaddr == 0) {
-    sprintf(statusmsg, "Resolving '%s'...", hostaddr);
-    if (notui == 0) {
-      set_statusbar(statusmsg);
-      draw_statusbar(cfg);
-    } else {
-      ui_puts(statusmsg);
-    }
-    ipaddr = net_dnsresolve(hostaddr);
-    if (ipaddr == 0) {
-      set_statusbar("!DNS resolution failed!");
-      return(-1);
-    }
-    dnscache_add(hostaddr, ipaddr);
-  }
-  sprintf(statusmsg, "Connecting to %lu.%lu.%lu.%lu...", (ipaddr >> 24) & 0xFF, (ipaddr >> 16) & 0xFF, (ipaddr >> 8) & 0xFF, (ipaddr & 0xFF));
-  if (notui == 0) {
-    set_statusbar(statusmsg);
-    draw_statusbar(cfg);
-  } else {
-    ui_puts(statusmsg);
-  }
-
-  sock = net_connect(ipaddr, hostport);
-  if (sock == NULL) {
-    set_statusbar("!Connection error!");
-    return(-1);
-  }
-  if (protocol == PARSEURL_PROTO_HTTP) { /* http */
-    sprintf(buffer, "GET /%s HTTP/1.0\r\nHOST: %s\r\nUSER-AGENT: Gopherus\r\n\r\n", selector, hostaddr);
-  } else { /* gopher */
-    sprintf(buffer, "%s\r\n", selector);
-  }
-  if (net_send(sock, buffer, strlen(buffer)) != (int)strlen(buffer)) {
-    set_statusbar("!send() error!");
-    net_close(sock);
-    return(-1);
-  }
-  /* prepare timers */
-  lastactivity = time(NULL);
-  curtime = lastactivity;
-  /* open file, if downloading to a file */
-  if (filename != NULL) {
-    fd = fopen(filename, "rb"); /* try to open for read - this should fail */
-    if (fd != NULL) {
-      set_statusbar("!File already exists! Operation aborted.");
-      fclose(fd);
-      net_abort(sock);
-      return(-1);
-    }
-    fd = fopen(filename, "wb"); /* now open for write - this will create the file */
-    if (fd == NULL) { /* this should not fail */
-      set_statusbar("!Error: could not create the file on disk!");
-      fclose(fd);
-      net_abort(sock);
-      return(-1);
-    }
-  }
-  /* receive answer */
-  reslength = 0;
-  for (;;) {
-    if (buffer_max + fdlen - reslength < 1) { /* too much data! */
-      set_statusbar("!Error: Server's answer is too long! (truncated)");
-      warnflag = 1;
-      break;
-    }
-    byteread = net_recv(sock, buffer + (reslength - fdlen), buffer_max + fdlen - reslength);
-    curtime = time(NULL);
-    if (byteread < 0) break; /* end of connection */
-    if (ui_kbhit() != 0) { /* a key has been pressed - read it */
-      int presskey = ui_getkey();
-      if ((presskey == 0x1B) || (presskey == 0x08)) { /* if it's escape or backspace, abort the connection */
-        set_statusbar("Connection aborted by the user.");
-        reslength = -1;
-        break;
-      }
-    }
-    if (byteread > 0) {
-        lastactivity = curtime;
-        reslength += byteread;
-        /* if protocol is http, ignore headers */
-        if ((protocol == PARSEURL_PROTO_HTTP) && (headersdone == 0)) {
-          int i;
-          for (i = 0; i < reslength - 2; i++) {
-            if (buffer[i] == '\n') {
-              if (buffer[i + 1] == '\r') i++; /* skip CR if following */
-              if (buffer[i + 1] == '\n') {
-                i += 2;
-                headersdone = reslength;
-                for (reslength = 0; i < headersdone; i++) buffer[reslength++] = buffer[i];
-                break;
-              }
-            }
-          }
-        } else {
-          /* refresh the status bar once every second */
-          if (curtime != lastrefresh) {
-            lastrefresh = curtime;
-            sprintf(statusmsg, "Downloading... [%ld bytes]", reslength);
-            if (notui == 0) {
-              set_statusbar(statusmsg);
-              draw_statusbar(cfg);
-            } else {
-              ui_puts(statusmsg);
-            }
-          }
-          /* if downloading to file, write stuff to disk */
-          if ((fd != NULL) && (reslength - fdlen > 4096)) {
-            int writeres = fwrite(buffer, 1, reslength - fdlen, fd);
-            if (writeres < 0) writeres = 0;
-            fdlen += writeres;
-          }
-      }
-    } else {
-      if (curtime - lastactivity > 20) { /* TIMEOUT! */
-        set_statusbar("!Timeout while waiting for data!");
-        reslength = -1;
-        break;
-      }
-    }
-  }
-  if ((reslength >= 0) && (warnflag == 0)) {
-    if (notui == 0) set_statusbar("");
-    net_close(sock);
-  } else {
-    net_abort(sock);
-  }
-  if (fd != NULL) { /* finish the buffer */
-    if (reslength - fdlen > 0) { /* if anything left in the buffer, write it now */
-      fdlen += fwrite(buffer, 1, reslength - fdlen, fd);
-    }
-    fclose(fd);
-    sprintf(statusmsg, "Saved %ld bytes on disk", fdlen);
-    set_statusbar(statusmsg);
-  }
-  return(reslength);
-}
-
-
-/* compute a filename proposition based on url - this is used to suggest a
- * filename when user downloads something from the gopherspace */
-static void genfnamefromselector(char *fname, unsigned short maxlen, const char *selector) {
-  unsigned short i, lastdot = 0xffffu, flen, extlen = 0;
-  if (maxlen < 1) return;
-  *fname = 0; /* worst case scenario - nothing is suggested */
-  maxlen -= 1; /* make room for the null terminator */
-  /* find where the last filename may start, as well as locate last dot and compute length */
-  for (i = 0; selector[i] != 0; i++) {
-    if (selector[i] == '/') {
-      selector += i + 1;
-      i = 0;
-      flen = 0;
-      lastdot = 0xffff;
-    } else if (selector[i] == '.') {
-      lastdot = i;
-    }
-  }
-  /* compute lengths */
-  if (lastdot != 0xffffu) {
-    flen = lastdot;
-    extlen = (i - lastdot) - 1;
-    if (extlen > 0) extlen++;  /* count the dot separateor as part of ext */
-  } else {
-    flen = i;
-  }
-#ifdef NOLFN
-  /* adjust flen & extlen to 8+3 */
-  if (flen > 8) flen = 8;
-  if (extlen > 4) extlen = 4;
-#endif
-  /* adjust length to maxlen */
-  if (flen + extlen > maxlen) {
-    flen = maxlen - extlen;
-  }
-  if (flen < 1) return;
-  /* fill fname */
-  memcpy(fname, selector, flen);
-  if (extlen > 0) memcpy(fname + flen, selector + lastdot, extlen);
-  fname[flen + extlen] = 0;
-  /* replace shady chars by underscores */
-  for (i = 0; fname[i] != 0; i++) {
-    if ((fname[i] >= 'a') && (fname[i] <= 'z')) continue;
-    if ((fname[i] >= 'A') && (fname[i] <= 'Z')) continue;
-    if ((fname[i] >= '0') && (fname[i] <= '9')) continue;
-    if ((fname[i] == '.') && (i == flen)) continue; /* dot is okay, but only before ext */
-    switch (fname[i]) {
-      case '_':
-      case '-':
-      case '@':
-      case '$':
-      case '(':
-      case ')':
-      case '.':
-      case '!':
-      case '&':
-        continue;
-    }
-    /* anything else gets to be replaced */
-    fname[i] = '_';
-  }
-}
 
 
 int main(int argc, char **argv) {
