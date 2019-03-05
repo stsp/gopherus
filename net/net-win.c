@@ -67,7 +67,7 @@ struct net_tcpsocket *net_connect(unsigned long ipaddr, unsigned short port) {
 
 /* Sends data on socket 'socket'.
    Returns the number of bytes sent on success, and <0 otherwise. The error code can be translated into a human error message via libtcp_strerr(). */
-int net_send(struct net_tcpsocket *socket, char *line, long len) {
+int net_send(struct net_tcpsocket *socket, const char *line, long len) {
   int res;
   res = send(socket->s, line, len, 0);
   return(res);
