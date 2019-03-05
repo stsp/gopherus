@@ -14,6 +14,6 @@
   int parsegopherurl(char *url, char *host, unsigned short hostlen, unsigned short *port, char *itemtype, char *selector, unsigned short selectorlen);
 
   /* builds a URL from exploded parts */
-  int buildgopherurl(char *res, int maxlen, int protocol, char *host, unsigned short port, char itemtype, char *selector);
+  int buildgopherurl(char *res, int maxlen, int protocol, const char *host, unsigned short port, char itemtype, const char *selector);
 
 #endif

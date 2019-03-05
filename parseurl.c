@@ -107,11 +107,11 @@ int parsegopherurl(char *url, char *host, unsigned short hostlen, unsigned short
 
 
 /* computes an URL string from exploded gopher parts, and returns its length. Returns -1 on error. */
-int buildgopherurl(char *res, int maxlen, int protocol, char *host, unsigned short port, char itemtype, char *selector) {
+int buildgopherurl(char *res, int maxlen, int protocol, const char *host, unsigned short port, char itemtype, const char *selector) {
   int x = 0;
-  char *protoname_gopher = "gopher://";
-  char *protoname_http = "http://";
-  char *protoname = protoname_gopher;
+  const char *protoname_gopher = "gopher://";
+  const char *protoname_http = "http://";
+  const char *protoname = protoname_gopher;
   maxlen -= 1;
   if (protocol == PARSEURL_PROTO_HTTP) { /* http URL */
     protoname = protoname_http;
