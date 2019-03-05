@@ -22,7 +22,7 @@ struct historytype {
 void history_back(struct historytype **history);
 
 /* adds a new node to the history list. Returns 0 on success, non-zero otherwise. */
-int history_add(struct historytype **history, char protocol, char *host, unsigned short port, char itemtype, char *selector);
+int history_add(struct historytype **history, char protocol, const char *host, unsigned short port, char itemtype, const char *selector);
 
 /* free cache content past latest maxallowedcache bytes */
 void history_cleanupcache(struct historytype *history);
