@@ -20,7 +20,7 @@ static struct dnscache_type4 dnscache_table4[DNS_MAXENTRIES];
 
 
 /* returns the ip addr if host found in cache, 0 otherwise */
-unsigned long dnscache_ask(char *host) {
+unsigned long dnscache_ask(const char *host) {
   int x;
   time_t curtime = time(NULL);
   for (x = 0; x < DNS_MAXENTRIES; x++) {
@@ -33,7 +33,7 @@ unsigned long dnscache_ask(char *host) {
 
 
 /* adds a new entry to the DNS cache */
-void dnscache_add(char *host, unsigned long ipaddr) {
+void dnscache_add(const char *host, unsigned long ipaddr) {
   int x, oldest = 0;
   if (strlen(host) > DNS_MAXHOSTLEN) return; /* if host len too long, abort */
   for (x = 0; x < DNS_MAXENTRIES; x++) {
