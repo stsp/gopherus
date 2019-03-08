@@ -329,7 +329,6 @@ static long loadfile_buff(int protocol, char *hostaddr, unsigned short hostport,
       fd = fopen(filename, "wb"); /* now open for write - this will create the file */
       if (fd == NULL) { /* this should not fail */
         set_statusbar("!Error: could not create the file on disk!");
-        fclose(fd);
         return(-1);
       }
       fwrite(buffer, 1, reslength, fd);
@@ -391,7 +390,6 @@ static long loadfile_buff(int protocol, char *hostaddr, unsigned short hostport,
     fd = fopen(filename, "wb"); /* now open for write - this will create the file */
     if (fd == NULL) { /* this should not fail */
       set_statusbar("!Error: could not create the file on disk!");
-      fclose(fd);
       net_abort(sock);
       return(-1);
     }
@@ -799,15 +797,17 @@ static int display_menu(struct historytype **history, struct gopherusconfig *cfg
         }
         break;
       case 0x144: /* F10 - download all items from current directory */
-        for (x = firstlinkline; x <= lastlinkline; x++) {
-          char fname[32];
-          char b[512];
-          if (isitemtypeselectable(line_itemtype[x]) == 0) continue;
-          /* generate a filename for the target */
-          genfnamefromselector(fname, sizeof(fname), line_selector[x]);
-          /* TODO watch out for already-existing files! */
-          /* download the file */
-          loadfile_buff(PARSEURL_PROTO_GOPHER, line_host[x], line_port[x], line_selector[x], b, sizeof(b), fname, cfg, 0);
+        if (firstlinkline >= 0) {
+          for (x = firstlinkline; x <= lastlinkline; x++) {
+            char fname[32];
+            char b[512];
+            if (isitemtypeselectable(line_itemtype[x]) == 0) continue;
+            /* generate a filename for the target */
+            genfnamefromselector(fname, sizeof(fname), line_selector[x]);
+            /* TODO watch out for already-existing files! */
+            /* download the file */
+            loadfile_buff(PARSEURL_PROTO_GOPHER, line_host[x], line_port[x], line_selector[x], b, sizeof(b), fname, cfg, 0);
+          }
         }
         break;
       case 0x1B: /* Esc */
