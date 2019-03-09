@@ -68,16 +68,25 @@ struct net_tcpsocket *net_connect(unsigned long ipaddr, unsigned short port) {
 
   /* set socket non-blocking */
   {
+#if _WIN32
+  unsigned long flag = 1;
+  ioctlsocket(result->s, FIONBIO, &flag);
+#else
     int flags;
     flags = fcntl(result->s, F_GETFD);
     fcntl(result->s, F_SETFL, flags | O_NONBLOCK);
+#endif
   }
 
   remote.sin_family = AF_INET;  /* Proto family (IPv4) */
   remote.sin_addr.s_addr = htonl(ipaddr);
   remote.sin_port = htons(port); /* set the dst port */
   connectres = connect(result->s, (struct sockaddr *)&remote, sizeof(struct sockaddr));
+#ifdef _WIN32
+  if ((connectres < 0) && (WSAGetLastError() != WSAEWOULDBLOCK)) {
+#else
   if ((connectres < 0) && (errno != EINPROGRESS)) {
+#endif
     CLOSESOCK(result->s);
     free(result);
     return(NULL);
@@ -90,7 +99,6 @@ int net_isconnected(struct net_tcpsocket *s, int waitstate) {
   fd_set set;
   struct timeval t;
   int res;
-  socklen_t sizeofint = sizeof(int);
   t.tv_sec = 0;
   t.tv_usec = 0;
   if (waitstate) t.tv_usec = 8000; /* wait up to 8 ms */
@@ -100,10 +108,15 @@ int net_isconnected(struct net_tcpsocket *s, int waitstate) {
   res = select(s->s + 1, NULL, &set, NULL, &t);
   if (res < 0) return(-1);
   if (res == 0) return(0);
+#ifndef _WIN32
+{
+  socklen_t sizeofint = sizeof(int);
   /* use getsockopt(2) to read the SO_ERROR option at level SOL_SOCKET to
    * determine whether connect() completed successfully (SO_ERROR is zero) */
   getsockopt(s->s, SOL_SOCKET, SO_ERROR, &res, &sizeofint);
   if (res != 0) return(-1);
+}
+#endif
   return(1);
 }
 
@@ -132,7 +145,7 @@ int net_recv(struct net_tcpsocket *socket, char *buff, long maxlen) {
   if (res < 0) return(-1);
   if (res == 0) return(0);
   /* read the stuff now (if any) */
-  res = recv(socket->s, buff, maxlen, MSG_DONTWAIT);
+  res = recv(socket->s, buff, maxlen, 0);
   if (res < 0) {
     if (errno == EAGAIN) return(0);
     if (errno == EWOULDBLOCK) return(0);
