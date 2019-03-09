@@ -8,12 +8,12 @@ CC = gcc
 
 all: gopherus-sdl.exe
 
-gopherus-sdl.exe: gopherus.o dnscache.o history.o int2str.o net.o parseurl.o startpg.o ui-sdl.o wordwrap.o
+gopherus-sdl.exe: gopherus.o dnscache.o history.o int2str.o net-bsd.o parseurl.o startpg.o ui-sdl.o wordwrap.o
 	windres win\gopherus.rc -O coff -o win\gopherus.res
-	gcc -mwindows gopherus.o dnscache.o history.o int2str.o net.o parseurl.o startpg.o ui-sdl.o wordwrap.o win\gopherus.res -o gopherus-sdl.exe -Lwin -lSDL2 -lws2_32 $(CFLAGS)
+	gcc -mwindows gopherus.o dnscache.o history.o int2str.o net-bsd.o parseurl.o startpg.o ui-sdl.o wordwrap.o win\gopherus.res -o gopherus-sdl.exe -Lwin -lSDL2 -lws2_32 $(CFLAGS)
 
-net.o: net/net-win.c
-	gcc -c net/net-win.c -o net.o $(CFLAGS)
+net-bsd.o: net/net-bsd.c
+	gcc -c net/net-bsd.c -o net-bsd.o $(CFLAGS)
 
 ui-sdl.o: ui/ui-sdl.c
 	gcc -c ui/ui-sdl.c -o ui-sdl.o $(CFLAGS)
