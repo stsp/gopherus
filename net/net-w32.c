@@ -1,11 +1,11 @@
 /*
- *  This file is part of the Gopherus project.
- *  It provides a set of basic network-related functions.
+ * This file is part of the Gopherus project.
+ * It provides a set of basic network-related functions.
  *
- *  Copyright (C) Mateusz Viste 2013-2019
+ * Copyright (C) Mateusz Viste 2013-2019
  *
- * Provides all network functions used by Gopherus, wrapped around the Watt-32
- * TCP/IP stack.
+ * Provides all network functions used by Gopherus, wrapped around the
+ * Watt-32 TCP/IP stack.
  */
 
 #include <stdlib.h>
@@ -23,8 +23,7 @@
 #include "net.h" /* include self for control */
 
 
-#define WINDOWSIZE  (16*1024)
-#define BUFFERSIZE  2048
+#define BUFFERSIZE  4096
 
 #define debugMode 0
 #define verboseMode 0
@@ -61,16 +60,15 @@ struct net_tcpsocket *net_connect(unsigned long ipaddr, unsigned short port) {
     return(NULL);
   }
 
-  sock_setbuf (resultsock->sock, resultsock->buffer, BUFFERSIZE);
-  if (!tcp_open(resultsock->sock, 0, ipaddr, port, NULL)) goto sock_err;
+  sock_setbuf(resultsock->sock, resultsock->buffer, BUFFERSIZE);
+  if (!tcp_open(resultsock->sock, 0, ipaddr, port, NULL)) {
+    sock_abort(resultsock->sock);
+    free(resultsock->sock);
+    free(resultsock);
+    return(NULL);
+  }
 
   return(resultsock);
-
- sock_err:
-  sock_abort(resultsock->sock);
-  free(resultsock->sock);
-  free(resultsock);
-  return(NULL);
 }
 
 
@@ -86,9 +84,7 @@ int net_isconnected(struct net_tcpsocket *s, int waitstate) {
 int net_send(struct net_tcpsocket *socket, const char *line, long len) {
   int res;
   /* call this to let Watt-32 handle its internal stuff */
-  if (tcp_tick(socket->sock) == 0) {
-    return(-1);
-  }
+  if (tcp_tick(socket->sock) == 0) return(-1);
   /* send bytes */
   res = sock_write(socket->sock, line, len);
   return(res);
@@ -122,12 +118,4 @@ void net_abort(struct net_tcpsocket *socket) {
   sock_abort(socket->sock);
   free(socket);
   return;
-}
-
-
-/* Translates a libtcp result from its single integer code into a humanly readable message string.
-Returns a pointer to the translated string. */
-char *net_strerror(int socket_result) {
-  if (socket_result == 0) return("");
-  return("");
 }

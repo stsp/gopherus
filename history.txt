@@ -6,8 +6,9 @@ Gopherus v1.x [xx xxx xxxx]:
  - [new] all files from current folder can be downloaded by pressing F10,
  - [new] SDL versions have a resizeable (scalable) window,
  - [new] SDL versions react to keypad arrows as well as normal arrows,
+ - [new] user may abort a connection during its 'connecting...' phase,
  - [fix] Windows sockets are properly closed now (patch by Gisle Vanem),
- - [fix] Function keys react properly when used with the CURSES interface,
+ - [fix] function keys react properly when used with the CURSES interface,
  - ...
 
 Gopherus v1.1 [26 Feb 2019]:
