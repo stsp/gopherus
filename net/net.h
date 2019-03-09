@@ -13,14 +13,26 @@ struct net_tcpsocket {
   char buffer[1];
 };
 
-/* this is a wrapper around the wattcp lookup_host(), but with a small integrated cache */
+/* resolves hostname or ip address 'name' into an IPv4 32-bit value. returns
+ * 0 on error. returned value is in host byte order. */
 unsigned long net_dnsresolve(const char *name);
 
 /* must be called before using libtcp. returns 0 on success, or non-zero if network subsystem is not available. */
 int net_init(void);
 
-/* connects to a IPv4 host and returns a socket pointer on success, NULL otherwise */
+/* initiates a connection to an IPv4 host and returns a socket pointer (or
+ * NULL on error) - note that connection is NOT estblished at this point!
+ * use net_isconnected() to know when the connection is connected. */
 struct net_tcpsocket *net_connect(unsigned long ipaddr, unsigned short port);
+
+/* checks whether or not a socket is connected. returns:
+ *  0 = not connected,
+ *  1 = connected
+ * -1 = error
+ *
+ * if waitstate is non-zero, then net_isconnected() may release a few cpu
+ * cycles (useful when net_isconnected() is used within a busy loop). */
+int net_isconnected(struct net_tcpsocket *s, int waitstate);
 
 /* Sends data on socket 'socket'.
 Returns the number of bytes sent on success, and <0 otherwise. The error code can be translated into a human error message via libtcp_strerr(). */

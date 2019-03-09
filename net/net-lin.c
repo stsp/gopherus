@@ -3,46 +3,57 @@
  * Copyright (C) Mateusz Viste 2013-2019
  *
  * Provides all network functions used by Gopherus, wrapped around POSIX (BSD)
- * sockets.
+ * sockets (with messy ifdefs to support windows)
  */
 
+#include <fcntl.h>   /* fcntl() */
 #include <stdlib.h>  /* NULL */
-#include <sys/socket.h> /* socket() */
-#include <sys/select.h> /* select(), fd_set() */
-#include <arpa/inet.h>
-#include <netdb.h>
-#include <stdio.h> /* sprintf() */
-#include <unistd.h> /* close() */
-#include <errno.h> /* EAGAIN, EWOULDBLOCK... */
-#include <stdint.h> /* uint32_t */
+#include <errno.h>   /* EAGAIN, EWOULDBLOCK... */
+#include <stdint.h>  /* uint32_t */
+
+#ifdef _WIN32
+  #include <winsock2.h> /* socket() */
+  #include <io.h>       /* closesocket() */
+  #define CLOSESOCK(x) closesocket(x)
+#else
+  #include <sys/socket.h> /* socket() */
+  #include <sys/select.h> /* select(), fd_set() */
+  #include <arpa/inet.h>
+  #include <netdb.h>
+  #include <unistd.h> /* close() */
+  #define CLOSESOCK(x) close(x)
+#endif
 
 #include "net.h" /* include self for control */
 
 
-
-/* this is a wrapper around the wattcp lookup_host(). returns 0 if resolution fails. */
 unsigned long net_dnsresolve(const char *name) {
   struct hostent *hent;
   unsigned long res;
-  if ((hent = gethostbyname(name)) == NULL) {
-    return(0);
-  }
-  res = htonl(*((uint32_t *)(hent->h_addr)));
+  hent = gethostbyname(name);
+  if (hent == NULL) return(0);
+  res = ntohl(*((uint32_t *)(hent->h_addr)));
   return(res);
 }
 
 
 /* must be called before using libtcp. returns 0 on success, or non-zero if network subsystem is not available. */
 int net_init(void) {
+#if _WIN32
+  int iResult;
+  WSADATA wsaData;
+  iResult = WSAStartup(MAKEWORD(2,2), &wsaData);
+  return(iResult);
+#else
   return(0);
+#endif
 }
 
 
 struct net_tcpsocket *net_connect(unsigned long ipaddr, unsigned short port) {
   struct sockaddr_in remote;
   struct net_tcpsocket *result;
-  char ipstr[64];
-  sprintf(ipstr, "%lu.%lu.%lu.%lu", (ipaddr >> 24) & 0xFF, (ipaddr >> 16) & 0xFF, (ipaddr >> 8) & 0xFF, ipaddr & 0xFF);
+  int connectres;
 
   result = malloc(sizeof(struct net_tcpsocket));
   if (result == NULL) {
@@ -55,11 +66,19 @@ struct net_tcpsocket *net_connect(unsigned long ipaddr, unsigned short port) {
     return(NULL);
   }
 
+  /* set socket non-blocking */
+  {
+    int flags;
+    flags = fcntl(result->s, F_GETFD);
+    fcntl(result->s, F_SETFL, flags | O_NONBLOCK);
+  }
+
   remote.sin_family = AF_INET;  /* Proto family (IPv4) */
-  inet_pton(AF_INET, ipstr, (void *)(&remote.sin_addr.s_addr)); /* set dst IP address */
+  remote.sin_addr.s_addr = htonl(ipaddr);
   remote.sin_port = htons(port); /* set the dst port */
-  if (connect(result->s, (struct sockaddr *)&remote, sizeof(struct sockaddr)) < 0) {
-    close(result->s);
+  connectres = connect(result->s, (struct sockaddr *)&remote, sizeof(struct sockaddr));
+  if ((connectres < 0) && (errno != EINPROGRESS)) {
+    CLOSESOCK(result->s);
     free(result);
     return(NULL);
   }
@@ -67,8 +86,30 @@ struct net_tcpsocket *net_connect(unsigned long ipaddr, unsigned short port) {
 }
 
 
+int net_isconnected(struct net_tcpsocket *s, int waitstate) {
+  fd_set set;
+  struct timeval t;
+  int res;
+  socklen_t sizeofint = sizeof(int);
+  t.tv_sec = 0;
+  t.tv_usec = 0;
+  if (waitstate) t.tv_usec = 8000; /* wait up to 8 ms */
+  FD_ZERO(&set);
+  FD_SET(s->s, &set);
+  /* check socket for writeability */
+  res = select(s->s + 1, NULL, &set, NULL, &t);
+  if (res < 0) return(-1);
+  if (res == 0) return(0);
+  /* use getsockopt(2) to read the SO_ERROR option at level SOL_SOCKET to
+   * determine whether connect() completed successfully (SO_ERROR is zero) */
+  getsockopt(s->s, SOL_SOCKET, SO_ERROR, &res, &sizeofint);
+  if (res != 0) return(-1);
+  return(1);
+}
+
+
 /* Sends data on socket 'socket'.
-   Returns the number of bytes sent on success, and <0 otherwise. The error code can be translated into a human error message via libtcp_strerr(). */
+   Returns the number of bytes sent on success, and negative value on error */
 int net_send(struct net_tcpsocket *socket, const char *line, long len) {
   int res;
   res = send(socket->s, line, len, 0);
@@ -82,11 +123,11 @@ int net_recv(struct net_tcpsocket *socket, char *buff, long maxlen) {
   int res;
   fd_set rfds;
   struct timeval tv;
-  /* Use select() to wait up to 100ms if nothing awaits on the socket (spares some CPU time) */
+  /* Use select() to wait up to 20ms if nothing awaits on the socket (spares some CPU time) */
   FD_ZERO(&rfds);
   FD_SET(socket->s, &rfds);
   tv.tv_sec = 0;
-  tv.tv_usec = 100000;
+  tv.tv_usec = 20000;
   res = select(socket->s + 1, &rfds, NULL, NULL, &tv);
   if (res < 0) return(-1);
   if (res == 0) return(0);
@@ -103,7 +144,7 @@ int net_recv(struct net_tcpsocket *socket, char *buff, long maxlen) {
 
 /* Close the 'sock' socket. */
 void net_close(struct net_tcpsocket *socket) {
-  close(socket->s);
+  CLOSESOCK(socket->s);
   free(socket);
 }
 

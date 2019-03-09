@@ -2,9 +2,9 @@
  *  This file is part of the Gopherus project.
  *  It provides a set of basic network-related functions.
  *
- *  Copyright (C) Mateusz Viste 2013-2018
+ *  Copyright (C) Mateusz Viste 2013-2019
  *
- * Provides all network functions used by Gopherus, wrapped around the Watt32
+ * Provides all network functions used by Gopherus, wrapped around the Watt-32
  * TCP/IP stack.
  */
 
@@ -64,10 +64,6 @@ struct net_tcpsocket *net_connect(unsigned long ipaddr, unsigned short port) {
   sock_setbuf (resultsock->sock, resultsock->buffer, BUFFERSIZE);
   if (!tcp_open(resultsock->sock, 0, ipaddr, port, NULL)) goto sock_err;
 
-  /* wait for connection, jump to sock_err on timeout */
-  sock_wait_established (resultsock->sock, sock_delay, NULL, NULL);
-
-  if (tcp_tick(resultsock->sock) == 0) goto sock_err;  /* in case they sent reset */
   return(resultsock);
 
  sock_err:
@@ -78,17 +74,24 @@ struct net_tcpsocket *net_connect(unsigned long ipaddr, unsigned short port) {
 }
 
 
+int net_isconnected(struct net_tcpsocket *s, int waitstate) {
+  if (tcp_tick(s->sock) == 0) return(-1);
+  if (sock_established(s->sock) == 0) return(0);
+  return(1);
+}
+
+
 /* Sends data on socket 'socket'.
    Returns the number of bytes sent on success, and <0 otherwise. The error code can be translated into a human error message via libtcp_strerr(). */
 int net_send(struct net_tcpsocket *socket, const char *line, long len) {
   int res;
-  int status = 0;
-  int *statusptr = &status;
+  /* call this to let Watt-32 handle its internal stuff */
+  if (tcp_tick(socket->sock) == 0) {
+    return(-1);
+  }
+  /* send bytes */
   res = sock_write(socket->sock, line, len);
-  sock_tick (socket->sock, statusptr);   /* call this to let WatTCP hanle its internal stuff */
   return(res);
- sock_err:
-  return(-1);
 }
 
 

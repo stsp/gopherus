@@ -365,6 +365,24 @@ static long loadfile_buff(int protocol, char *hostaddr, unsigned short hostport,
     set_statusbar("!Connection error!");
     return(-1);
   }
+  /* wait for net_connect() to actually connect */
+  for (;;) {
+    int connstate;
+    connstate = net_isconnected(sock, 1);
+    if (connstate > 0) break;
+    if (connstate < 0) {
+      net_abort(sock);
+      set_statusbar("!Connection error!");
+      return(-1);
+    }
+    if (ui_kbhit()) {
+      net_abort(sock);
+      set_statusbar("Connection aborted by user");
+      ui_getkey(); /* consume the pressed key */
+      return(-1);
+    }
+  }
+  /* */
   if (protocol == PARSEURL_PROTO_HTTP) { /* http */
     sprintf(buffer, "GET /%s HTTP/1.0\r\nHOST: %s\r\nUSER-AGENT: Gopherus\r\n\r\n", selector, hostaddr);
   } else { /* gopher */
