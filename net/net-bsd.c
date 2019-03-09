@@ -147,8 +147,12 @@ int net_recv(struct net_tcpsocket *socket, char *buff, long maxlen) {
   /* read the stuff now (if any) */
   res = recv(socket->s, buff, maxlen, 0);
   if (res < 0) {
+#ifdef _WIN32
+    if (WSAGetLastError() == WSAEWOULDBLOCK) return(0);
+#else
     if (errno == EAGAIN) return(0);
     if (errno == EWOULDBLOCK) return(0);
+#endif
   }
   if (res == 0) return(-1); /* the peer performed an orderly shutdown */
   return(res);
