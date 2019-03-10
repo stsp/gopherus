@@ -1,4 +1,4 @@
-user should be able to cancel the 'connecting...' and 'resolving...' phases
+user should be able to cancel the 'resolving...' phase
 
 quitting should require ESC, ENTER instead of ESC, ESC to avoid false hits
 
