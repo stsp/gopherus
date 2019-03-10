@@ -861,9 +861,10 @@ static int display_menu(struct historytype **history, struct gopherusconfig *cfg
         }
         break;
       case 0x149: /* PGUP */
-        if (*selectedline >= 0) {
-          *selectedline -= (ui_getrowcount() - 3);
-          if (*selectedline < firstlinkline) *selectedline = firstlinkline;
+        if (*screenlineoffset >= (ui_getrowcount() - 2)) {
+          *screenlineoffset -= ui_getrowcount() - 2;
+        } else {
+          *screenlineoffset = 0;
         }
         break;
       case 0x14F: /* END */
@@ -903,9 +904,8 @@ static int display_menu(struct historytype **history, struct gopherusconfig *cfg
         }
         break;
       case 0x151: /* PGDOWN */
-        if (*selectedline >= 0) {
-          *selectedline += (ui_getrowcount() - 3);
-          if (*selectedline > lastlinkline) *selectedline = lastlinkline;
+        if (*screenlineoffset < linecount - (ui_getrowcount() - 2)) {
+          *screenlineoffset += ui_getrowcount() - 2;
         }
         break;
       case 0xFF:  /* 0xFF -> quit immediately */
@@ -916,13 +916,6 @@ static int display_menu(struct historytype **history, struct gopherusconfig *cfg
         set_statusbar(singlelinebuf); */
         continue;
         break;
-    }
-    /* if the selected line is going out of the screen, adjust the screen (but only if there is a selectedline at all) */
-    if ((*selectedline < *screenlineoffset) && (*selectedline >= 0)) {
-      *screenlineoffset = *selectedline;
-    } else if (*selectedline > *screenlineoffset + (ui_getrowcount() - 3)) {
-      *screenlineoffset = *selectedline - (ui_getrowcount() - 3);
-      if (*screenlineoffset < 0) *screenlineoffset = 0;
     }
   }
 }
