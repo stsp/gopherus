@@ -844,7 +844,7 @@ static int display_menu(struct historytype **history, struct gopherusconfig *cfg
         break;
       case 0x148: /* UP */
         if (*selectedline > firstlinkline) {
-          unsigned short prevlink = *selectedline;
+          long prevlink = *selectedline;
           /* find the next item that is selectable */
           while (isitemtypeselectable(line_itemtype[--prevlink]) == 0);
           /* if prevlink is on screen, select it */
@@ -866,6 +866,17 @@ static int display_menu(struct historytype **history, struct gopherusconfig *cfg
         } else {
           *screenlineoffset = 0;
         }
+        /* select last visible link (if any, and unless currently selected
+         * menu link is somehow still visible) */
+        if (*selectedline >= (*screenlineoffset + ui_getrowcount() - 2)) {
+          long i;
+          for (i = *screenlineoffset; i < (*screenlineoffset + ui_getrowcount() - 2); i++) {
+            if (i >= linecount) break;
+            if (isitemtypeselectable(line_itemtype[i]) != 0) {
+              *selectedline = i;
+            }
+          }
+        }
         break;
       case 0x14F: /* END */
         if (*selectedline >= 0) *selectedline = lastlinkline;
@@ -879,7 +890,7 @@ static int display_menu(struct historytype **history, struct gopherusconfig *cfg
         }
         /* select next link, if possible */
         if (*selectedline < lastlinkline) {
-          unsigned short nextlink = *selectedline;
+          long nextlink = *selectedline;
           /* find the next selectable item */
           while (isitemtypeselectable(line_itemtype[++nextlink]) == 0);
           /* if next link is within screen area, select it */
@@ -906,6 +917,18 @@ static int display_menu(struct historytype **history, struct gopherusconfig *cfg
       case 0x151: /* PGDOWN */
         if (*screenlineoffset < linecount - (ui_getrowcount() - 2)) {
           *screenlineoffset += ui_getrowcount() - 2;
+        }
+        /* select first visible link (if any, and unless currently selected
+         * menu link is somehow still visible) */
+        if (*selectedline < *screenlineoffset) {
+          long i;
+          for (i = *screenlineoffset; i < (*screenlineoffset + ui_getrowcount() - 2); i++) {
+            if (i >= linecount) break;
+            if (isitemtypeselectable(line_itemtype[i]) != 0) {
+              *selectedline = i;
+              break;
+            }
+          }
         }
         break;
       case 0xFF:  /* 0xFF -> quit immediately */
