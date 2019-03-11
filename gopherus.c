@@ -835,6 +835,10 @@ static int display_menu(struct historytype **history, struct gopherusconfig *cfg
         history_add(history, PARSEURL_PROTO_GOPHER, "#manual", 70, '0', "");
         return(DISPLAY_ORDER_NONE);
         break;
+      case 0x13C: /* F2 - home */
+        history_add(history, PARSEURL_PROTO_GOPHER, "#welcome", 70, '1', "");
+        return(DISPLAY_ORDER_NONE);
+        break;
       case 0x13F: /* F5 - refresh */
         return(DISPLAY_ORDER_REFR);
         break;
@@ -1097,6 +1101,10 @@ static int display_text(struct historytype **history, struct gopherusconfig *cfg
         break;
       case 0x13B: /* F1 - help */
         history_add(history, PARSEURL_PROTO_GOPHER, "#manual", 70, '0', "");
+        return(DISPLAY_ORDER_NONE);
+        break;
+      case 0x13C: /* F2 - home */
+        history_add(history, PARSEURL_PROTO_GOPHER, "#welcome", 70, '1', "");
         return(DISPLAY_ORDER_NONE);
         break;
       case 0x13F: /* F5 - refresh */

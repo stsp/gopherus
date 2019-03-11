@@ -23,6 +23,7 @@ This program is released under the terms of the '2-clause' BSD license.
    HOME/END  - Go to the begin/end of the document
    BACKSPC   - Go back to the previous location
    F1        - Show help (this manual)
+   F2        - Go to program's home page
    F5        - Refresh current location
    F9        - Download location on disk
    F10       - Download all files in current menu to disk
