@@ -7,7 +7,3 @@ i                           |_|
 i
 i     Welcome to Gopherus: a multi-platform, console-mode gopher client.
 i
-iGopherus resources:
-0Gopherus manual (offline)		#manual
-1Author's gopher page		gopher.viste.fr
-i

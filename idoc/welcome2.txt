@@ -1,0 +1,4 @@
+i
+iGopherus resources:
+0Gopherus manual (offline)		#manual
+1Author's gopher page		gopher.viste.fr

@@ -33,6 +33,8 @@ int loadembeddedstartpage(char *buffer, unsigned long buffer_max, const char *to
     res = idoc_unpack(buffer, buffer_max, idoc_manual, sizeof(idoc_manual));
   } else { /* welcome screen */
     res = idoc_unpack(buffer, buffer_max, idoc_welcome, sizeof(idoc_welcome));
+    /* TODO insert bookmarks here (if any) */
+    res += idoc_unpack(buffer + res, buffer_max - res, idoc_welcome2, sizeof(idoc_welcome2));
   }
   return(res);
 }
