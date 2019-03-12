@@ -7,3 +7,4 @@ i                           |_|
 i
 i     Welcome to Gopherus: a multi-platform, console-mode gopher client.
 i
+iBookmarks:
