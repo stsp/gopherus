@@ -73,7 +73,7 @@ int loadembeddedstartpage(char *buffer, unsigned long buffer_max, const char *to
     }
     /* */
     if (favcount == 0) {
-      TODO ("no bookmarks defined yet")
+      res += sprintf(buffer + res, "3no bookmarks defined yet\n");
     }
     /* */
     res += idoc_unpack(buffer + res, buffer_max - res, idoc_welcome2, sizeof(idoc_welcome2));
