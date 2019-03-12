@@ -13,7 +13,7 @@
 #include "startpg.h"
 
 
-static int idoc_unpack(char *buf, unsigned short bufsz, const unsigned char *idoc, unsigned short bytelen) {
+static unsigned short idoc_unpack(char *buf, unsigned short bufsz, const unsigned char *idoc, unsigned short bytelen) {
   unsigned short i = 0, y = 0;
   for (; i < bytelen; i++) {
     if (idoc[i] < 128) {
@@ -56,7 +56,7 @@ static unsigned short readfline(char *b, unsigned short blen, FILE *f) {
 
 /* loads the embedded start page into a memory buffer and returns */
 int loadembeddedstartpage(char *buffer, unsigned long buffer_max, const char *token) {
-  unsigned int res;
+  unsigned short res;
   unsigned favcount = 0;
   if (buffer_max > 0xffff) buffer_max = 0xffff; /* avoid 16 bit clipping */
   if (token[0] == 'm') { /* manual */
@@ -69,8 +69,8 @@ int loadembeddedstartpage(char *buffer, unsigned long buffer_max, const char *to
     if (f != NULL) {
       for (;;) {
         unsigned short r;
-        if ((res + 2 * (MAXHOSTLEN + MAXSELLEN + 8)) > buffer_max) break;
-        r = readfline(buffer + res, 2 * (MAXHOSTLEN + MAXSELLEN + 8), f);
+        if ((res + 2ul * (MAXHOSTLEN + MAXSELLEN + 8ul)) > buffer_max) break;
+        r = readfline(buffer + res, 2ul * (MAXHOSTLEN + MAXSELLEN + 8ul), f);
         if (r == 0) break;
         if (r < 3) continue; /* skip empty lines */
         res += r;
