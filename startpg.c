@@ -66,6 +66,7 @@ int loadembeddedstartpage(char *buffer, unsigned long buffer_max, const char *to
         if ((res + 2 * (MAXHOSTLEN + MAXSELLEN + 8)) > buffer_max) break;
         r = readfline(buffer + res, 2 * (MAXHOSTLEN + MAXSELLEN + 8), f);
         if (r == 0) break;
+        if (r < 3) continue; /* skip empty lines */
         res += r;
         favcount++;
       }
