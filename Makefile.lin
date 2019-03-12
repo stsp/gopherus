@@ -27,5 +27,5 @@ wraptest: wraptest.c wordwrap.o
 	$(CC) wraptest.c wordwrap.o -o wraptest $(CFLAGS)
 
 clean:
-	rm -f *.o
+	rm -f *.o fs/*.o net/*.o idoc/*.o ui/*.o
 	rm -f gopherus
