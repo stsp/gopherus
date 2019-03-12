@@ -8,6 +8,6 @@
 
 char *bookmarks_getfname(const char *argv0) {
   static char b[256];
-  snprintf(b, sizeof(b), "%s\\gopherus.bkm", dirname(argv[0]));
+  snprintf(b, sizeof(b), "%s\\gopherus.bkm", dirname(argv0));
   return(b);
 }
