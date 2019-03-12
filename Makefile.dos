@@ -7,7 +7,7 @@ LIB = watt32\lib\wattcpwl.lib
 
 all: gopherus.exe
 
-gopherus.exe: gopherus.obj dnscache.obj history.obj int2str.obj net-w32.obj parseurl.obj startpg.obj ui-dos.obj wordwrap.obj
+gopherus.exe: gopherus.obj dnscache.obj fs-dos.obj history.obj int2str.obj net-w32.obj parseurl.obj startpg.obj ui-dos.obj wordwrap.obj
 	wcl -lr -k8192 $(LIB) *.obj -fe=gopherus.exe
 
 gopherus.obj: gopherus.c
@@ -30,6 +30,9 @@ wordwrap.obj: wordwrap.c
 
 dnscache.obj: dnscache.c
 	*wcc dnscache.c $(CFLAGS)
+
+fs-dos.obj: fs\fs-dos.c
+	*wcc $(CFLAGS) fs\fs-dos.c
 
 net-w32.obj: net\net-w32.c
 	*wcc $(CFLAGS) net\net-w32.c
