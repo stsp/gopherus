@@ -35,6 +35,7 @@
 
 #include "dnscache.h"
 #include "config.h"
+#include "fs/fs.h"
 #include "history.h"
 #include "net/net.h"
 #include "parseurl.h"
@@ -62,6 +63,7 @@ struct gopherusconfig {
   int attr_statusbarwarn;
   int attr_urlbar;
   int attr_urlbardeco;
+  char *bookmarksfile;
 };
 
 /* statusbar content, used by set_statusbar and draw_statusbar() */
@@ -114,10 +116,15 @@ static int hex2int(char c) {
 }
 
 
-static void loadcfg(struct gopherusconfig *cfg) {
+static void loadcfg(struct gopherusconfig *cfg, char **argv) {
   char *defaultcolorscheme = "177047707818141220";
   char *colorstring;
   int x;
+
+  /* get bookmarks file location (will be useful later) */
+  cfg->bookmarksfile = bookmarks_getfname(argv[0]);
+
+  /* */
   colorstring = getenv("GOPHERUSCOLOR");
   if (colorstring != NULL) {
     if (strlen(colorstring) == 18) {
@@ -317,7 +324,7 @@ static long loadfile_buff(int protocol, char *hostaddr, unsigned short hostport,
   struct net_tcpsocket *sock;
   time_t lastactivity, curtime;
   if (hostaddr[0] == '#') { /* embedded start page */
-    reslength = loadembeddedstartpage(buffer, buffer_max, hostaddr + 1);
+    reslength = loadembeddedstartpage(buffer, buffer_max, hostaddr + 1, cfg->bookmarksfile);
     /* open file, if downloading to a file */
     if (filename != NULL) {
       fd = fopen(filename, "rb"); /* try to open for read - this should fail */
@@ -1176,7 +1183,7 @@ int main(int argc, char **argv) {
   struct gopherusconfig cfg;
 
   /* Load configuration (or defaults) */
-  loadcfg(&cfg);
+  loadcfg(&cfg, argv);
 
   /* alloc page buffer */
   buffer = malloc(PAGEBUFSZ);

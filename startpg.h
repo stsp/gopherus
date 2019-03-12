@@ -7,6 +7,6 @@
   #define startpg_h_sentinel
 
   /* loads the embedded start page into a memory buffer and returns */
-  int loadembeddedstartpage(char *buffer, unsigned long buffer_max, const char *selector);
+  int loadembeddedstartpage(char *buffer, unsigned long buffer_max, const char *selector, const char *bookmarksfile);
 
 #endif

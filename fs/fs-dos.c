@@ -56,7 +56,7 @@ static int exepath(char *result) {
   return(lastsep + 1);
 }
 
-char *bookmarks_getfname(void) {
+char *bookmarks_getfname(const char *argv0) {
   static char b[128 + 12];
   int plen;
   plen = exepath(b);

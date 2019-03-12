@@ -10,7 +10,7 @@
 #include "fs.h"
 
 /* returns path and filename of the bookmark file */
-char *bookmarks_getfname(void) {
+char *bookmarks_getfname(const char *argv0) {
   static char r[512];
   snprintf(r, sizeof(r), "%s/Gopherus", getenv("APPDATA"));
   CreateDirectory(r, NULL);

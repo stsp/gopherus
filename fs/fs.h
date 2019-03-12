@@ -7,6 +7,6 @@
 #define gophfs_h
 
 /* returns path and filename of the bookmark file */
-char *bookmarks_getfname(void);
+char *bookmarks_getfname(const char *argv0);
 
 #endif
