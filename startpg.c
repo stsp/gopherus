@@ -3,9 +3,15 @@
  * Copyright (C) 2013-2019 Mateusz Viste
  */
 
-#include "startpg.h"
+#include <stdio.h>
+
+#include "config.h"
 #include "idoc/idoc.h"
 #include "idoc/idict.h"
+#include "fs/fs.h"
+
+#include "startpg.h"
+
 
 static int idoc_unpack(char *buf, unsigned short bufsz, const unsigned char *idoc, unsigned short bytelen) {
   unsigned short i = 0, y = 0;
@@ -25,15 +31,51 @@ static int idoc_unpack(char *buf, unsigned short bufsz, const unsigned char *ido
   return(y);
 }
 
+/* reads a single line from file descriptor f and fills memory at b with it
+ * (including trailing \n).
+ * returns length of line (still including the \n terminator) or 0 on EOF */
+static unsigned short readfline(char *b, unsigned short blen, FILE *f) {
+  unsigned short l = 0;
+  int c;
+  for (;;) {
+    if (l >= blen) return(0);
+    c = fgetc(f);
+    if (c < 0) break;
+    b[l++] = c;
+    if (c == '\n') break;
+  }
+  b[l] = 0;
+  return(l);
+}
+
 /* loads the embedded start page into a memory buffer and returns */
 int loadembeddedstartpage(char *buffer, unsigned long buffer_max, const char *token) {
-  int res;
+  unsigned int res;
+  unsigned favcount = 0;
   if (buffer_max > 0xffff) buffer_max = 0xffff; /* avoid 16 bit clipping */
   if (token[0] == 'm') { /* manual */
     res = idoc_unpack(buffer, buffer_max, idoc_manual, sizeof(idoc_manual));
   } else { /* welcome screen */
+    FILE *f;
     res = idoc_unpack(buffer, buffer_max, idoc_welcome, sizeof(idoc_welcome));
-    /* TODO insert bookmarks here (if any) */
+    /* insert bookmarks here (if any) */
+    f = fopen(bookmarks_getfname(), "rb");
+    if (f != NULL) {
+      for (;;) {
+        unsigned short r;
+        if ((res + 2 * (MAXHOSTLEN + MAXSELLEN + 8)) > buffer_max) break;
+        r = readfline(buffer + res, 2 * (MAXHOSTLEN + MAXSELLEN + 8), f);
+        if (r == 0) break;
+        res += r;
+        favcount++;
+      }
+      fclose(f);
+    }
+    /* */
+    if (favcount == 0) {
+      TODO ("no bookmarks defined yet")
+    }
+    /* */
     res += idoc_unpack(buffer + res, buffer_max - res, idoc_welcome2, sizeof(idoc_welcome2));
   }
   return(res);
