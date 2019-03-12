@@ -44,6 +44,12 @@ static unsigned short readfline(char *b, unsigned short blen, FILE *f) {
     b[l++] = c;
     if (c == '\n') break;
   }
+  /* normalize to unix ending if CR/LF ending found */
+  if ((l >= 2) && (b[l - 1] == '\n') && (b[l - 2] == '\r')) {
+    b[l - 2] = '\n';
+    l--;
+  }
+  /* Sarah Connor called */
   b[l] = 0;
   return(l);
 }
