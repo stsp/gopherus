@@ -8,7 +8,6 @@
 
 struct historytype {
   long cachesize;
-  char *host;
   char *selector;
   char *cache;
   struct historytype *next;
@@ -16,6 +15,7 @@ struct historytype {
   char protocol;
   char itemtype;
   long displaymemory[2];  /* used by some display plugins to remember how the item was displayed. this is always initialized to -1 values */
+  char host[1];
 };
 
 /* remove the last visited page from history (goes back to the previous one) */

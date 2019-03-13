@@ -13,7 +13,6 @@
 static void history_free_node(struct historytype *node) {
   if (node->cache != NULL) free(node->cache);
   if (node->selector != NULL) free(node->selector);
-  if (node->host != NULL) free(node->host);
   free(node);
 }
 
@@ -64,13 +63,9 @@ int history_add(struct historytype **history, char protocol, const char *host, u
     }
   }
   /* add the node */
-  result = malloc(sizeof(struct historytype));
+  result = malloc(sizeof(struct historytype) + strlen(host));
   if (result == NULL) return(-1);
-  result->host = strdup(host);
-  if (result->host == NULL) {
-    free(result);
-    return(-1);
-  }
+  strcpy(result->host, host);
   result->protocol = protocol;
   result->port = port;
   result->itemtype = itemtype;
@@ -78,7 +73,6 @@ int history_add(struct historytype **history, char protocol, const char *host, u
   result->displaymemory[1] = -1;
   result->selector = strdup(selector);
   if (result->selector == NULL) {
-    free(result->host);
     free(result);
     return(-1);
   }
