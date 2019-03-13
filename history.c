@@ -90,12 +90,13 @@ int history_add(struct historytype **history, char protocol, const char *host, u
 }
 
 
-/* free cache content past latest MAXALLOWEDCACHE bytes */
+/* free cache content past latest MAXALLOWEDCACHE bytes, also drop any
+ * internal (embedded) gopherus pages */
 void history_cleanupcache(struct historytype *history) {
   unsigned long totalcache = 0;
   for (; history != NULL; history = history->next) {
     totalcache += history->cachesize;
-    if (totalcache > MAXALLOWEDCACHE) {
+    if ((totalcache > MAXALLOWEDCACHE) || (history->host[0] == '#')) {
       if (history->cache != NULL) {
         free(history->cache);
         history->cache = NULL;
