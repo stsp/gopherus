@@ -1,5 +1,5 @@
 
-             Gopherus v1.1 Copyright (C) 2013-2019 Mateusz Viste
+             Gopherus v1.2 Copyright (C) 2013-2019 Mateusz Viste
                        http://gopherus.sourceforge.net
 
 
@@ -22,6 +22,7 @@ This program is released under the terms of the '2-clause' BSD license.
    PGUP/PGDW - Scroll the screen's content up/down by one page
    HOME/END  - Go to the begin/end of the document
    BACKSPC   - Go back to the previous location
+   B         - Bookmark current location
    F1        - Show help (this manual)
    F2        - Go to program's home page
    F5        - Refresh current location

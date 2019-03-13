@@ -6,7 +6,7 @@
 #ifndef VERSION_H
 #define VERSION_H
 
-#define pVer "1.1"
+#define pVer "1.2"
 #define pDate "2013-2019"
 
 #endif
