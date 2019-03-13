@@ -180,6 +180,7 @@ static void addbookmarkifnotexist(struct historytype *h, struct gopherusconfig *
   }
   /* */
   fclose(fd);
+  set_statusbar("Bookmark saved");
 }
 
 
