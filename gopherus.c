@@ -164,6 +164,25 @@ static void set_statusbar(const char *msg) {
 }
 
 
+static void addbookmarkifnotexist(struct historytype *h, struct gopherusconfig *cfg) {
+  FILE *fd;
+  fd = fopen(cfg->bookmarksfile, "ab");
+  if (fd == NULL) {
+    set_statusbar("!Bookmarks file access error");
+    return;
+  }
+  /* check if not already in bookmarks */
+  /* add to list */
+  if (h->port == 70) {
+    fprintf(fd, "%c%s/%c%s\t%s\t%s\t%u\n", h->itemtype, h->host, h->itemtype, h->selector, h->selector, h->host, h->port);
+  } else {
+    fprintf(fd, "%c%s:%u/%c%s\t%s\t%s\t%u\n", h->itemtype, h->host, h->port, h->itemtype, h->selector, h->selector, h->host, h->port);
+  }
+  /* */
+  fclose(fd);
+}
+
+
 static void draw_urlbar(struct historytype *history, struct gopherusconfig *cfg) {
   int url_len, x;
   char urlstr[80];
@@ -785,6 +804,9 @@ static int display_menu(struct historytype **history, struct gopherusconfig *cfg
       case 0x09: /* TAB */
         if (edit_url(history, cfg) == 0) return(DISPLAY_ORDER_NONE);
         break;
+      case 'b':
+        addbookmarkifnotexist(*history, cfg);
+        break;
       case 0x143: /* F9 */
       case 0x0D: /* ENTER */
         if (*selectedline >= 0) {
@@ -1102,6 +1124,9 @@ static int display_text(struct historytype **history, struct gopherusconfig *cfg
         break;
       case 0x09: /* TAB */
         if (edit_url(history, cfg) == 0) return(DISPLAY_ORDER_NONE);
+        break;
+      case 'b':
+        addbookmarkifnotexist(*history, cfg);
         break;
       case 0x1B:   /* ESC */
         if (askQuitConfirmation(cfg) != 0) return(DISPLAY_ORDER_QUIT);

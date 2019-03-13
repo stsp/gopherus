@@ -3,6 +3,7 @@ Gopherus changelog
 
 
 Gopherus v1.x [xx xxx xxxx]:
+ - [new] bookmarks ("b" key),
  - [new] all files from current folder can be downloaded by pressing F10,
  - [new] SDL versions have a resizeable (scalable) window,
  - [new] SDL versions react to keypad arrows as well as normal arrows,
@@ -10,8 +11,7 @@ Gopherus v1.x [xx xxx xxxx]:
  - [new] home page shortcut key (F2),
  - [fix] improved pgup/pgdown keys logic in menus,
  - [fix] Windows sockets are properly closed now (patch by Gisle Vanem),
- - [fix] function keys react properly when used with the CURSES interface,
- - ...
+ - [fix] function keys react properly when used with the CURSES interface.
 
 Gopherus v1.1 [26 Feb 2019]:
  - [new] two DOS builds are available: 16 bit (real-mode) and 32 bit (386+),
