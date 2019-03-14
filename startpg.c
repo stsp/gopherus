@@ -57,7 +57,7 @@ static unsigned short readfline(char *b, unsigned short blen, FILE *f) {
 /* loads the embedded start page into a memory buffer and returns */
 int loadembeddedstartpage(char *buffer, unsigned long buffer_max, const char *token, const char *bookmarksfile) {
   unsigned short res;
-  unsigned favcount = 0;
+  unsigned short favcount = 0;
   if (buffer_max > 0xffff) buffer_max = 0xffff; /* avoid 16 bit clipping */
   if (token[0] == 'm') { /* manual */
     res = idoc_unpack(buffer, buffer_max, idoc_manual, sizeof(idoc_manual));
@@ -74,7 +74,7 @@ int loadembeddedstartpage(char *buffer, unsigned long buffer_max, const char *to
         if (r == 0) break;
         if (r < 3) continue; /* skip empty lines */
         res += r;
-        favcount++;
+        if (favcount < 0xffff) favcount++;
       }
       fclose(f);
     }
