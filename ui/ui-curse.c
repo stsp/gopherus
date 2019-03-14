@@ -2,7 +2,7 @@
  * This file is part of the gopherus project.
  * It provides abstract functions to draw on screen.
  *
- * Copyright (C) 2013-2016 Mateusz Viste
+ * Copyright (C) 2013-2019 Mateusz Viste
  *
  * Provides all UI functions used by Gopherus, basing on the curses api.
  */
@@ -147,6 +147,7 @@ int ui_getkey(void) {
     case KEY_NPAGE:     return(0x151);  /* PGDOWN */
     case KEY_HOME:      return(0x147);
     case KEY_END:       return(0x14F);
+    case KEY_DC:        return(0x153);  /* DEL */
     case KEY_F(1):      return(0x13b);
     case KEY_F(2):      return(0x13c);
     case KEY_F(3):      return(0x13d);
