@@ -858,6 +858,9 @@ static int display_menu(struct historytype **history, struct gopherusconfig *cfg
           }
         }
         break;
+      case 0x153: /* DEL */
+        /* TODO parse bookmarks and delete currently selected entry */
+        break;
       case 0x1B: /* Esc */
         if (askQuitConfirmation(cfg) != 0) return(DISPLAY_ORDER_QUIT);
         break;
@@ -969,9 +972,11 @@ static int display_menu(struct historytype **history, struct gopherusconfig *cfg
         return(1);
         break;
       default:
-        /* sprintf(singlelinebuf, "Got unknown key press: 0x%02X", keypress);
-        set_statusbar(singlelinebuf); */
-        continue;
+      /* {
+        char sbuf[16];
+        sprintf(sbuf, "KEY 0x%02X", keypress);
+        set_statusbar(sbuf);
+      } */
         break;
     }
   }
