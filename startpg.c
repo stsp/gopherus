@@ -9,6 +9,7 @@
 #include "idoc/idoc.h"
 #include "idoc/idict.h"
 #include "fs/fs.h"
+#include "readflin.h"
 
 #include "startpg.h"
 
@@ -31,28 +32,6 @@ static unsigned short idoc_unpack(char *buf, unsigned short bufsz, const unsigne
   return(y);
 }
 
-/* reads a single line from file descriptor f and fills memory at b with it
- * (including trailing \n).
- * returns length of line (still including the \n terminator) or 0 on EOF */
-static unsigned short readfline(char *b, unsigned short blen, FILE *f) {
-  unsigned short l = 0;
-  int c;
-  for (;;) {
-    if (l >= blen) return(0);
-    c = fgetc(f);
-    if (c < 0) break;
-    b[l++] = c;
-    if (c == '\n') break;
-  }
-  /* normalize to unix ending if CR/LF ending found */
-  if ((l >= 2) && (b[l - 1] == '\n') && (b[l - 2] == '\r')) {
-    b[l - 2] = '\n';
-    l--;
-  }
-  /* Sarah Connor called */
-  b[l] = 0;
-  return(l);
-}
 
 /* loads the embedded start page into a memory buffer and returns */
 int loadembeddedstartpage(char *buffer, unsigned long buffer_max, const char *token, const char *bookmarksfile) {

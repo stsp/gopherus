@@ -18,8 +18,6 @@ menu continuations (word-wrapped) should be of same color as parent
 
 grex.org: telnet links appear as 'gopher'
 
-bookmarks should not be added twice
-
 bookmarks removal
 
 bookmarks with no selector do not need to show an itemtype (/1)

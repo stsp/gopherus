@@ -39,6 +39,7 @@
 #include "history.h"
 #include "net/net.h"
 #include "parseurl.h"
+#include "readflin.h"
 #include "ui/ui.h"
 #include "wordwrap.h"
 #include "startpg.h"
@@ -164,14 +165,73 @@ static void set_statusbar(const char *msg) {
 }
 
 
+static unsigned short menuline_explode(char *buffer, unsigned short bufferlen, char *itemtype, char **description, char **selector, char **host, char **port) {
+  char *cursor = buffer;
+  int endofline = 0, column = 0;
+  if (itemtype != NULL) *itemtype = *cursor;
+  cursor += 1;
+  if (description != NULL) *description = cursor;
+  *selector = NULL;
+  *host = NULL;
+  *port = NULL;
+  for (; cursor < (buffer + bufferlen); cursor += 1) { /* read the whole line */
+    if (*cursor == '\r') continue; /* silently ignore CR chars */
+    if ((*cursor == '\t') || (*cursor == '\n')) { /* delimiter */
+      if (*cursor == '\n') endofline = 1;
+      *cursor = 0; /* put a NULL instead to terminate previous string */
+      if (endofline != 0) {
+        cursor += 1;
+        break;
+      }
+      if (column == 0) {
+        *selector = cursor + 1;
+      } else if (column == 1) {
+        *host = cursor + 1;
+      } else if (column == 2) {
+        *port = cursor + 1;
+      }
+      if (column < 16) column += 1;
+    }
+  }
+  return(cursor - buffer);
+}
+
+
 static void addbookmarkifnotexist(struct historytype *h, struct gopherusconfig *cfg) {
   FILE *fd;
+  /* check if not already in bookmarks */
+  fd = fopen(cfg->bookmarksfile, "rb");
+  if (fd != NULL) {
+    for (;;) {
+      unsigned short llen;
+      char lbuf[2ul * (MAXHOSTLEN + MAXSELLEN + 8ul)];
+      unsigned short iport;
+      char *sel, *host, *port;
+      llen = readfline(lbuf, sizeof(lbuf), fd);
+      if (llen == 0) break;
+      /* */
+      menuline_explode(lbuf, llen, NULL, NULL, &sel, &host, &port);
+      /* check if same as *h */
+      iport = 70;
+      if (port != NULL) iport = atoi(port);
+      if (iport != h->port) continue;
+      if (host == NULL) continue;
+      if (strcasecmp(h->host, host) != 0) continue;
+      if ((sel == NULL) && (h->selector != NULL) && (h->selector[0] != 0)) continue;
+      if ((sel != NULL) && (strcmp(h->selector, sel) != 0)) continue;
+      /* no difference */
+      set_statusbar("!This location is already bookmarked");
+      fclose(fd);
+      return;
+    }
+    fclose(fd);
+  }
+  /* open for appending */
   fd = fopen(cfg->bookmarksfile, "ab");
   if (fd == NULL) {
     set_statusbar("!Bookmarks file access error");
     return;
   }
-  /* check if not already in bookmarks */
   /* add to list */
   if (h->port == 70) {
     fprintf(fd, "%c%s/%c%s\t%s\t%s\t%u\n", h->itemtype, h->host, h->itemtype, h->selector, h->selector, h->host, h->port);
@@ -600,7 +660,6 @@ static int isitemtypeselectable(char itemtype) {
 /* explodes a gopher menu into separate lines. returns amount of lines */
 static long menu_explode(char *buffer, long bufferlen, char *line_itemtype, char **line_description, unsigned char *line_description_len, char **line_selector, char **line_host, unsigned short *line_port, long maxlines, long *firstlinkline, long *lastlinkline) {
   char *description, *cursor, *selector, *host, *port, itemtype;
-  int endofline;
   char singlelinebuf[82];
   long linecount = 0;
 
@@ -608,33 +667,9 @@ static long menu_explode(char *buffer, long bufferlen, char *line_itemtype, char
   *lastlinkline = -1;
 
   for (cursor = buffer; cursor < (buffer + bufferlen) ;) {
-    int column = 0;
-    itemtype = *cursor;
-    cursor += 1;
-    description = cursor;
-    selector = NULL;
-    host = NULL;
-    port = NULL;
-    endofline = 0;
-    for (; cursor < (buffer + bufferlen); cursor += 1) { /* read the whole line */
-      if (*cursor == '\r') continue; /* silently ignore CR chars */
-      if ((*cursor == '\t') || (*cursor == '\n')) { /* delimiter */
-        if (*cursor == '\n') endofline = 1;
-        *cursor = 0; /* put a NULL instead to terminate previous string */
-        if (endofline != 0) {
-          cursor += 1;
-          break;
-        }
-        if (column == 0) {
-          selector = cursor + 1;
-        } else if (column == 1) {
-          host = cursor + 1;
-        } else if (column == 2) {
-          port = cursor + 1;
-        }
-        if (column < 16) column += 1;
-      }
-    }
+
+    cursor += menuline_explode(cursor, bufferlen - (buffer - cursor), &itemtype, &description, &selector, &host, &port);
+
     if (itemtype == '.') continue; /* ignore lines starting by '.' - it's most probably the end of menu terminator */
     if (linecount < maxlines) {
       char *wrapptr = description;

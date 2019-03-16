@@ -7,8 +7,8 @@ LIB = watt32/lib/libwatt.a -lemu
 
 all: gopherus.exe
 
-gopherus.exe: gopherus.o dnscache.o fs-dj.o history.o int2str.o net-w32.o parseurl.o startpg.o ui-dj.o wordwrap.o
-	gcc gopherus.o dnscache.o fs-dj.o history.o int2str.o net-w32.o parseurl.o startpg.o ui-dj.o wordwrap.o -o gopherus.exe $(LIB) $(CFLAGS)
+gopherus.exe: gopherus.o dnscache.o fs-dj.o history.o int2str.o net-w32.o parseurl.o readflin.o startpg.o ui-dj.o wordwrap.o
+	gcc gopherus.o dnscache.o fs-dj.o history.o int2str.o net-w32.o parseurl.o readflin.o startpg.o ui-dj.o wordwrap.o -o gopherus.exe $(LIB) $(CFLAGS)
 	upx -9 gopherus.exe
 
 net-w32.o: net/net-w32.c
