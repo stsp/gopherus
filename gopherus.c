@@ -244,6 +244,58 @@ static void addbookmarkifnotexist(struct historytype *h, struct gopherusconfig *
 }
 
 
+static void delbookmark(const char *bhost, unsigned short bport, const char *bsel, struct gopherusconfig *cfg) {
+  FILE *fd;
+  long woff, roff;
+  char lbuf[2ul * (MAXHOSTLEN + MAXSELLEN + 8ul)];
+  /* open bookmarks file */
+  fd = fopen(cfg->bookmarksfile, "rb+");
+  if (fd == NULL) return;
+  /* read lines until match found (or eof reached) */
+  for (;;) {
+    unsigned short iport, llen;
+    char *sel, *host, *port;
+    woff = ftell(fd); /* this where I will write, if match found */
+    llen = readfline(lbuf, sizeof(lbuf), fd);
+    if (llen == 0) {
+      fclose(fd);
+      return;
+    }
+    /* */
+    iport = 70;
+    menuline_explode(lbuf, llen, NULL, NULL, &sel, &host, &port);
+    if (port != NULL) iport = atoi(port);
+    /* */
+    if (bport != iport) continue;
+    if ((bhost == NULL) && (host != NULL)) continue;
+    if ((bhost != NULL) && (host == NULL)) continue;
+    if ((host != NULL) && (bhost != NULL) && (strcasecmp(host, bhost) != 0)) continue;
+    if ((bsel == NULL) && (sel != NULL) && (sel[0] != 0)) continue;
+    if ((sel == NULL) && (bsel != NULL) && (bsel[0] != 0)) continue;
+    if ((sel != NULL) && (bsel != NULL) && (strcmp(sel, bsel) != 0)) continue;
+    /* match found */
+    break;
+  }
+  /* copy rest of content */
+  roff = ftell(fd);
+  for (;;) {
+    long chunklen;
+    /* read chunk */
+    fseek(fd, roff, SEEK_SET);
+    chunklen = fread(lbuf, 1, sizeof(lbuf), fd);
+    if (chunklen == 0) break;
+    roff = ftell(fd);
+    /* write chunk */
+    fseek(fd, woff, SEEK_SET);
+    fwrite(lbuf, 1, chunklen, fd);
+    woff = ftell(fd);
+  }
+  fclose(fd);
+  /* trim file to new size */
+  filetrunc(cfg->bookmarksfile, woff);
+}
+
+
 static void draw_urlbar(struct historytype *history, struct gopherusconfig *cfg) {
   int url_len, x;
   char urlstr[80];
@@ -894,7 +946,10 @@ static int display_menu(struct historytype **history, struct gopherusconfig *cfg
         }
         break;
       case 0x153: /* DEL */
-        /* TODO parse bookmarks and delete currently selected entry */
+        if ((history[0]->host[0] == '#') && (history[0]->host[1] == 'w')) {
+          delbookmark(line_host[*selectedline], line_port[*selectedline], line_selector[*selectedline], cfg);
+          return(DISPLAY_ORDER_REFR);
+        }
         break;
       case 0x1B: /* Esc */
         if (askQuitConfirmation(cfg) != 0) return(DISPLAY_ORDER_QUIT);
