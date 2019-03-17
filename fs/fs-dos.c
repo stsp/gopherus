@@ -3,7 +3,9 @@
  * Copyright (C) 2019 Mateusz Viste
  */
 
+#include <fcntl.h>
 #include <i86.h>
+#include <io.h>     /* _chsize() */
 #include <string.h>
 
 #include "fs.h"
@@ -62,4 +64,12 @@ char *bookmarks_getfname(const char *argv0) {
   plen = exepath(b);
   memcpy(b + plen, "GOPHERUS.BKM", 13);
   return(b);
+}
+
+void filetrunc(const char *fname, long sz) {
+  int handle;
+  handle = open(fname, O_RDWR | O_BINARY);
+  if (handle == -1) return;
+  _chsize(handle, sz);
+  close(handle);
 }

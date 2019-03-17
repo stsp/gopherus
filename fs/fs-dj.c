@@ -11,3 +11,8 @@ char *bookmarks_getfname(const char *argv0) {
   snprintf(b, sizeof(b), "%s\\gopherus.bkm", dirname(argv0));
   return(b);
 }
+
+
+void filetrunc(const char *fname, long sz) {
+  truncate(fname, sz);
+}

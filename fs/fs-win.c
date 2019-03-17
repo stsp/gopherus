@@ -17,3 +17,12 @@ char *bookmarks_getfname(const char *argv0) {
   snprintf(r, sizeof(r), "%s/Gopherus/gopherus.bkm", getenv("APPDATA"));
   return(r);
 }
+
+void filetrunc(const char *fname, long sz) {
+  HANDLE fh;
+  fh = CreateFileA(fname, GENERIC_WRITE, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+  if (fh == INVALID_HANDLE_VALUE) return;
+  SetFilePointer(fh, sz, NULL, FILE_BEGIN);
+  SetEndOfFile(fh);
+  CloseHandle(fh);
+}

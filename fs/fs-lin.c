@@ -5,6 +5,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h> /* truncate() */
 
 #include "fs.h"
 
@@ -14,4 +15,8 @@ char *bookmarks_getfname(const char *argv0) {
   argv0 = argv0; /* for gcc to shut up */
   snprintf(r, sizeof(r), "%s/.gopherus.bookmarks", getenv("HOME"));
   return(r);
+}
+
+void filetrunc(const char *fname, long sz) {
+  truncate(fname, sz);
 }

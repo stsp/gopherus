@@ -9,4 +9,7 @@
 /* returns path and filename of the bookmark file */
 char *bookmarks_getfname(const char *argv0);
 
+/* truncates file fname to sz bytes */
+void filetrunc(const char *fname, long sz);
+
 #endif
