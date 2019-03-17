@@ -197,7 +197,7 @@ static unsigned short menuline_explode(char *buffer, unsigned short bufferlen, c
 }
 
 
-static void addbookmarkifnotexist(struct historytype *h, struct gopherusconfig *cfg) {
+static void addbookmarkifnotexist(const struct historytype *h, const struct gopherusconfig *cfg) {
   FILE *fd;
   /* check if not already in bookmarks */
   fd = fopen(cfg->bookmarksfile, "rb");
@@ -234,9 +234,17 @@ static void addbookmarkifnotexist(struct historytype *h, struct gopherusconfig *
   }
   /* add to list */
   if (h->port == 70) {
-    fprintf(fd, "%c%s/%c%s\t%s\t%s\t%u\n", h->itemtype, h->host, h->itemtype, h->selector, h->selector, h->host, h->port);
+    if ((h->selector == NULL) || (h->selector[0] == 0)) {
+      fprintf(fd, "%c%s\t\t%s\t%u\n", h->itemtype, h->host, h->host, h->port);
+    } else {
+      fprintf(fd, "%c%s/%c%s\t%s\t%s\t%u\n", h->itemtype, h->host, h->itemtype, h->selector, h->selector, h->host, h->port);
+    }
   } else {
-    fprintf(fd, "%c%s:%u/%c%s\t%s\t%s\t%u\n", h->itemtype, h->host, h->port, h->itemtype, h->selector, h->selector, h->host, h->port);
+    if ((h->selector == NULL) || (h->selector[0] == 0)) {
+      fprintf(fd, "%c%s:%u\t\t%s\t%u\n", h->itemtype, h->host, h->port, h->host, h->port);
+    } else {
+      fprintf(fd, "%c%s:%u/%c%s\t%s\t%s\t%u\n", h->itemtype, h->host, h->port, h->itemtype, h->selector, h->selector, h->host, h->port);
+    }
   }
   /* */
   fclose(fd);
