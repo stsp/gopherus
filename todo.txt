@@ -1,19 +1,11 @@
 user should be able to cancel the 'resolving...' phase
 
-quitting should require ESC, ENTER instead of ESC, ESC to avoid false hits
-
-Display graphic files (bmp, png, jpg, gif..)
-
 configuration file (for memory settings and external viewers)
-
-Bookmarks (favorites)
 
 UTF8 support
 
 IPv6 support
 
 display_text() and display_menu() shouldn't need to copy content into another buffer before displaying it.
-
-menu continuations (word-wrapped) should be of same color as parent
 
 grex.org: telnet links appear as 'gopher'

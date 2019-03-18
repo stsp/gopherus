@@ -706,10 +706,10 @@ static void genfnamefromselector(char *fname, unsigned short maxlen, const char 
 
 /* used by display_menu to tell whether an itemtype is selectable or not */
 static int isitemtypeselectable(char itemtype) {
+  if (itemtype & 128) return(0); /* line continuations are not selectable */
   switch (itemtype) {
     case 'i':  /* inline message */
     case '3':  /* error */
-    case 0:    /* special internal type for menu lines continuations */
       return(0);
     default: /* everything else is selectable */
       return(1);
@@ -718,7 +718,7 @@ static int isitemtypeselectable(char itemtype) {
 
 
 /* explodes a gopher menu into separate lines. returns amount of lines */
-static long menu_explode(char *buffer, long bufferlen, char *line_itemtype, char **line_description, unsigned char *line_description_len, char **line_selector, char **line_host, unsigned short *line_port, long maxlines, long *firstlinkline, long *lastlinkline) {
+static long menu_explode(char *buffer, long bufferlen, unsigned char *line_itemtype, char **line_description, unsigned char *line_description_len, char **line_selector, char **line_host, unsigned short *line_port, long maxlines, long *firstlinkline, long *lastlinkline) {
   char *description, *cursor, *selector, *host, *port, itemtype;
   char singlelinebuf[82];
   long linecount = 0;
@@ -736,18 +736,18 @@ static long menu_explode(char *buffer, long bufferlen, char *line_itemtype, char
     if (linecount < maxlines) {
       char *wrapptr = description;
       int wraplen;
-      int firstiteration = 0;
+      int firstiteration = 1;
       if (isitemtypeselectable(itemtype) != 0) {
         if (*firstlinkline < 0) *firstlinkline = linecount;
         *lastlinkline = linecount;
       }
-      for (;; firstiteration += 1) {
-        if ((firstiteration > 0) && (itemtype != 'i') && (itemtype != '3')) itemtype = 0;
+      for (;; firstiteration = 0) {
         if (itemtype == 'i') {
           wraplen = 80;
         } else {
           wraplen = 76;
         }
+        if (!firstiteration) itemtype |= 128;
         line_description[linecount] = wrapptr;
         wrapptr = wordwrap(wrapptr, singlelinebuf, wraplen);
         line_description_len[linecount] = strlen(singlelinebuf);
@@ -784,7 +784,7 @@ static int display_menu(struct historytype **history, struct gopherusconfig *cfg
   char *line_host[MAXMENULINES];
   char curURL[MAXURLLEN];
   unsigned short line_port[MAXMENULINES];
-  char line_itemtype[MAXMENULINES];
+  unsigned char line_itemtype[MAXMENULINES];
   unsigned char line_description_len[MAXMENULINES];
   long x, y;
   long *selectedline = &(*history)->displaymemory[0];
@@ -808,7 +808,7 @@ static int display_menu(struct historytype **history, struct gopherusconfig *cfg
     curURL[0] = 0;
     /* if any position is selected, print the url in status bar */
     if (*selectedline >= 0) {
-      buildgopherurl(curURL, sizeof(curURL), PARSEURL_PROTO_GOPHER, line_host[*selectedline], line_port[*selectedline], line_itemtype[*selectedline], line_selector[*selectedline]);
+      buildgopherurl(curURL, sizeof(curURL), PARSEURL_PROTO_GOPHER, line_host[*selectedline], line_port[*selectedline], line_itemtype[*selectedline] & 127, line_selector[*selectedline]);
       if (glob_statusbar[0] == 0) set_statusbar(curURL);
     }
     /* start drawing lines of the menu */
@@ -822,7 +822,7 @@ static int display_menu(struct historytype **history, struct gopherusconfig *cfg
         } else {
           attr = cfg->attr_menutype;
         }
-        switch (line_itemtype[x]) {
+        switch (line_itemtype[x] & 127) {
           case 'i': /* message */
             break;
           case 'h': /* html */
@@ -852,13 +852,11 @@ static int display_menu(struct historytype **history, struct gopherusconfig *cfg
           case 'd':
             prefix = "PDF";
             break;
-          case 0: /* this is an internal itemtype that means 'it's a continuation of the previous (wrapped) line */
-            prefix = "   ";
-            break;
           default: /* unknown type */
             prefix = "UNK";
             break;
         }
+        if ((line_itemtype[x] & 128) && (prefix != NULL)) prefix = "   ";
         z = 0;
         if (prefix != NULL) {
           for (y = 0; y < 3; y++) ui_putchar(prefix[y], attr, y, 1 + (x - *screenlineoffset));
@@ -868,12 +866,12 @@ static int display_menu(struct historytype **history, struct gopherusconfig *cfg
         /* select foreground color */
         if (x == *selectedline) {
           attr = cfg->attr_menucurrent;
-        } else if (line_itemtype[x] == 'i') {
+        } else if ((line_itemtype[x] & 127) == 'i') {
           attr = cfg->attr_textnorm;
-        } else if (line_itemtype[x] == '3') {
+        } else if ((line_itemtype[x] & 127) == '3') {
           attr = cfg->attr_menuerr;
         } else {
-          if (isitemtypeselectable(line_itemtype[x]) != 0) {
+          if (isitemtypeselectable(line_itemtype[x] & 127) != 0) {
             attr = cfg->attr_menuselectable;
           } else {
             attr = cfg->attr_textnorm;
@@ -908,7 +906,7 @@ static int display_menu(struct historytype **history, struct gopherusconfig *cfg
       case 0x143: /* F9 */
       case 0x0D: /* ENTER */
         if (*selectedline >= 0) {
-          if ((line_itemtype[*selectedline] == '7') && (keypress != 0x143)) { /* a query needs to be issued */
+          if (((line_itemtype[*selectedline] & 127) == '7') && (keypress != 0x143)) { /* a query needs to be issued */
             char query[MAXQUERYLEN];
             char *finalselector;
             set_statusbar("Enter a query: ");
@@ -921,7 +919,7 @@ static int display_menu(struct historytype **history, struct gopherusconfig *cfg
               break;
             } else {
               sprintf(finalselector, "%s\t%s", line_selector[*selectedline], query);
-              history_add(history, PARSEURL_PROTO_GOPHER, line_host[*selectedline], line_port[*selectedline], line_itemtype[*selectedline], finalselector);
+              history_add(history, PARSEURL_PROTO_GOPHER, line_host[*selectedline], line_port[*selectedline], line_itemtype[*selectedline] & 127, finalselector);
               free(finalselector);
               return(DISPLAY_ORDER_NONE);
             }
