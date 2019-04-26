@@ -17,7 +17,7 @@ int cursor_start = 0, cursor_end = 0; /* remember the cursor's shape */
 unsigned short videomode = 0;
 
 /* inits the UI subsystem */
-void ui_init(void) {
+int ui_init(void) {
   union REGS regs;
   regs.h.ah = 0x0F;  /* get current video mode */
   int86(0x10, &regs, &regs);
@@ -38,6 +38,7 @@ void ui_init(void) {
   int86(0x10, &regs, &regs);
   cursor_start = regs.h.ch;
   cursor_end = regs.h.cl;
+  return(0);
 }
 
 void ui_close(void) {

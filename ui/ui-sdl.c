@@ -29,13 +29,29 @@ static int cursorstate = 1;
 static unsigned short screenbuffer[SCREENHEIGHT][SCREENWIDTH];
 
 
-void ui_init(void) {
+int ui_init(void) {
   SDL_Window *window;
   SDL_Surface *icosurface;
   SDL_Init(SDL_INIT_VIDEO);
   window = SDL_CreateWindow("Gopherus", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 640, 480, SDL_WINDOW_RESIZABLE);
-  renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_SOFTWARE);
+  if (window == NULL) {
+    SDL_Quit();
+    puts("window fail");
+    puts(SDL_GetError());
+    return(-1);
+  }
+  renderer = SDL_CreateRenderer(window, -1, 0);
+  if (renderer == NULL) {
+    SDL_Quit();
+    puts("renderer fail");
+    puts(SDL_GetError());
+    return(-1);
+  }
   screen = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, 640, 480);
+  if (screen == NULL) {
+    SDL_Quit();
+    return(-2);
+  }
   SDL_SetWindowMinimumSize(window, 640, 480);
 
   /* load the gopherus icon to titlebar */
@@ -46,6 +62,7 @@ void ui_init(void) {
   SDL_StartTextInput();
   /* make sur to close SDL properly at exit time */
   atexit(SDL_Quit);
+  return(0);
 }
 
 

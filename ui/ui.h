@@ -8,8 +8,8 @@
 #ifndef ui_h_sentinel
 #define ui_h_sentinel
 
-/* inits the UI subsystem */
-void ui_init(void);
+/* inits the UI subsystem, 0 on success, non-zero otherwise */
+int ui_init(void);
 
 void ui_close(void);
 

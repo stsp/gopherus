@@ -1392,7 +1392,12 @@ int main(int argc, char **argv) {
     return(0);
   }
 
-  ui_init();
+  if (ui_init() != 0) {
+    ui_puts("ERROR: ui_init() failure");
+    free(buffer);
+    return(4);
+  }
+
   ui_cursor_hide(); /* hide the cursor */
   ui_cls();
 

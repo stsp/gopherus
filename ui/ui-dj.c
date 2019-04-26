@@ -14,7 +14,8 @@
 
 
 /* inits the UI subsystem */
-void ui_init(void) {
+int ui_init(void) {
+  return(0);
 }
 
 

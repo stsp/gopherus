@@ -40,8 +40,9 @@ static attr_t getorcreatecolor(int col) {
 
 
 /* inits the UI subsystem */
-void ui_init(void) {
+int ui_init(void) {
   mywindow = initscr();
+  if (mywindow == NULL) return(-1);
   start_color();
   raw();
   noecho();
@@ -49,6 +50,7 @@ void ui_init(void) {
   timeout(100); /* getch blocks for 50ms max */
   set_escdelay(50); /* ESC should wait for 50ms max */
   nonl(); /* allow ncurses to detect KEY_ENTER */
+  return(0);
 }
 
 
