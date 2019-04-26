@@ -73,6 +73,7 @@ struct net_tcpsocket *net_connect(unsigned long ipaddr, unsigned short port) {
 
 
 int net_isconnected(struct net_tcpsocket *s, int waitstate) {
+  waitstate = waitstate; /* gcc warning shut */
   if (tcp_tick(s->sock) == 0) return(-1);
   if (sock_established(s->sock) == 0) return(0);
   return(1);
