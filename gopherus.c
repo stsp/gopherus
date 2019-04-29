@@ -730,7 +730,7 @@ static long menu_explode(char *buffer, long bufferlen, unsigned char *line_itemt
     unsigned short shortbuflen = 0xffff;
     if (bufferlen < 0xffff) shortbuflen = bufferlen;
 
-    cursor += menuline_explode(cursor, shortbuflen - (buffer - cursor), &itemtype, &description, &selector, &host, &port);
+    cursor += menuline_explode(cursor, shortbuflen - (cursor - buffer), &itemtype, &description, &selector, &host, &port);
 
     if (itemtype == '.') continue; /* ignore lines starting by '.' - it's most probably the end of menu terminator */
     if (linecount < maxlines) {

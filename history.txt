@@ -9,6 +9,8 @@ Gopherus v1.x [xx xxx xxxx]:
  - [new] SDL versions react to keypad arrows as well as normal arrows,
  - [new] user may abort a connection during its 'connecting...' phase,
  - [new] home page shortcut key (F2),
+ - [fix] fixed buffer overflow within menu lines parser,
+ - [fix] SDL UI does not enforce software rendering any more,
  - [fix] improved pgup/pgdown keys logic in menus,
  - [fix] wordwrapped menu entries are displayed in parent's colors,
  - [fix] Windows sockets are properly closed now (patch by Gisle Vanem),
