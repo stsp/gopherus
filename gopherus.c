@@ -1,6 +1,6 @@
 /***************************************************************************
  * Gopherus - a console-mode gopher client                                 *
- * Copyright (C) 2013-2019 Mateusz Viste                                   *
+ * Copyright (C) 2013-2020 Mateusz Viste                                   *
  *                                                                         *
  * Redistribution and use in source and binary forms, with or without      *
  * modification, are permitted provided that the following conditions are  *
@@ -531,9 +531,9 @@ static long loadfile_buff(int protocol, char *hostaddr, unsigned short hostport,
   }
   /* */
   if (protocol == PARSEURL_PROTO_HTTP) { /* http */
-    sprintf(buffer, "GET /%s HTTP/1.0\r\nHOST: %s\r\nUSER-AGENT: Gopherus\r\n\r\n", selector, hostaddr);
+    snprintf(buffer, buffer_max, "GET /%s HTTP/1.0\r\nHOST: %s\r\nUSER-AGENT: Gopherus\r\n\r\n", selector, hostaddr);
   } else { /* gopher */
-    sprintf(buffer, "%s\r\n", selector);
+    snprintf(buffer, buffer_max, "%s\r\n", selector);
   }
   if (net_send(sock, buffer, strlen(buffer)) != (int)strlen(buffer)) {
     set_statusbar("!send() error!");
@@ -608,7 +608,7 @@ static long loadfile_buff(int protocol, char *hostaddr, unsigned short hostport,
             }
           }
           /* if downloading to file, write stuff to disk */
-          if ((fd != NULL) && (reslength - fdlen > (buffer_max / 2))) {
+          if ((fd != NULL) && (reslength > fdlen)) {
             int writeres = fwrite(buffer, 1, reslength - fdlen, fd);
             if (writeres < 0) writeres = 0;
             fdlen += writeres;
@@ -629,7 +629,7 @@ static long loadfile_buff(int protocol, char *hostaddr, unsigned short hostport,
     net_abort(sock);
   }
   if (fd != NULL) { /* finish the buffer */
-    if (reslength - fdlen > 0) { /* if anything left in the buffer, write it now */
+    if (reslength > fdlen) { /* if anything left in the buffer, write it now */
       fdlen += fwrite(buffer, 1, reslength - fdlen, fd);
     }
     fclose(fd);

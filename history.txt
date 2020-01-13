@@ -2,7 +2,7 @@
 Gopherus changelog
 
 
-Gopherus v1.x [xx xxx xxxx]:
+Gopherus v1.2 [xx xxx xxxx]:
  - [new] bookmarks ("b" key),
  - [new] all files from current folder can be downloaded by pressing F10,
  - [new] SDL versions have a resizeable (scalable) window,
