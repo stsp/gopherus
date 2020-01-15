@@ -321,7 +321,7 @@ static void draw_urlbar(struct historytype *history, struct gopherusconfig *cfg)
 
 
 static void draw_statusbar(struct gopherusconfig *cfg) {
-  int x, y, colattr;
+  int y, colattr;
   char *msg = glob_statusbar;
   y = ui_getrowcount() - 1;
   if (msg[0] == '!') {
@@ -330,11 +330,7 @@ static void draw_statusbar(struct gopherusconfig *cfg) {
   } else {
     colattr = cfg->attr_statusbarinfo;
   }
-  for (x = 0; x < 80; x++) {
-    if (msg[x] == 0) break;
-    ui_putchar(msg[x], colattr, x, y); /* Using putchar because otherwise the last line will scroll the screen at its end. */
-  }
-  for (; x < 80; x++) ui_putchar(' ', colattr, x, y);
+  ui_putstr(msg, colattr, 0, y, 80);
   glob_statusbar[0] = 0; /* make room so new content can be pushed in */
   ui_refresh();
 }
@@ -786,7 +782,7 @@ static int display_menu(struct historytype **history, struct gopherusconfig *cfg
   unsigned short line_port[MAXMENULINES];
   unsigned char line_itemtype[MAXMENULINES];
   unsigned char line_description_len[MAXMENULINES];
-  long x, y;
+  long x;
   long *selectedline = &(*history)->displaymemory[0];
   long *screenlineoffset = &(*history)->displaymemory[1];
   long firstlinkline, lastlinkline;
@@ -859,8 +855,7 @@ static int display_menu(struct historytype **history, struct gopherusconfig *cfg
         if ((line_itemtype[x] & 128) && (prefix != NULL)) prefix = "   ";
         z = 0;
         if (prefix != NULL) {
-          for (y = 0; y < 3; y++) ui_putchar(prefix[y], attr, y, 1 + (x - *screenlineoffset));
-          ui_putchar(' ', attr, y, 1 + (x - *screenlineoffset));
+          ui_putstr(prefix, attr, 0, 1 + (x - *screenlineoffset), 4);
           z = 4;
         }
         /* select foreground color */
@@ -878,15 +873,9 @@ static int display_menu(struct historytype **history, struct gopherusconfig *cfg
           }
         }
         /* print the the line's description */
-        for (y = 0; y < (80 - z); y++) {
-          if (y < line_description_len[x]) {
-            ui_putchar(line_description[x][y], attr, y + z, 1 + (x - *screenlineoffset));
-          } else {
-            ui_putchar(' ', attr, y + z, 1 + (x - *screenlineoffset));
-          }
-        }
+        ui_putstr(line_description[x], attr, 0 + z, 1 + (x - *screenlineoffset), 80 - z);
       } else { /* x >= linecount */
-        for (y = 0; y < 80; y++) ui_putchar(' ', cfg->attr_textnorm, y, 1 + (x - *screenlineoffset));
+        ui_putstr("", cfg->attr_textnorm, 0, 1 + (x - *screenlineoffset), 80);
       }
     }
     draw_statusbar(cfg);

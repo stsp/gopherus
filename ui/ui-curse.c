@@ -2,13 +2,17 @@
  * This file is part of the gopherus project.
  * It provides abstract functions to draw on screen.
  *
- * Copyright (C) 2013-2019 Mateusz Viste
+ * Copyright (C) 2013-2020 Mateusz Viste
  *
  * Provides all UI functions used by Gopherus, basing on the curses api.
  */
 
-#include <curses.h>
+#define _XOPEN_SOURCE_EXTENDED
+
+#include <locale.h>
+#include <ncursesw/curses.h>
 #include <stdio.h> /* this one contains the NULL definition */
+#include <string.h>
 
 #include "ui.h"  /* include self for control */
 
@@ -24,7 +28,7 @@ static attr_t getorcreatecolor(int col) {
     unsigned long DOSCOLORS[16] = { COLOR_BLACK, COLOR_BLUE, COLOR_GREEN, COLOR_CYAN, COLOR_RED, COLOR_MAGENTA, COLOR_YELLOW, COLOR_WHITE, COLOR_BLACK, COLOR_BLUE, COLOR_GREEN, COLOR_CYAN, COLOR_RED,   COLOR_MAGENTA, COLOR_YELLOW, COLOR_WHITE };
     if (col & 0x80) {         /* bright background */
       init_pair(++lastcolid, DOSCOLORS[col >> 4], DOSCOLORS[col & 0xf]);
-      DOSPALETTE[col] = COLOR_PAIR(lastcolid) | A_BOLD | A_REVERSE;
+      DOSPALETTE[col] = COLOR_PAIR(lastcolid) | WA_BOLD | WA_REVERSE;
     } else if (col & 0x08) {   /* bright foreground */
       init_pair(++lastcolid, DOSCOLORS[col & 0x0f], DOSCOLORS[col >> 4]);
       DOSPALETTE[col] = COLOR_PAIR(lastcolid) | A_BOLD;
@@ -41,6 +45,7 @@ static attr_t getorcreatecolor(int col) {
 
 /* inits the UI subsystem */
 int ui_init(void) {
+  setlocale(LC_ALL, "");
   mywindow = initscr();
   if (mywindow == NULL) return(-1);
   start_color();
@@ -99,17 +104,100 @@ void ui_locate(int y, int x) {
 }
 
 
+static uint32_t utf8toint(unsigned char s) {
+  static uint32_t buff = 0;
+  static int waitfor;
+  /* single-byte value? */
+  if ((s & 0x80) == 0) {
+    if (waitfor != 0) return('!');
+    buff = 0;
+    waitfor = 0;
+    return(s);
+  }
+
+  /* continuation? */
+  if ((s & 0xC0) == 0x80) {
+    if (waitfor == 0) return('!');
+    waitfor--;
+    buff <<= 6;
+    buff |= (s & 0x3F);
+    if (waitfor == 0) return(buff);
+  } else if ((s & 0xE0) == 0xC0) { /* 2-byte value? (110xxxxx) */
+    if (waitfor != 0) return('!');
+    waitfor = 1;
+    buff = s & 0x1F;
+  } else if ((s & 0xF0) == 0xE0) { /* 3-byte value? (1110xxxx) */
+    if (waitfor != 0) return('!');
+    waitfor = 2;
+    buff = s & 0x0F;
+  } else if ((s & 0xF8) == 0xF0) { /* 4-byte value? (1111xxxx) */
+    if (waitfor != 0) return('!');
+    waitfor = 3;
+    buff = s & 0x07;
+  }
+  return(0);
+}
+
+
 void ui_putchar(char c, int attr, int x, int y) {
   int oldx, oldy;
+  uint32_t wchar;
+  cchar_t t;
+
+  memset(&t, 0, sizeof(t));
+
+  wchar = utf8toint(c);
+  if (wchar == 0) return;
+
   getyx(mywindow, oldy, oldx);
-  wattron(mywindow, getorcreatecolor(attr));
   /* curses is unable to print the ascii representation of a control char */
-  if ((c < 32) || (c > 126)) {
+  if (wchar < 32) {
     mvwaddch(mywindow, y, x, '.');
   } else {
-    mvwaddch(mywindow, y, x, c);
+    t.attr = getorcreatecolor(attr);
+    t.chars[0] = wchar;
+    t.chars[1] = 0;
+    mvwadd_wch(mywindow, y, x, &t);
   }
-  wattroff(mywindow, getorcreatecolor(attr));
+  move(oldy, oldx); /* restore cursor to its initial location */
+  ui_refresh();
+}
+
+
+/* print string on screen and space-fill it to minlen characters if needed */
+void ui_putstr(char *s, int attr, int x, int y, int len) {
+  int i, l;
+  int oldx, oldy;
+  uint32_t wchar;
+  cchar_t t;
+  memset(&t, 0, sizeof(t));
+  t.attr = getorcreatecolor(attr);
+
+  getyx(mywindow, oldy, oldx);
+
+  l = 0;
+  for (i = 0; (s[i] != 0) && (l < len); i++) {
+    wchar = utf8toint(s[i]);
+    if (wchar == 0) {
+      continue;
+    }
+
+    /* curses is unable to print the ascii representation of a control char */
+    if (wchar < 32) {
+      t.chars[0] = '.';
+      mvwadd_wch(mywindow, y, x + l, &t);
+    } else {
+      t.chars[0] = wchar;
+      mvwadd_wch(mywindow, y, x + l, &t);
+    }
+    l++;
+  }
+
+  for (; l < len; l++) {
+    t.chars[0] = ' ';
+    mvwadd_wch(mywindow, y, x + l, &t);
+  }
+
   move(oldy, oldx); /* restore cursor to its initial location */
   ui_refresh();
 }

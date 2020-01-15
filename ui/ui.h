@@ -31,6 +31,9 @@ void ui_locate(int y, int x);
 /* Put a char directly on screen, without playing with the cursor. Coordinates are zero-based. */
 void ui_putchar(char c, int attr, int x, int y);
 
+/* print string on screen and space-fill it to len characters if needed */
+void ui_putstr(char *s, int attr, int x, int y, int minlen);
+
 /* waits for a key to be pressed and returns it. ALT+keys have 0x100 added to them. */
 int ui_getkey(void);
 
