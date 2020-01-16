@@ -112,7 +112,7 @@ void ui_locate(int row, int column) {
 
 void ui_putchar(uint32_t c, int attr, int x, int y) {
   unsigned char far *p;
-  if (c > 127) c = '.';
+  if (c > 255) c = '.';
   p = vmem + ((y * term_width + x) << 1);
   *p++ = c;
   *p = attr;

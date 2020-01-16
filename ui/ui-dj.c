@@ -49,7 +49,7 @@ void ui_locate(int y, int x) {
 
 
 void ui_putchar(uint32_t c, int attr, int x, int y) {
-  if (c > 127) c = '.';
+  if (c > 255) c = '.';
   ScreenPutChar(c, attr, x, y);
 }
 
