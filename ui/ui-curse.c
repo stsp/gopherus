@@ -119,7 +119,6 @@ void ui_putchar(uint32_t wchar, int attr, int x, int y) {
 
   /* restore cursor to its initial location */
   move(oldy, oldx);
-  ui_refresh();
 }
 
 

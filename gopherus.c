@@ -244,7 +244,7 @@ static uint32_t utf8toint(unsigned char s) {
  * NOTE: this shall be the only function used by gopherus to write on screen!
  * s may be an UTF-8 string (may or may not be rendered properly depending on
  * the ui target) */
-static void drawstr(char *s, int attr, int x, int y, int len) {
+static void drawstr(const char *s, int attr, int x, int y, int len) {
   int i, l;
   uint32_t wchar;
 
@@ -252,6 +252,9 @@ static void drawstr(char *s, int attr, int x, int y, int len) {
   for (i = 0; (s[i] != 0) && (l < len); i++) {
     wchar = utf8toint(s[i]);
     if (wchar == 0) continue;
+
+    /* replace TABs by spaces */
+    if (wchar == '\t') wchar = ' ';
 
     /* don't try printing ascii representation of a control char */
     if (wchar < 32) wchar = '.';
@@ -372,18 +375,12 @@ static void delbookmark(const char *bhost, unsigned short bport, const char *bse
 
 
 static void draw_urlbar(struct historytype *history, struct gopherusconfig *cfg) {
-  int url_len, x;
   char urlstr[80];
   ui_putchar('[', cfg->attr_urlbardeco, 0, 0);
-  url_len = buildgopherurl(urlstr, sizeof(urlstr) - 1, history->protocol, history->host, history->port, history->itemtype, history->selector);
-  for (x = 0; x < 79; x++) {
-    if (x < url_len) {
-      ui_putchar(urlstr[x], cfg->attr_urlbar, x+1, 0);
-    } else {
-      ui_putchar(' ', cfg->attr_urlbar, x+1, 0);
-    }
-  }
+  buildgopherurl(urlstr, sizeof(urlstr) - 1, history->protocol, history->host, history->port, history->itemtype, history->selector);
+  drawstr(urlstr, cfg->attr_urlbar, 1, 0, 80 - 2);
   ui_putchar(']', cfg->attr_urlbardeco, 79, 0);
+  ui_refresh();
 }
 
 
@@ -399,17 +396,17 @@ static void draw_statusbar(struct gopherusconfig *cfg) {
   }
   drawstr(msg, colattr, 0, y, 80);
   glob_statusbar[0] = 0; /* make room so new content can be pushed in */
-  ui_refresh();
 }
 
 
 /* edits a string on screen. returns 0 if the string hasn't been modified, non-zero otherwise. */
 static int editstring(char *url, int maxlen, int maxdisplaylen, int xx, int yy, int attr) {
-  int urllen, x, presskey, cursorpos, result = 0, displayoffset;
+  int urllen, presskey, cursorpos, result = 0, displayoffset;
   urllen = strlen(url);
   cursorpos = urllen;
   ui_cursor_show();
   for (;;) {
+    url[urllen] = 0; /* always make sure the URL is NULL-terminated */
     if (urllen > maxdisplaylen - 1) {
       displayoffset = urllen - (maxdisplaylen - 1);
     } else {
@@ -420,14 +417,7 @@ static int editstring(char *url, int maxlen, int maxdisplaylen, int xx, int yy, 
       if (displayoffset < 0) displayoffset = 0;
     }
     ui_locate(yy, cursorpos + xx - displayoffset);
-    for (x = 0; x < maxdisplaylen; x++) {
-      if ((x + displayoffset) < urllen) {
-        ui_putchar(url[x + displayoffset], attr, x+xx, yy);
-      } else {
-        ui_putchar(' ', attr, x+xx, yy);
-      }
-    }
-    ui_refresh();
+    drawstr(url + displayoffset, attr, xx, yy, maxdisplaylen);
     presskey = ui_getkey();
     if ((presskey == 0x1B) || (presskey == 0x09)) { /* ESC or TAB */
       result = 0;
@@ -437,7 +427,6 @@ static int editstring(char *url, int maxlen, int maxdisplaylen, int xx, int yy, 
     } else if (presskey == 0x14F) { /* END */
       cursorpos = urllen;
     } else if (presskey == 0x0D) { /* ENTER */
-      url[urllen] = 0; /* terminate the URL string with a NULL terminator */
       result = -1;
       break;
     } else if (presskey == 0x14B) { /* LEFT */
@@ -1254,15 +1243,7 @@ static int display_text(struct historytype **history, struct gopherusconfig *cfg
     for (txtptr = buffer; txtptr != NULL; ) {
       txtptr = wordwrap(txtptr, linebuff, 80);
       if (y >= firstline) {
-        int endstringreached = 0;
-        for (x = 0; x < 80; x++) {
-          if (linebuff[x] == 0) endstringreached = 1;
-          if (endstringreached == 0) {
-            ui_putchar(linebuff[x], cfg->attr_textnorm, x, y + 1 - firstline);
-          } else {
-            ui_putchar(' ', cfg->attr_textnorm, x, y + 1 - firstline);
-          }
-        }
+        drawstr(linebuff, cfg->attr_textnorm, 0, y + 1 - firstline, 80);
       }
       y++;
       if (y > lastline) break;
@@ -1270,7 +1251,7 @@ static int display_text(struct historytype **history, struct gopherusconfig *cfg
     if (y <= lastline) {
       eof_flag = 1;
       for (; y <= lastline ; y++) { /* fill the rest of the screen (if any left) with blanks */
-        for (x = 0; x < 80; x++) ui_putchar(' ', cfg->attr_textnorm, x, y + 1 - firstline);
+        drawstr("", cfg->attr_textnorm, 0, y + 1 - firstline, 80);
       }
     } else {
       eof_flag = 0;
@@ -1510,12 +1491,13 @@ int main(int argc, char **argv) {
       }
     } else { /* the itemtype is not one of the internally displayable types -> ask to download it */
       char filename[64];
-      const char *prompt = "Download as: ";
       int i;
+      const char *prompt = "Download as: ";
       genfnamefromselector(filename, sizeof(filename), history->selector);
       set_statusbar("");
       draw_statusbar(&cfg);
-      for (i = 0; prompt[i] != 0; i++) ui_putchar(prompt[i], 0x70, i, ui_getrowcount() - 1);
+      i = strlen(prompt);
+      drawstr(prompt, 0x70, 0, ui_getrowcount() - 1, i);
       if (editstring(filename, 63, 63, i, ui_getrowcount() - 1, 0x70) != 0) {
         loadfile_buff(history->protocol, history->host, history->port, history->selector, buffer, PAGEBUFSZ, filename, &cfg, 0);
       }
