@@ -4,6 +4,8 @@ Gopherus changelog
 
 Gopherus v1.2 [xx xxx xxxx]:
  - [new] bookmarks ("b" key),
+ - [new] UTF-8 support,
+ - [new] full terminal width used as screen (no longer limited to 80 columns),
  - [new] all files from current folder can be downloaded by pressing F10,
  - [new] SDL versions have a resizeable (scalable) window,
  - [new] SDL versions react to keypad arrows as well as normal arrows,

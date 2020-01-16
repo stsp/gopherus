@@ -69,7 +69,7 @@ struct gopherusconfig {
 };
 
 /* statusbar content, used by set_statusbar and draw_statusbar() */
-static char glob_statusbar[82];
+static char glob_statusbar[128];
 
 
 static int hex2int(char c) {
@@ -159,7 +159,7 @@ static void set_statusbar(const char *msg) {
   /* accept new status message only if no message set yet */
   if (glob_statusbar[0] != 0) return;
   /* */
-  for (x = 0; (x < 80) && (msg[x] != 0); x++) {
+  for (x = 0; (x < (int)sizeof(glob_statusbar) - 1) && (msg[x] != 0); x++) {
     glob_statusbar[x] = msg[x];
   }
   glob_statusbar[x] = 0;
@@ -375,11 +375,11 @@ static void delbookmark(const char *bhost, unsigned short bport, const char *bse
 
 
 static void draw_urlbar(struct historytype *history, struct gopherusconfig *cfg) {
-  char urlstr[80];
+  char urlstr[256];
   ui_putchar('[', cfg->attr_urlbardeco, 0, 0);
   buildgopherurl(urlstr, sizeof(urlstr) - 1, history->protocol, history->host, history->port, history->itemtype, history->selector);
-  drawstr(urlstr, cfg->attr_urlbar, 1, 0, 80 - 2);
-  ui_putchar(']', cfg->attr_urlbardeco, 79, 0);
+  drawstr(urlstr, cfg->attr_urlbar, 1, 0, ui_getcolcount() - 2);
+  ui_putchar(']', cfg->attr_urlbardeco, ui_getcolcount() - 1, 0);
   ui_refresh();
 }
 
@@ -394,7 +394,7 @@ static void draw_statusbar(struct gopherusconfig *cfg) {
   } else {
     colattr = cfg->attr_statusbarinfo;
   }
-  drawstr(msg, colattr, 0, y, 80);
+  drawstr(msg, colattr, 0, y, ui_getcolcount());
   glob_statusbar[0] = 0; /* make room so new content can be pushed in */
 }
 
@@ -470,7 +470,7 @@ static int edit_url(struct historytype **history, struct gopherusconfig *cfg) {
   int urllen;
   urllen = buildgopherurl(url, sizeof(url), (*history)->protocol, (*history)->host, (*history)->port, (*history)->itemtype, (*history)->selector);
   if (urllen < 0) return(-1);
-  if (editstring(url, sizeof(url), 78, 1, 0, cfg->attr_urlbar) != 0) {
+  if (editstring(url, sizeof(url), ui_getcolcount() - 2, 1, 0, cfg->attr_urlbar) != 0) {
     char itemtype;
     char hostaddr[MAXHOSTLEN];
     char selector[MAXSELLEN];
@@ -770,10 +770,13 @@ static int isitemtypeselectable(char itemtype) {
 
 
 /* explodes a gopher menu into separate lines. returns amount of lines */
-static long menu_explode(char *buffer, long bufferlen, unsigned char *line_itemtype, char **line_description, unsigned char *line_description_len, char **line_selector, char **line_host, unsigned short *line_port, long maxlines, long *firstlinkline, long *lastlinkline) {
+static long menu_explode(char *buffer, long bufferlen, unsigned char *line_itemtype, char **line_description, char **line_selector, char **line_host, unsigned short *line_port, long maxlines, long *firstlinkline, long *lastlinkline) {
   char *description, *cursor, *selector, *host, *port, itemtype;
-  char singlelinebuf[82];
+  char *singlelinebuf;
   long linecount = 0;
+  int screenw = ui_getcolcount();
+
+  singlelinebuf = malloc(screenw + 2);
 
   *firstlinkline = -1;
   *lastlinkline = -1;
@@ -795,14 +798,14 @@ static long menu_explode(char *buffer, long bufferlen, unsigned char *line_itemt
       }
       for (;; firstiteration = 0) {
         if (itemtype == 'i') {
-          wraplen = 80;
+          wraplen = screenw;
         } else {
-          wraplen = 76;
+          wraplen = screenw - 4;
         }
         if (!firstiteration) itemtype |= 128;
         line_description[linecount] = wrapptr;
         wrapptr = wordwrap(wrapptr, singlelinebuf, wraplen);
-        line_description_len[linecount] = strlen(singlelinebuf);
+        line_description[linecount][strlen(singlelinebuf)] = 0; /* terminate line after wrap */
         line_selector[linecount] = selector;
         line_host[linecount] = host;
         line_itemtype[linecount] = itemtype;
@@ -825,6 +828,9 @@ static long menu_explode(char *buffer, long bufferlen, unsigned char *line_itemt
   if (linecount > 0) {
     if (line_itemtype[linecount - 1] == '.') linecount -= 1;
   }
+
+  free(singlelinebuf);
+
   return(linecount);
 }
 
@@ -837,7 +843,6 @@ static int display_menu(struct historytype **history, struct gopherusconfig *cfg
   char curURL[MAXURLLEN];
   unsigned short line_port[MAXMENULINES];
   unsigned char line_itemtype[MAXMENULINES];
-  unsigned char line_description_len[MAXMENULINES];
   long x;
   long *selectedline = &(*history)->displaymemory[0];
   long *screenlineoffset = &(*history)->displaymemory[1];
@@ -851,7 +856,7 @@ static int display_menu(struct historytype **history, struct gopherusconfig *cfg
   memcpy(buffer, (*history)->cache, bufferlen);
   buffer[bufferlen] = 0;
   /* */
-  linecount = menu_explode(buffer, bufferlen, line_itemtype, line_description, line_description_len, line_selector, line_host, line_port, MAXMENULINES, &firstlinkline, &lastlinkline);
+  linecount = menu_explode(buffer, bufferlen, line_itemtype, line_description, line_selector, line_host, line_port, MAXMENULINES, &firstlinkline, &lastlinkline);
 
   /* if there is at least one position, and nothing is selected yet, make it active */
   if ((firstlinkline >= 0) && (*selectedline < 0)) *selectedline = firstlinkline;
@@ -929,11 +934,12 @@ static int display_menu(struct historytype **history, struct gopherusconfig *cfg
           }
         }
         /* print the the line's description */
-        drawstr(line_description[x], attr, 0 + z, 1 + (x - *screenlineoffset), 80 - z);
+        drawstr(line_description[x], attr, 0 + z, 1 + (x - *screenlineoffset), ui_getcolcount() - z);
       } else { /* x >= linecount */
-        drawstr("", cfg->attr_textnorm, 0, 1 + (x - *screenlineoffset), 80);
+        drawstr("", cfg->attr_textnorm, 0, 1 + (x - *screenlineoffset), ui_getcolcount());
       }
     }
+    draw_urlbar(*history, cfg);
     draw_statusbar(cfg);
     ui_refresh();
     /* wait for a keypress */
@@ -1128,9 +1134,12 @@ static int display_menu(struct historytype **history, struct gopherusconfig *cfg
 
 static int display_text(struct historytype **history, struct gopherusconfig *cfg, char *buffer, long buffersize, int txtformat) {
   char *txtptr;
-  char linebuff[128];
+  char linebuff[256];
   long x, y, firstline, lastline, bufferlen;
   int eof_flag;
+  int screenw = ui_getcolcount();
+
+  if (screenw > (int)sizeof(linebuff) - 1) screenw = (int)sizeof(linebuff) - 1;
 
   sprintf(linebuff, "file loaded (%ld bytes)", (*history)->cachesize);
   set_statusbar(linebuff);
@@ -1225,7 +1234,7 @@ static int display_text(struct historytype **history, struct gopherusconfig *cfg
         case 127:   /* as well as DEL chars */
           break;
         default:
-          if ((*history)->cache[x] < 32) break; /* ignore ascii control chars */
+          if (((*history)->cache[x] >= 0) && ((*history)->cache[x] < 32)) break; /* ignore ascii control chars */
           buffer[bufferlen++] = (*history)->cache[x]; /* copy everything else */
           break;
       }
@@ -1241,9 +1250,9 @@ static int display_text(struct historytype **history, struct gopherusconfig *cfg
   for (;;) { /* display-control loop */
     y = 0;
     for (txtptr = buffer; txtptr != NULL; ) {
-      txtptr = wordwrap(txtptr, linebuff, 80);
+      txtptr = wordwrap(txtptr, linebuff, screenw);
       if (y >= firstline) {
-        drawstr(linebuff, cfg->attr_textnorm, 0, y + 1 - firstline, 80);
+        drawstr(linebuff, cfg->attr_textnorm, 0, y + 1 - firstline, ui_getcolcount());
       }
       y++;
       if (y > lastline) break;
@@ -1251,11 +1260,12 @@ static int display_text(struct historytype **history, struct gopherusconfig *cfg
     if (y <= lastline) {
       eof_flag = 1;
       for (; y <= lastline ; y++) { /* fill the rest of the screen (if any left) with blanks */
-        drawstr("", cfg->attr_textnorm, 0, y + 1 - firstline, 80);
+        drawstr("", cfg->attr_textnorm, 0, y + 1 - firstline, ui_getcolcount());
       }
     } else {
       eof_flag = 0;
     }
+    draw_urlbar(*history, cfg);
     draw_statusbar(cfg);
     ui_refresh();
     x = ui_getkey();

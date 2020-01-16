@@ -79,7 +79,6 @@ void ui_cls(void) {
   int maxrows, maxcols;
   clear();
   getmaxyx(mywindow, maxrows, maxcols);
-  if (maxcols > 80) maxcols = 80;
   attron(0);
   for (y = 0; y < maxrows; y++) {
     for (x = 0; x < maxcols; x++) {
