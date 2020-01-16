@@ -104,101 +104,21 @@ void ui_locate(int y, int x) {
 }
 
 
-static uint32_t utf8toint(unsigned char s) {
-  static uint32_t buff = 0;
-  static int waitfor;
-  /* single-byte value? */
-  if ((s & 0x80) == 0) {
-    if (waitfor != 0) return('!');
-    buff = 0;
-    waitfor = 0;
-    return(s);
-  }
-
-  /* continuation? */
-  if ((s & 0xC0) == 0x80) {
-    if (waitfor == 0) return('!');
-    waitfor--;
-    buff <<= 6;
-    buff |= (s & 0x3F);
-    if (waitfor == 0) return(buff);
-  } else if ((s & 0xE0) == 0xC0) { /* 2-byte value? (110xxxxx) */
-    if (waitfor != 0) return('!');
-    waitfor = 1;
-    buff = s & 0x1F;
-  } else if ((s & 0xF0) == 0xE0) { /* 3-byte value? (1110xxxx) */
-    if (waitfor != 0) return('!');
-    waitfor = 2;
-    buff = s & 0x0F;
-  } else if ((s & 0xF8) == 0xF0) { /* 4-byte value? (1111xxxx) */
-    if (waitfor != 0) return('!');
-    waitfor = 3;
-    buff = s & 0x07;
-  }
-  return(0);
-}
-
-
-void ui_putchar(char c, int attr, int x, int y) {
+void ui_putchar(uint32_t wchar, int attr, int x, int y) {
   int oldx, oldy;
-  uint32_t wchar;
   cchar_t t;
 
   memset(&t, 0, sizeof(t));
 
-  wchar = utf8toint(c);
-  if (wchar == 0) return;
-
+  /* remember cursor position to restore it afterwards */
   getyx(mywindow, oldy, oldx);
-  /* curses is unable to print the ascii representation of a control char */
-  if (wchar < 32) {
-    mvwaddch(mywindow, y, x, '.');
-  } else {
-    t.attr = getorcreatecolor(attr);
-    t.chars[0] = wchar;
-    t.chars[1] = 0;
-    mvwadd_wch(mywindow, y, x, &t);
-  }
-  move(oldy, oldx); /* restore cursor to its initial location */
-  ui_refresh();
-}
 
-
-/* print string on screen and space-fill it to minlen characters if needed */
-void ui_putstr(char *s, int attr, int x, int y, int len) {
-  int i, l;
-  int oldx, oldy;
-  uint32_t wchar;
-  cchar_t t;
-  memset(&t, 0, sizeof(t));
   t.attr = getorcreatecolor(attr);
+  t.chars[0] = wchar;
+  mvwadd_wch(mywindow, y, x, &t);
 
-  getyx(mywindow, oldy, oldx);
-
-  l = 0;
-  for (i = 0; (s[i] != 0) && (l < len); i++) {
-    wchar = utf8toint(s[i]);
-    if (wchar == 0) {
-      continue;
-    }
-
-    /* curses is unable to print the ascii representation of a control char */
-    if (wchar < 32) {
-      t.chars[0] = '.';
-      mvwadd_wch(mywindow, y, x + l, &t);
-    } else {
-      t.chars[0] = wchar;
-      mvwadd_wch(mywindow, y, x + l, &t);
-    }
-    l++;
-  }
-
-  for (; l < len; l++) {
-    t.chars[0] = ' ';
-    mvwadd_wch(mywindow, y, x + l, &t);
-  }
-
-  move(oldy, oldx); /* restore cursor to its initial location */
+  /* restore cursor to its initial location */
+  move(oldy, oldx);
   ui_refresh();
 }
 

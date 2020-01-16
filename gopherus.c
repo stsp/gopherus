@@ -29,6 +29,7 @@
 
 
 #include <string.h>  /* strlen() */
+#include <stdint.h>
 #include <stdlib.h>  /* malloc(), getenv() */
 #include <stdio.h>   /* sprintf(), fwrite()... */
 #include <time.h>    /* time_t */
@@ -197,6 +198,72 @@ static unsigned short menuline_explode(char *buffer, unsigned short bufferlen, c
 }
 
 
+/* used by drawstr to decode utf8 strings */
+static uint32_t utf8toint(unsigned char s) {
+  static uint32_t buff = 0;
+  static int waitfor;
+  /* single-byte value? */
+  if ((s & 0x80) == 0) {
+    if (waitfor != 0) goto DECODE_ERR; /* decoding error */
+    buff = 0;
+    return(s);
+  }
+
+  /* handle multi-byte sequences */
+  if ((s & 0xC0) == 0x80) { /* continuation? */
+    if (waitfor == 0) goto DECODE_ERR; /* decoding error */
+    waitfor--;
+    buff <<= 6;
+    buff |= (s & 0x3F);
+    if (waitfor == 0) return(buff);
+  } else if ((s & 0xE0) == 0xC0) { /* 2-byte value? (110xxxxx) */
+    if (waitfor != 0) goto DECODE_ERR;
+    waitfor = 1;
+    buff = s & 0x1F;
+  } else if ((s & 0xF0) == 0xE0) { /* 3-byte value? (1110xxxx) */
+    if (waitfor != 0) goto DECODE_ERR;
+    waitfor = 2;
+    buff = s & 0x0F;
+  } else if ((s & 0xF8) == 0xF0) { /* 4-byte value? (1111xxxx) */
+    if (waitfor != 0) goto DECODE_ERR;
+    waitfor = 3;
+    buff = s & 0x07;
+  } else { /* unhandled seq */
+    goto DECODE_ERR;
+  }
+  return(0);
+
+  DECODE_ERR:
+  waitfor = 0;
+  buff = 0;
+  return('.');
+}
+
+
+/* print string on screen and space-fill it to len characters if needed
+ * NOTE: this shall be the only function used by gopherus to write on screen!
+ * s may be an UTF-8 string (may or may not be rendered properly depending on
+ * the ui target) */
+static void drawstr(char *s, int attr, int x, int y, int len) {
+  int i, l;
+  uint32_t wchar;
+
+  l = 0;
+  for (i = 0; (s[i] != 0) && (l < len); i++) {
+    wchar = utf8toint(s[i]);
+    if (wchar == 0) continue;
+
+    /* don't try printing ascii representation of a control char */
+    if (wchar < 32) wchar = '.';
+    ui_putchar(wchar, attr, x + l, y);
+    l++;
+  }
+
+  for (; l < len; l++) ui_putchar(' ', attr, x + l, y);
+  ui_refresh();
+}
+
+
 static void addbookmarkifnotexist(const struct historytype *h, const struct gopherusconfig *cfg) {
   FILE *fd;
   /* check if not already in bookmarks */
@@ -330,7 +397,7 @@ static void draw_statusbar(struct gopherusconfig *cfg) {
   } else {
     colattr = cfg->attr_statusbarinfo;
   }
-  ui_putstr(msg, colattr, 0, y, 80);
+  drawstr(msg, colattr, 0, y, 80);
   glob_statusbar[0] = 0; /* make room so new content can be pushed in */
   ui_refresh();
 }
@@ -855,7 +922,7 @@ static int display_menu(struct historytype **history, struct gopherusconfig *cfg
         if ((line_itemtype[x] & 128) && (prefix != NULL)) prefix = "   ";
         z = 0;
         if (prefix != NULL) {
-          ui_putstr(prefix, attr, 0, 1 + (x - *screenlineoffset), 4);
+          drawstr(prefix, attr, 0, 1 + (x - *screenlineoffset), 4);
           z = 4;
         }
         /* select foreground color */
@@ -873,9 +940,9 @@ static int display_menu(struct historytype **history, struct gopherusconfig *cfg
           }
         }
         /* print the the line's description */
-        ui_putstr(line_description[x], attr, 0 + z, 1 + (x - *screenlineoffset), 80 - z);
+        drawstr(line_description[x], attr, 0 + z, 1 + (x - *screenlineoffset), 80 - z);
       } else { /* x >= linecount */
-        ui_putstr("", cfg->attr_textnorm, 0, 1 + (x - *screenlineoffset), 80);
+        drawstr("", cfg->attr_textnorm, 0, 1 + (x - *screenlineoffset), 80);
       }
     }
     draw_statusbar(cfg);

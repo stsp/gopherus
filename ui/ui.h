@@ -2,11 +2,13 @@
  * This file is part of the gopherus project.
  * It provides abstract functions to draw on terminal's screen.
  *
- * Copyright (C) Mateusz Viste 2013-2015
+ * Copyright (C) Mateusz Viste 2013-2020
  */
 
 #ifndef ui_h_sentinel
 #define ui_h_sentinel
+
+#include <stdint.h>
 
 /* inits the UI subsystem, 0 on success, non-zero otherwise */
 int ui_init(void);
@@ -29,10 +31,7 @@ void ui_puts(char *str);
 void ui_locate(int y, int x);
 
 /* Put a char directly on screen, without playing with the cursor. Coordinates are zero-based. */
-void ui_putchar(char c, int attr, int x, int y);
-
-/* print string on screen and space-fill it to len characters if needed */
-void ui_putstr(char *s, int attr, int x, int y, int minlen);
+void ui_putchar(uint32_t c, int attr, int x, int y);
 
 /* waits for a key to be pressed and returns it. ALT+keys have 0x100 added to them. */
 int ui_getkey(void);

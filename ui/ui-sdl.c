@@ -2,7 +2,7 @@
  * This file is part of the gopherus project.
  * It provides abstract functions to draw on screen.
  *
- * Copyright (C) Mateusz Viste 2013-2019
+ * Copyright (C) Mateusz Viste 2013-2020
  *
  * Provides all UI functions used by Gopherus, wrapped around a virtual
  * terminal emulated via SDL2 calls.
@@ -103,8 +103,9 @@ void ui_locate(int y, int x) {
 }
 
 
-void ui_putchar(char c, int attr, int x, int y) {
+void ui_putchar(uint32_t c, int attr, int x, int y) {
   if ((x >= SCREENWIDTH) || (y >= SCREENHEIGHT) || (x < 0) || (y < 0)) return;
+  if (c > 255) c = '.';
   screenbuffer[y][x] = (attr << 8) | (unsigned char)c;
 }
 
