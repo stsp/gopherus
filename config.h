@@ -62,7 +62,7 @@
 
 /* max amount of lines displayed in a menu */
 #ifndef MAXMENULINES
-#define MAXMENULINES 1024
+#define MAXMENULINES 4096
 #endif
 
 /* max size of cached objects (must be at least PAGEBUFSZ big) */

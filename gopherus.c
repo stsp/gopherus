@@ -781,11 +781,11 @@ static long menu_explode(char *buffer, long bufferlen, unsigned char *line_itemt
   *firstlinkline = -1;
   *lastlinkline = -1;
 
-  for (cursor = buffer; cursor < (buffer + bufferlen) ;) {
-    unsigned short shortbuflen = 0xffff;
-    if (bufferlen < 0xffff) shortbuflen = bufferlen;
-
-    cursor += menuline_explode(cursor, shortbuflen - (cursor - buffer), &itemtype, &description, &selector, &host, &port);
+  for (cursor = buffer; bufferlen > 0;) {
+    unsigned short menulinelen;
+    menulinelen = menuline_explode(cursor, (bufferlen < 0xffff)?bufferlen:0xffff, &itemtype, &description, &selector, &host, &port);
+    cursor += menulinelen;
+    bufferlen -= menulinelen;
 
     if (itemtype == '.') continue; /* ignore lines starting by '.' - it's most probably the end of menu terminator */
     if (linecount < maxlines) {
