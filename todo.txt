@@ -2,8 +2,6 @@ user should be able to cancel the 'resolving...' phase
 
 configuration file (for memory settings and external viewers)
 
-UTF8 support
-
 IPv6 support
 
 display_text() and display_menu() shouldn't need to copy content into another buffer before displaying it.
