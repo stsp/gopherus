@@ -92,7 +92,7 @@ void ui_cls(void) {
 }
 
 
-void ui_puts(char *str) {
+void ui_puts(const char *str) {
   puts(str);
 }
 

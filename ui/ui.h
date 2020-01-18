@@ -25,7 +25,7 @@ int ui_getcolcount(void);
 void ui_cls(void);
 
 /* print a string on screen, and go to next line */
-void ui_puts(char *str);
+void ui_puts(const char *str);
 
 /* Set the position (zero-based) of the cursor on screen */
 void ui_locate(int y, int x);

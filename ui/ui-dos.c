@@ -76,20 +76,15 @@ void ui_cls(void) {
 }
 
 
-void ui_puts(char *str) {
+void ui_puts(const char *str) {
   union REGS regs;
-  struct SREGS sregs;
-  unsigned short slen;
-  /* change the string terminator from 0 to $ */
-  for (slen = 0; str[slen] != 0; slen++);
-  str[slen] = '$';
-  /* call DOS */
-  regs.h.ah = 0x09; /* DOS 1+ - WRITE STRING TO STDOUT */
-  regs.x.dx = FP_OFF(str);
-  sregs.ds = FP_SEG(str);
-  int86x(0x21, &regs, &regs, &sregs);
-  /* restore the string terminator to 0 */
-  str[slen] = 0;
+  /* display the string one character at a time */
+  while (*str != 0) {
+    regs.h.ah = 0x02;
+    regs.h.dl = *str;
+    int86(0x21, &regs, &regs);
+    str++;
+  }
   /* write a CR/LF pair to screen */
   regs.h.ah = 0x02; /* DOS 1+ - WRITE CHARACTER TO STDOUT */
   regs.h.dl = '\r';
