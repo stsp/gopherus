@@ -3,31 +3,29 @@
                        http://gopherus.sourceforge.net
 
 
-Gopherus is a free, multiplatform, console-mode gopher client available for
-DOS, Linux and Windows. It provides a classic text interface to the
-gopherspace. Altough primarily targeted for DOS, ports to Windows and Linux
-are also available. These may use SDL to emulate a pseudo terminal.
+Gopherus is a free, multiplatform, console-mode gopher client that provides a
+classic text interface to the gopherspace.
 This program is released under the terms of the '2-clause' BSD license.
 
 
  *** Key bindings ***
 
- Gopherus is a console-mode gopher client. It's entirely keyboard-driven, thus
- knowing its key bindings is mandatory for comfortable gopher browsing.
+ Gopherus is a console-mode gopher client entirely keyboard-driven, hence
+ knowing its key bindings is mandatory for comfortable browsing.
 
  Key bindings:
    TAB       - Switch to/from URL bar edition
    ESC       - Quit Gopherus (requires a confirmation)
    UP/DOWN   - Scroll the screen's content up/down by one line
    PGUP/PGDW - Scroll the screen's content up/down by one page
-   HOME/END  - Go to the begin/end of the document
+   HOME/END  - Jump to the top/bottom of the document
    BACKSPC   - Go back to the previous location
    B         - Bookmark current location
    DEL       - Delete bookmark (main screen only)
-   F1        - Show help (this manual)
-   F2        - Go to program's home page
+   F1        - Show help (this file)
+   F2        - Go to program's main screen
    F5        - Refresh current location
-   F9        - Download location on disk
+   F9        - Download location to disk
    F10       - Download all files in current menu to disk
 
 
@@ -84,15 +82,15 @@ This program is released under the terms of the '2-clause' BSD license.
  Examples:
   The default palette used by Gopherus is.......: "177047707818141220"
   For a black & white mode, use.................: "077070707808070770"
-  Missing those green 1980-like phosphor CRTs?..: "022020202002020220"
+  Missing those green phosphor CRTs from 1980?..: "022020202002020220"
 
 
  *** Requirements ***
 
- Gopherus has been designed with hardware sparseness in mind, hence it doesn't
+ Gopherus has been designed with ancient hardware in mind, hence it doesn't
  need much to run. But still, the 16-bit DOS version requires at least:
-  - a CGA card
-  - some kind of CPU
+  - an MDA video card
+  - some kind of CPU (8086+)
   - 400K of available RAM
   - an ethernet card with a working packet driver
 
@@ -108,11 +106,3 @@ Redistribution and use in source and binary forms, with or without modification,
 2. Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.
 
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-
- *** Final notes ***
-
- Gopherus has been written with care to behave nicely and follow standards.
- It conforms closely to following guidelines:
-   RFC 1436: The Internet Gopher Protocol
-   RFC 4266: The gopher URI Scheme
