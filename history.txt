@@ -5,7 +5,7 @@ Gopherus changelog
 Gopherus v1.2 [xx xxx xxxx]:
  - [new] bookmarks ("b" key),
  - [new] UTF-8 support,
- - [new] full terminal width used as screen (no longer limited to 80 columns),
+ - [new] full terminal width used now (no longer limited to 80 columns),
  - [new] all files from current folder can be downloaded by pressing F10,
  - [new] SDL versions have a resizeable (scalable) window,
  - [new] SDL versions react to keypad arrows as well as normal arrows,
@@ -16,7 +16,9 @@ Gopherus v1.2 [xx xxx xxxx]:
  - [fix] improved pgup/pgdown keys logic in menus,
  - [fix] wordwrapped menu entries are displayed in parent's colors,
  - [fix] Windows sockets are properly closed now (patch by Gisle Vanem),
- - [fix] function keys react properly when used with the CURSES interface.
+ - [fix] function keys react properly when used with the CURSES interface,
+ - [mnt] windows build no longer distributed (compile/maintain it yourself),
+ - [mnt] DOS 32-bit build no longer distributed (use the 16-bit version).
 
 Gopherus v1.1 [26 Feb 2019]:
  - [new] two DOS builds are available: 16 bit (real-mode) and 32 bit (386+),
