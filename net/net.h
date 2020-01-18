@@ -47,4 +47,7 @@ void net_close(struct net_tcpsocket *socket);
 /* Close the 'sock' socket immediately (to be used when the peer is behaving wrongly) - this is much faster than net_close(). */
 void net_abort(struct net_tcpsocket *socket);
 
+/* Returns an info string about networking engine being used */
+const char *net_engine(void);
+
 #endif

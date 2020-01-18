@@ -1385,6 +1385,8 @@ int main(int argc, char **argv) {
         ui_puts("");
         ui_puts("Usage: gopherus [url [-o=outfile]]");
         ui_puts("");
+        ui_puts("This build is dated \"" __DATE__ "\" and handles networking through:");
+        ui_puts(net_engine());
         free(buffer);
         return(1);
       }

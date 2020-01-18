@@ -42,6 +42,7 @@ static int dummy_printf(const char * format, ...) {
   return(0);
 }
 
+
 /* must be called before using libtcp. returns 0 on success, or non-zero if network subsystem is not available. */
 int net_init(void) {
   tzset();
@@ -125,4 +126,9 @@ void net_abort(struct net_tcpsocket *socket) {
   sock_abort(socket->sock);
   free(socket);
   return;
+}
+
+
+const char *net_engine(void) {
+  return(wattcpVersion());
 }
