@@ -25,6 +25,8 @@
 
   DOS
     The DOS versions rely on the Watt32 library for all network operations.
+    I use Watt32 2.2.10 even though the 2.2.11 is available because the latter
+    appears to have regressions when used with 16 bit code (crashes).
 
   Linux, BSD & Windows
     Non-DOS version are built against the curses library to access the
