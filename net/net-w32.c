@@ -32,7 +32,12 @@
 
 
 int net_dnsresolve(char *ip, const char *name) {
-  if (lookup_host(name, ip) == 0) return(-1);
+  unsigned long ipnum;
+  ipnum = resolve(name); /* I could use WatTCP's lookup_host() here to do all
+                            the job for me, unfortunately lookup_host() issues
+                            wild outs() calls putting garbage on screen... */
+  if (ipnum == 0) return(-1);
+  _inet_ntoa(ip, ipnum); /* convert to string */
   return(0);
 }
 
