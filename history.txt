@@ -2,7 +2,7 @@
 Gopherus changelog
 
 
-Gopherus v1.2 [xx xxx xxxx]:
+Gopherus v1.2 [19 Jan 2020]:
  - [new] bookmarks ("b" key),
  - [new] UTF-8 support,
  - [new] IPv6 support (except on the DOS target),
@@ -16,9 +16,10 @@ Gopherus v1.2 [xx xxx xxxx]:
  - [fix] SDL UI does not enforce software rendering any more,
  - [fix] improved pgup/pgdown keys logic in menus,
  - [fix] wordwrapped menu entries are displayed in parent's colors,
- - [fix] Windows sockets are properly closed now (patch by Gisle Vanem),
+ - [fix] Windows sockets are properly closed (patch by Gisle Vanem),
  - [fix] function keys react properly when used with the CURSES interface,
- - [mnt] Windows build no longer distributed (compile it yourself),
+ - [fix] telnet links are recognized now (but unsupported),
+ - [mnt] Windows build no longer distributed (do it yourself),
  - [mnt] DOS 32-bit build no longer distributed (use the 16-bit version).
 
 Gopherus v1.1 [26 Feb 2019]:
