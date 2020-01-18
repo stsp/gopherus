@@ -1,8 +1,9 @@
 /*
  * This file is part of the Gopherus project.
- * Copyright (C) 2013-2019 Mateusz Viste
+ * Copyright (C) 2013-2020 Mateusz Viste
  */
 
+#include <stdio.h>    /* snprintf() */
 #include <string.h>   /* strstr() */
 #include <stdlib.h>   /* atoi() */
 #include "int2str.h"  /* int2str() is used to convert the port into a string */
@@ -34,6 +35,10 @@ int parsegopherurl(char *url, char *host, unsigned short hostlen, unsigned short
               protocol = PARSEURL_PROTO_HTTP;
               *port = 80; /* default port is 80 for HTTP */
               *itemtype = 'h';
+            } else if (strcasecmp(protostr, "telnet") == 0) {
+              protocol = PARSEURL_PROTO_TELNET;
+              *port = 23; /* default port is 23 for telnet */
+              *itemtype = '8';
             } else {
               protocol = PARSEURL_PROTO_UNKNOWN;
           }
@@ -154,6 +159,11 @@ int buildgopherurl(char *res, int maxlen, int protocol, const char *host, unsign
       res[x] = 0;
       return(x);
     }
+  }
+  /* telnet link? */
+  if (itemtype == '8') {
+    x = snprintf(res, maxlen, "telnet://%s:%u", host, port);
+    return(x);
   }
   /* this is a classic gopher location */
   for (; *protoname != 0; protoname += 1) {

@@ -899,6 +899,9 @@ static int display_menu(struct historytype **history, struct gopherusconfig *cfg
           case '7':
             prefix = "ASK";
             break;
+          case '8':
+            prefix = "TLN";
+            break;
           case 'I':
           case 'g': /* GIF */
             prefix = "IMG";
@@ -981,9 +984,12 @@ static int display_menu(struct historytype **history, struct gopherusconfig *cfg
             if (tmpproto < 0) {
               set_statusbar("!Bad URL");
               break;
-            } else {
+            } else if ((tmpproto == PARSEURL_PROTO_GOPHER) || (tmpproto == PARSEURL_PROTO_HTTP)) {
               history_add(history, tmpproto, tmphost, tmpport, tmpitemtype, tmpselector);
               return(DISPLAY_ORDER_NONE);
+            } else {
+              set_statusbar("!Unsupported protocol");
+              break;
             }
           }
         }
@@ -997,6 +1003,7 @@ static int display_menu(struct historytype **history, struct gopherusconfig *cfg
             /* generate a filename for the target */
             genfnamefromselector(fname, sizeof(fname), line_selector[x]);
             /* TODO watch out for already-existing files! */
+            /* TODO watch out for unsupported protocols! */
             /* download the file */
             loadfile_buff(PARSEURL_PROTO_GOPHER, line_host[x], line_port[x], line_selector[x], b, sizeof(b), fname, cfg, 0);
           }
