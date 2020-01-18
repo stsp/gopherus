@@ -1,15 +1,16 @@
 /*
  * This file is part of the Gopherus project
- * Copyright (C) Mateusz Viste 2013-2019
+ * Copyright (C) Mateusz Viste 2013-2020
  *
  * Provides all network functions used by Gopherus, wrapped around POSIX (BSD)
- * sockets (with messy ifdefs to support windows)
+ * sockets (with a few messy ifdefs to support windows)
  */
 
 #include <fcntl.h>   /* fcntl() */
 #include <stdlib.h>  /* NULL */
 #include <errno.h>   /* EAGAIN, EWOULDBLOCK... */
 #include <stdint.h>  /* uint32_t */
+#include <string.h>  /* memcpy() */
 
 #ifdef _WIN32
   #include <winsock2.h> /* socket() */
@@ -27,13 +28,30 @@
 #include "net.h" /* include self for control */
 
 
-unsigned long net_dnsresolve(const char *name) {
-  struct hostent *hent;
-  unsigned long res;
-  hent = gethostbyname(name);
-  if (hent == NULL) return(0);
-  res = ntohl(*((uint32_t *)(hent->h_addr)));
-  return(res);
+int net_dnsresolve(char *ip, const char *name) {
+  struct addrinfo *r;
+  const char *ntopres;
+
+  /* resolve */
+  if (getaddrinfo(name, NULL, NULL, &r) != 0) return(-1);
+
+  /* convert to string */
+  if (r->ai_family == AF_INET) {
+    struct sockaddr_in *a = (void *)(r->ai_addr);
+    ntopres = inet_ntop(r->ai_family, &(a->sin_addr), ip, INET_ADDRSTRLEN);
+  } else if (r->ai_family == AF_INET6) {
+    struct sockaddr_in6 *a = (void *)(r->ai_addr);
+    ntopres = inet_ntop(r->ai_family, a->sin6_addr.s6_addr, ip, INET6_ADDRSTRLEN);
+  } else {
+    ntopres = NULL; /* error */
+  }
+
+  /* free intermediary result */
+  freeaddrinfo(r);
+
+  /* return exit code */
+  if (ntopres != NULL) return(0);
+  return(-1);
 }
 
 
@@ -50,17 +68,36 @@ int net_init(void) {
 }
 
 
-struct net_tcpsocket *net_connect(unsigned long ipaddr, unsigned short port) {
-  struct sockaddr_in remote;
+struct net_tcpsocket *net_connect(const char *ipaddr, unsigned short port) {
+  struct sockaddr_in remote4;
+  struct sockaddr_in6 remote6;
   struct net_tcpsocket *result;
+  struct sockaddr_storage dstbin;
   int connectres;
+  int af = AF_UNSPEC;
+  int i;
+
+  /* detect AF family */
+  for (i = 0;; i++) {
+    if (ipaddr[i] == '.') {
+      af = AF_INET;
+      break;
+    }
+    if (ipaddr[i] == ':') {
+      af = AF_INET6;
+      break;
+    }
+    if (ipaddr[i] == 0) return(NULL);
+  }
+
+  if (inet_pton(af, ipaddr, &dstbin) != 1) return(NULL);
 
   result = malloc(sizeof(struct net_tcpsocket));
   if (result == NULL) {
     return(NULL);
   }
 
-  result->s = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+  result->s = socket(af, SOCK_STREAM, IPPROTO_TCP);
   if (result->s < 0) {
     free(result);
     return(NULL);
@@ -78,10 +115,17 @@ struct net_tcpsocket *net_connect(unsigned long ipaddr, unsigned short port) {
 #endif
   }
 
-  remote.sin_family = AF_INET;  /* Proto family (IPv4) */
-  remote.sin_addr.s_addr = htonl(ipaddr);
-  remote.sin_port = htons(port); /* set the dst port */
-  connectres = connect(result->s, (struct sockaddr *)&remote, sizeof(struct sockaddr));
+  if (af == AF_INET) {
+    remote4.sin_family = AF_INET;  /* Proto family (IPv4) */
+    memcpy(&(remote4.sin_addr.s_addr), &dstbin, sizeof(remote4.sin_addr.s_addr));
+    remote4.sin_port = htons(port); /* set the dst port */
+    connectres = connect(result->s, (struct sockaddr *)&remote4, sizeof(struct sockaddr_in));
+  } else {
+    remote6.sin6_family = AF_INET6;  /* Proto family (IPv6) */
+    memcpy(remote6.sin6_addr.s6_addr, &dstbin, sizeof(remote6.sin6_addr.s6_addr));
+    remote6.sin6_port = htons(port); /* set the dst port */
+    connectres = connect(result->s, (struct sockaddr *)&remote6, sizeof(struct sockaddr_in6));
+  }
 #ifdef _WIN32
   if ((connectres < 0) && (WSAGetLastError() != WSAEWOULDBLOCK)) {
 #else

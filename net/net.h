@@ -13,17 +13,16 @@ struct net_tcpsocket {
   char buffer[1];
 };
 
-/* resolves hostname or ip address 'name' into an IPv4 32-bit value. returns
- * 0 on error. returned value is in host byte order. */
-unsigned long net_dnsresolve(const char *name);
+/* resolves name and fills resovled addr into ip. returns 0 on success. */
+int net_dnsresolve(char *ip, const char *name);
 
 /* must be called before using libtcp. returns 0 on success, or non-zero if network subsystem is not available. */
 int net_init(void);
 
-/* initiates a connection to an IPv4 host and returns a socket pointer (or
- * NULL on error) - note that connection is NOT estblished at this point!
+/* initiates a connection to an IP host and returns a socket pointer (or NULL
+ * on error) - note that connection is NOT estblished at this point!
  * use net_isconnected() to know when the connection is connected. */
-struct net_tcpsocket *net_connect(unsigned long ipaddr, unsigned short port);
+struct net_tcpsocket *net_connect(const char *ip, unsigned short port);
 
 /* checks whether or not a socket is connected. returns:
  *  0 = not connected,

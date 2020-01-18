@@ -506,7 +506,7 @@ static int askQuitConfirmation(struct gopherusconfig *cfg) {
  * buffer. if *filename is not NULL, the resource will be written in the file
  * (but a valid *buffer is still required) */
 static long loadfile_buff(int protocol, char *hostaddr, unsigned short hostport, char *selector, char *buffer, long buffer_max, char *filename, struct gopherusconfig *cfg, int notui) {
-  unsigned long ipaddr;
+  char ipaddr[64];
   long reslength, byteread, fdlen = 0;
   int warnflag = 0;
   char statusmsg[128];
@@ -535,8 +535,7 @@ static long loadfile_buff(int protocol, char *hostaddr, unsigned short hostport,
     }
     return(reslength);
   }
-  ipaddr = dnscache_ask(hostaddr);
-  if (ipaddr == 0) {
+  if (dnscache_ask(ipaddr, hostaddr) != 0) {
     sprintf(statusmsg, "Resolving '%s'...", hostaddr);
     if (notui == 0) {
       set_statusbar(statusmsg);
@@ -544,14 +543,13 @@ static long loadfile_buff(int protocol, char *hostaddr, unsigned short hostport,
     } else {
       ui_puts(statusmsg);
     }
-    ipaddr = net_dnsresolve(hostaddr);
-    if (ipaddr == 0) {
+    if (net_dnsresolve(ipaddr, hostaddr) != 0) {
       set_statusbar("!DNS resolution failed!");
       return(-1);
     }
     dnscache_add(hostaddr, ipaddr);
   }
-  sprintf(statusmsg, "Connecting to %lu.%lu.%lu.%lu...", (ipaddr >> 24) & 0xFF, (ipaddr >> 16) & 0xFF, (ipaddr >> 8) & 0xFF, (ipaddr & 0xFF));
+  sprintf(statusmsg, "Connecting to %s...", ipaddr);
   if (notui == 0) {
     set_statusbar(statusmsg);
     draw_statusbar(cfg);

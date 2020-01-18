@@ -2,7 +2,7 @@
  * This file is part of the Gopherus project.
  * It provides a set of basic network-related functions.
  *
- * Copyright (C) Mateusz Viste 2013-2019
+ * Copyright (C) Mateusz Viste 2013-2020
  *
  * Provides all network functions used by Gopherus, wrapped around the
  * Watt-32 TCP/IP stack.
@@ -31,9 +31,9 @@
 
 
 
-/* returns 0 if resolution fails */
-unsigned long net_dnsresolve(const char *name) {
-  return(resolve(name));
+int net_dnsresolve(char *ip, const char *name) {
+  if (lookup_host(name, ip) == 0) return(-1);
+  return(0);
 }
 
 
@@ -50,8 +50,14 @@ int net_init(void) {
 }
 
 
-struct net_tcpsocket *net_connect(unsigned long ipaddr, unsigned short port) {
+struct net_tcpsocket *net_connect(const char *ipstr, unsigned short port) {
   struct net_tcpsocket *resultsock;
+  unsigned long ipaddr;
+
+  /* convert ip to value */
+  ipaddr = _inet_addr(ipstr);
+  if (ipaddr == 0) return(NULL);
+
   resultsock = malloc(sizeof(struct net_tcpsocket) + BUFFERSIZE);
   if (resultsock == NULL) return(NULL);
   resultsock->sock   = calloc(1, sizeof(tcp_Socket));
