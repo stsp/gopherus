@@ -155,14 +155,10 @@ static void loadcfg(struct gopherusconfig *cfg, char **argv) {
 
 
 static void set_statusbar(const char *msg) {
-  int x;
   /* accept new status message only if no message set yet */
   if (glob_statusbar[0] != 0) return;
-  /* */
-  for (x = 0; (x < (int)sizeof(glob_statusbar) - 1) && (msg[x] != 0); x++) {
-    glob_statusbar[x] = msg[x];
-  }
-  glob_statusbar[x] = 0;
+  /* copy msg to statusbar, watch out for overflows */
+  snprintf(glob_statusbar, sizeof(glob_statusbar), "%s", msg);
 }
 
 
