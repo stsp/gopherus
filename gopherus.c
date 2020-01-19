@@ -31,7 +31,7 @@
 #include <string.h>  /* strlen() */
 #include <stdint.h>
 #include <stdlib.h>  /* malloc(), getenv() */
-#include <stdio.h>   /* sprintf(), fwrite()... */
+#include <stdio.h>   /* snprintf(), fwrite()... */
 #include <time.h>    /* time_t */
 
 #include "dnscache.h"
@@ -532,7 +532,7 @@ static long loadfile_buff(int protocol, char *hostaddr, unsigned short hostport,
     return(reslength);
   }
   if (dnscache_ask(ipaddr, hostaddr) != 0) {
-    sprintf(statusmsg, "Resolving '%s'...", hostaddr);
+    snprintf(statusmsg, sizeof(statusmsg), "Resolving '%s'...", hostaddr);
     if (notui == 0) {
       set_statusbar(statusmsg);
       draw_statusbar(cfg);
@@ -545,7 +545,7 @@ static long loadfile_buff(int protocol, char *hostaddr, unsigned short hostport,
     }
     dnscache_add(hostaddr, ipaddr);
   }
-  sprintf(statusmsg, "Connecting to %s...", ipaddr);
+  snprintf(statusmsg, sizeof(statusmsg), "Connecting to %s...", ipaddr);
   if (notui == 0) {
     set_statusbar(statusmsg);
     draw_statusbar(cfg);
@@ -645,7 +645,7 @@ static long loadfile_buff(int protocol, char *hostaddr, unsigned short hostport,
           /* refresh the status bar once every second */
           if (curtime != lastrefresh) {
             lastrefresh = curtime;
-            sprintf(statusmsg, "Downloading... [%ld bytes]", reslength);
+            snprintf(statusmsg, sizeof(statusmsg), "Downloading... [%ld bytes]", reslength);
             if (notui == 0) {
               set_statusbar(statusmsg);
               draw_statusbar(cfg);
@@ -679,7 +679,7 @@ static long loadfile_buff(int protocol, char *hostaddr, unsigned short hostport,
       fdlen += fwrite(buffer, 1, reslength - fdlen, fd);
     }
     fclose(fd);
-    sprintf(statusmsg, "Saved %ld bytes on disk", fdlen);
+    snprintf(statusmsg, sizeof(statusmsg), "Saved %ld bytes on disk", fdlen);
     set_statusbar(statusmsg);
   }
   return(reslength);
@@ -965,20 +965,21 @@ static int display_menu(struct historytype **history, struct gopherusconfig *cfg
           if (((line_itemtype[*selectedline] & 127) == '7') && (keypress != 0x143)) { /* a query needs to be issued */
             char query[MAXQUERYLEN];
             char *finalselector;
+            size_t finalselectorsz;
             set_statusbar("Enter a query: ");
             draw_statusbar(cfg);
             query[0] = 0;
             if (editstring(query, sizeof(query), 64, 15, ui_getrowcount() - 1, cfg->attr_statusbarinfo) == 0) break;
-            finalselector = malloc(strlen(line_selector[*selectedline]) + strlen(query) + 2); /* add 1 for the TAB, and 1 for the NULL terminator */
+            finalselectorsz = strlen(line_selector[*selectedline]) + strlen(query) + 2; /* add 1 for the TAB, and 1 for the NULL terminator */
+            finalselector = malloc(finalselectorsz);
             if (finalselector == NULL) {
-              set_statusbar("Out of memory");
+              set_statusbar("!Out of memory");
               break;
-            } else {
-              sprintf(finalselector, "%s\t%s", line_selector[*selectedline], query);
-              history_add(history, PARSEURL_PROTO_GOPHER, line_host[*selectedline], line_port[*selectedline], line_itemtype[*selectedline] & 127, finalselector);
-              free(finalselector);
-              return(DISPLAY_ORDER_NONE);
             }
+            snprintf(finalselector, finalselectorsz, "%s\t%s", line_selector[*selectedline], query);
+            history_add(history, PARSEURL_PROTO_GOPHER, line_host[*selectedline], line_port[*selectedline], line_itemtype[*selectedline] & 127, finalselector);
+            free(finalselector);
+            return(DISPLAY_ORDER_NONE);
           } else { /* itemtype is anything else than type 7 */
             int tmpproto;
             unsigned short tmpport;
@@ -1156,7 +1157,7 @@ static int display_text(struct historytype **history, struct gopherusconfig *cfg
 
   if (screenw > (int)sizeof(linebuff) - 1) screenw = (int)sizeof(linebuff) - 1;
 
-  sprintf(linebuff, "file loaded (%ld bytes)", (*history)->cachesize);
+  snprintf(linebuff, sizeof(linebuff), "file loaded (%ld bytes)", (*history)->cachesize);
   set_statusbar(linebuff);
 
   /* copy the content of the file into buffer, and take care to modify dangerous chars and apply formating (if any) */
