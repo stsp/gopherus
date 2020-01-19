@@ -9,3 +9,4 @@ i     Welcome to Gopherus: a multi-platform, console-mode gopher client.
 i                               Press F1 at any time to read the manual.
 i
 iBookmarks:
+i

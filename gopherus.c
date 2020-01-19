@@ -1364,6 +1364,31 @@ static int display_text(struct historytype **history, struct gopherusconfig *cfg
 }
 
 
+/* creates a bookmark file with some default entries if no bookmark file exists yet */
+static void bookmarkfile_createifnone(const char *fname) {
+  FILE *fd;
+  if (fname == NULL) return;
+
+  /* abort if bookmarks file exists already */
+  fd = fopen(fname, "rb");
+  if (fd != NULL) {
+    fclose(fd);
+    return;
+  }
+
+  /* create new file */
+  fd = fopen(fname, "wb");
+  if (fd == NULL) return; /* oops */
+
+  /* populate some default links */
+  fprintf(fd, "1gopher.viste.fr (Gopherus author's gopher home)\t\tgopher.viste.fr\n"
+              "1gopherpedia.com\t\tgopherpedia.com\n"
+              "1gopher.floodgap.com\t\tgopher.floodgap.com\n");
+
+  /* close file */
+  fclose(fd);
+}
+
 
 int main(int argc, char **argv) {
   int exitflag;
@@ -1469,6 +1494,9 @@ int main(int argc, char **argv) {
 
   ui_cursor_hide(); /* hide the cursor */
   ui_cls();
+
+  /* create a bookmark file template if it does not exist yet */
+  bookmarkfile_createifnone(cfg.bookmarksfile);
 
   for (;;) {
     if ((history->itemtype == '0') || (history->itemtype == '1') || (history->itemtype == '7') || (history->itemtype == 'h')) { /* if it's a displayable item type... */
