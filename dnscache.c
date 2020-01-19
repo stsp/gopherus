@@ -22,13 +22,12 @@ static struct dnscache_t dnscache_table[DNS_MAXENTRIES];
 /* fills ipaddr with cached IP for host, returns 0 on success */
 int dnscache_ask(char *ipaddr, const char *host) {
   int x;
-  time_t curtime = time(NULL);
+  time_t oldlimit = time(NULL) - DNS_CACHETIME;
   for (x = 0; x < DNS_MAXENTRIES; x++) {
-    if ((curtime - dnscache_table[x].inserttime) < DNS_CACHETIME) {
-      if (strcasecmp(host, dnscache_table[x].host) == 0) {
-        strcpy(ipaddr, dnscache_table[x].addr);
-        return(0);
-      }
+    if (dnscache_table[x].inserttime < oldlimit) continue; /* expired entry */
+    if (strcasecmp(host, dnscache_table[x].host) == 0) {
+      strcpy(ipaddr, dnscache_table[x].addr);
+      return(0);
     }
   }
   return(-1);
