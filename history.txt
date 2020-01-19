@@ -2,6 +2,10 @@
 Gopherus changelog
 
 
+Gopherus v1.2.1 [xx xxx xxxx]:
+ - [mnt] removed the hardcoded links in main menu,
+ - [mnt] simplified code by using snprintf() instead of direct manipulations.
+
 Gopherus v1.2 [19 Jan 2020]:
  - [new] bookmarks ("b" key),
  - [new] UTF-8 support,

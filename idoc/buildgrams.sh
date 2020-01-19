@@ -20,5 +20,7 @@ $CC -Wall -Wextra -pedantic -O2 -std=gnu89 idocgen.c -o idocgen
 ./idocgen gopherus.txt idoc_manual >> idoc.h
 
 # clean up temporary files
+rm grams
+rm idocgen
 rm tmp.txt
 rm gopherus.txt

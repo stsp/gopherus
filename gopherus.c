@@ -1403,6 +1403,10 @@ int main(int argc, char **argv) {
         ui_puts("");
         ui_puts("Usage: gopherus [url [-o=outfile]]");
         ui_puts("");
+        ui_puts("Latest version can be found at the following addresses:");
+        ui_puts("  http://gopherus.sourceforge.net");
+        ui_puts("  gopher://gopher.viste.fr");
+        ui_puts("");
         ui_puts("This build is dated \"" __DATE__ "\" and handles networking through:");
         ui_puts(net_engine());
         free(buffer);
