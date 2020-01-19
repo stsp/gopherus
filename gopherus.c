@@ -767,6 +767,14 @@ static int isitemtypeselectable(char itemtype) {
 }
 
 
+static int isitemtypedownloadable(char itemtype) {
+  if (isitemtypeselectable(itemtype) == 0) return(0); /* if you can't select it, then you can't download it */
+  if (itemtype == '8') return(0); /* telnet links cannot be downloaded */
+  /* anything else should be ok */
+  return(1);
+}
+
+
 /* explodes a gopher menu into separate lines. returns amount of lines */
 static long menu_explode(char *buffer, long bufferlen, unsigned char *line_itemtype, char **line_description, char **line_selector, char **line_host, unsigned short *line_port, long maxlines, long *firstlinkline, long *lastlinkline) {
   char *description, *cursor, *selector, *host, *port, itemtype;
@@ -980,7 +988,13 @@ static int display_menu(struct historytype **history, struct gopherusconfig *cfg
             unsigned short tmpport;
             char tmphost[MAXHOSTLEN], tmpitemtype, tmpselector[MAXSELLEN];
             tmpproto = parsegopherurl(curURL, tmphost, sizeof(tmphost), &tmpport, &tmpitemtype, tmpselector, sizeof(tmpselector));
-            if (keypress == 0x143) tmpitemtype = '9'; /* force the itemtype to 'binary' if 'save as' was requested */
+            if (keypress == 0x143) { /* if 'save as' was requested, force itemtype unless it's not downloadable */
+              if (isitemtypedownloadable(tmpitemtype) == 0) {
+                set_statusbar("!This item type cannot be downloaded");
+                break;
+              }
+              tmpitemtype = '9'; /* force the itemtype to 'binary' if 'save as' was requested */
+            }
             if (tmpproto < 0) {
               set_statusbar("!Bad URL");
               break;
@@ -999,11 +1013,11 @@ static int display_menu(struct historytype **history, struct gopherusconfig *cfg
           for (x = firstlinkline; x <= lastlinkline; x++) {
             char fname[32];
             char b[512];
-            if (isitemtypeselectable(line_itemtype[x]) == 0) continue;
+            /* skip not downloadable items */
+            if (isitemtypedownloadable(line_itemtype[x]) == 0) continue;
             /* generate a filename for the target */
             genfnamefromselector(fname, sizeof(fname), line_selector[x]);
             /* TODO watch out for already-existing files! */
-            /* TODO watch out for unsupported protocols! */
             /* download the file */
             loadfile_buff(PARSEURL_PROTO_GOPHER, line_host[x], line_port[x], line_selector[x], b, sizeof(b), fname, cfg, 0);
           }
