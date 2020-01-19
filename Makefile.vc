@@ -33,7 +33,6 @@ endif
 SOURCES = gopherus.c    \
           dnscache.c    \
           history.c     \
-          int2str.c     \
           parseurl.c    \
           startpg.c     \
           wordwrap.c    \

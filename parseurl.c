@@ -6,7 +6,6 @@
 #include <stdio.h>    /* snprintf() */
 #include <string.h>   /* strstr() */
 #include <stdlib.h>   /* atoi() */
-#include "int2str.h"  /* int2str() is used to convert the port into a string */
 #include "parseurl.h" /* include self for control */
 
 int parsegopherurl(char *url, char *host, unsigned short hostlen, unsigned short *port, char *itemtype, char *selector, unsigned short selectorlen) {
@@ -114,32 +113,11 @@ int parsegopherurl(char *url, char *host, unsigned short hostlen, unsigned short
 /* computes an URL string from exploded gopher parts, and returns its length. Returns -1 on error. */
 int buildgopherurl(char *res, int maxlen, int protocol, const char *host, unsigned short port, char itemtype, const char *selector) {
   int x = 0;
-  const char *protoname_gopher = "gopher://";
-  const char *protoname_http = "http://";
-  const char *protoname = protoname_gopher;
   maxlen -= 1;
   if (protocol == PARSEURL_PROTO_HTTP) { /* http URL */
-    protoname = protoname_http;
-    for (; *protoname != 0; protoname++) { /* protocol */
-      if (x == maxlen) goto maxlenreached;
-      res[x++] = *protoname;
-    }
-    for (; *host != 0; host++) { /* hostname */
-      if (x == maxlen) goto maxlenreached;
-      res[x++] = *host;
-    }
-    if (port != 80) { /* port (optional, only if not 80) */
-      if (x + 6 >= maxlen) goto maxlenreached;
-      res[x++] = ':';
-      x += int2str(&res[x], port);
-    }
-    if (x == maxlen) goto maxlenreached; /* / delimiter */
-    res[x++] = '/';
-    for (; *selector != 0; selector++) { /* url */
-      if (x == maxlen) goto maxlenreached;
-      res[x++] = *selector;
-    }
-    res[x] = 0;
+    char portstr[8] = "";
+    if (port != 80) snprintf(portstr, sizeof(portstr), ":%u", port); /* include port only if != 80 */
+    x = snprintf(res, maxlen, "http://%s%s/%s", host, portstr, selector);
     return(x);
   }
   /* The proto is gopher -- validate input data */
@@ -151,12 +129,7 @@ int buildgopherurl(char *res, int maxlen, int protocol, const char *host, unsign
   if (itemtype == 'h') {
     if ((strstr(selector, "URL:") == selector) || (strstr(selector, "/URL:") == selector)) {
       if (selector[0] == '/') selector += 1;
-      selector += 4;
-      for (; *selector != 0; selector += 1) {
-        if (x == maxlen) goto maxlenreached;
-        res[x++] = *selector;
-      }
-      res[x] = 0;
+      x = snprintf(res, maxlen, "%s", selector + 4);
       return(x);
     }
   }
@@ -166,29 +139,15 @@ int buildgopherurl(char *res, int maxlen, int protocol, const char *host, unsign
     return(x);
   }
   /* this is a classic gopher location */
-  for (; *protoname != 0; protoname += 1) {
-    if (x == maxlen) goto maxlenreached;
-    res[x++] = *protoname;
-  }
+  x = snprintf(res, maxlen, "gopher://%s", host);
   /* if empty host, return only the gopher:// string */
-  if (host[0] == 0) {
-    res[x] = 0;
-    return(x);
-  }
+  if (host[0] == 0) return(x);
   /* build the url string */
-  for (; *host != 0; host += 1) {
-    if (x == maxlen) goto maxlenreached;
-    res[x++] = *host;
-  }
-  if (port != 70) {
-    if (x + 6 >= maxlen) goto maxlenreached;
-    res[x++] = ':';
-    x += int2str(&res[x], port);
-  }
+  if (port != 70) x += snprintf(res + x, maxlen - x, ":%u", port);
+  /* if selector is empty and itemtype is 1, then stop here */
+  if ((itemtype == '1') && (selector[0] == 0)) return(x);
+  x += snprintf(res + x, maxlen - x, "/%c", itemtype);
   if (x == maxlen) goto maxlenreached;
-  res[x++] = '/';
-  if (x == maxlen) goto maxlenreached;
-  res[x++] = itemtype;
   for (; *selector != 0; selector += 1) {
     if (x == maxlen) goto maxlenreached;
     if (((unsigned)*selector <= 0x1F) || ((unsigned)*selector >= 0x80)) { /* encode unsafe chars - RFC 1738: */
