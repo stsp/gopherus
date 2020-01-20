@@ -10,7 +10,7 @@
 
   DOS 16 bit: OpenWatcom (+Watt32)
   DOS 32 bit: DJGPP (+Watt32)
-  Linux: gcc or clang (+curses and/or SDL2)
+  Linux: gcc or clang (+ncursesw and/or SDL2)
   BSD: same as Linux
   Windows: Mingw64 (+SDL2)
 
@@ -26,12 +26,12 @@
   DOS
     The DOS versions rely on the Watt32 library for all network operations.
     I use Watt32 2.2.10 even though the 2.2.11 is available because the latter
-    appears to have regressions when used with 16 bit code (crashes).
+    locks up during DHCP discovery when used with 16 bit code.
 
   Linux, BSD & Windows
-    Non-DOS version are built against the curses library to access the
+    Non-DOS version are built against the ncursesw library to access the
     terminal. Alternatively, you can also build gopherus using SDL2 support
-    instead (make -f Makefile.xxx gopherus-sdl.exe). All network operations
+    instead (make -f Makefile.xxx gopherus-sdl). All network operations
     are performed using classic BSD-style sockets.
 
 
