@@ -9,26 +9,11 @@
  */
 
 #include <stdlib.h>
-#include <string.h>
-#include <limits.h>
-#include <errno.h>
 
-/* Watt32 includes */
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <sys/socket.h>
-#include <arpa/inet.h>
+/* Watt32 */
 #include <tcp.h>
 
 #include "net.h" /* include self for control */
-
-
-#define BUFFERSIZE  4096
-
-#define debugMode 0
-#define verboseMode 0
-
-
 
 
 int net_dnsresolve(char *ip, const char *name) {
@@ -64,18 +49,19 @@ struct net_tcpsocket *net_connect(const char *ipstr, unsigned short port) {
   ipaddr = _inet_addr(ipstr);
   if (ipaddr == 0) return(NULL);
 
-  resultsock = malloc(sizeof(struct net_tcpsocket) + BUFFERSIZE);
+  resultsock = calloc(sizeof(struct net_tcpsocket) + sizeof(tcp_Socket), 1);
   if (resultsock == NULL) return(NULL);
-  resultsock->sock   = calloc(1, sizeof(tcp_Socket));
+  resultsock->sock = resultsock->buffer;
   if (resultsock->sock == NULL) {
     free(resultsock);
     return(NULL);
   }
 
-  sock_setbuf(resultsock->sock, resultsock->buffer, BUFFERSIZE);
+  /* explicitely set user-managed buffer to none (watt32 will use its own internal buffer) */
+  sock_setbuf(resultsock->sock, NULL, 0);
+
   if (!tcp_open(resultsock->sock, 0, ipaddr, port, NULL)) {
     sock_abort(resultsock->sock);
-    free(resultsock->sock);
     free(resultsock);
     return(NULL);
   }
@@ -93,13 +79,13 @@ int net_isconnected(struct net_tcpsocket *s, int waitstate) {
 
 
 /* Sends data on socket 'socket'.
-   Returns the number of bytes sent on success, and <0 otherwise. The error code can be translated into a human error message via libtcp_strerr(). */
+   Returns the number of bytes sent on success, and < 0 otherwise */
 int net_send(struct net_tcpsocket *socket, const char *line, long len) {
   int res;
   /* call this to let Watt-32 handle its internal stuff */
   if (tcp_tick(socket->sock) == 0) return(-1);
   /* send bytes */
-  res = sock_write(socket->sock, line, len);
+  res = sock_write(socket->sock, (void *)line, len);
   return(res);
 }
 
@@ -108,31 +94,26 @@ int net_send(struct net_tcpsocket *socket, const char *line, long len) {
 Returns the amount of data read (in bytes) on success, or a negative value otherwise. The error code can be translated into a human error message via libtcp_strerr(). */
 int net_recv(struct net_tcpsocket *socket, char *buff, long maxlen) {
   int i;
-  /* call this to let WatTCP hanle its internal stuff */
+  /* call this to let WatTCP handle its internal stuff */
   if (tcp_tick(socket->sock) == 0) return(-1);
-  i = sock_fastread(socket->sock, buff, maxlen);
+  i = sock_fastread(socket->sock, (void *)buff, maxlen);
   return(i);
 }
 
 
 /* Close the 'sock' socket. */
 void net_close(struct net_tcpsocket *socket) {
-  int status = 0;
-  sock_close(socket->sock);
-  sock_wait_closed(socket->sock, sock_delay, NULL, &status);
- sock_err:
-  free(socket->sock);
-  free(socket);
-  return;
+  /* I could use sock_close() and sock_wait_closed() if I'd want to be
+   * friendly, but it's much easier on the tcp stack to send a single RST and
+   * forget about the connection (esp. if the peer is misbehaving) */
+  net_abort(socket);
 }
 
 
 /* Close the 'sock' socket immediately (to be used when the peer is behaving wrongly) - this is much faster than net_close(). */
 void net_abort(struct net_tcpsocket *socket) {
   sock_abort(socket->sock);
-  free(socket->sock);
   free(socket);
-  return;
 }
 
 
