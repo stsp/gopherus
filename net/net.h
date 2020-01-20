@@ -1,6 +1,6 @@
 /*
  * This file is part of the Gopherus project.
- * Copyright (C) Mateusz Viste 2013-2019
+ * Copyright (C) Mateusz Viste 2013-2020
  */
 
 
@@ -20,7 +20,7 @@ int net_dnsresolve(char *ip, const char *name);
 int net_init(void);
 
 /* initiates a connection to an IP host and returns a socket pointer (or NULL
- * on error) - note that connection is NOT estblished at this point!
+ * on error) - note that connection is NOT established at this point!
  * use net_isconnected() to know when the connection is connected. */
 struct net_tcpsocket *net_connect(const char *ip, unsigned short port);
 
@@ -47,7 +47,7 @@ void net_close(struct net_tcpsocket *socket);
 /* Close the 'sock' socket immediately (to be used when the peer is behaving wrongly) - this is much faster than net_close(). */
 void net_abort(struct net_tcpsocket *socket);
 
-/* Returns an info string about networking engine being used */
+/* Returns an info string about the networking engine being used */
 const char *net_engine(void);
 
 #endif
