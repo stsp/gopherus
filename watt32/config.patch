@@ -1,0 +1,29 @@
+--- watt3210/src/config.h	2006-01-14 19:07:18.000000000 +0100
++++ watt32/src/config.h	2020-01-21 23:43:56.153192198 +0100
+@@ -24,7 +24,7 @@
+ #undef USE_BSD_API     /* Include BSD-sockets */
+ #undef USE_BSD_FATAL   /* Exit application on BSD-socket fatal errors */
+ #undef USE_BOOTP       /* Include BOOTP client code */
+-#undef USE_DHCP        /* Include DHCP boot client code */
++#define USE_DHCP        /* Include DHCP boot client code */
+ #undef USE_RARP        /* Include RARP boot client code. Contributed by Dan Kegel. */
+ #undef USE_IPV6        /* Include IPv6 dual-stack support */
+ #undef USE_LANGUAGE    /* Include Language translation code */
+@@ -34,7 +34,7 @@
+ #undef USE_FSEXT       /* Use djgpp's File Extensions for file I/O functions */
+ #undef USE_LOOPBACK    /* Use the simple loopback device */
+ #undef USE_EMBEDDED    /* Make an embeddable (ROM-able) target. See note at end */
+-#undef USE_BUFFERED_IO /* Use buffered I/O in pcconfig.c */
++#define USE_BUFFERED_IO /* Use buffered I/O in pcconfig.c */
+ #undef USE_TFTP        /* Include TFTP protocol for simple file retrival */
+ #undef USE_UDP_ONLY    /* Exclude all stuff related to the TCP protocol */
+ #undef USE_MTU_DISC    /* Include support for atch MTU Discovery (not yet) */
+@@ -92,7 +92,7 @@
+  * For other large models define these options:
+  */
+ #if !defined(OPT_DEFINED) && defined(__LARGE__)
+-  #define USE_DEBUG
++/*  #define USE_DEBUG */
+   #define OPT_DEFINED
+ #endif
+ 
