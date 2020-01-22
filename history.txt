@@ -2,9 +2,10 @@
 Gopherus changelog
 
 
-Gopherus v1.2.1 [xx xxx xxxx]:
- - [mnt] removed the hardcoded links in main menu,
- - [mnt] simplified code by using snprintf() instead of direct manipulations.
+Gopherus v1.2.1 [22 Jan 2020]:
+ - [fix] fixed crashes in the DOS 16 bit build (patching WATT-32),
+ - [mnt] removed hardcoded links in the main menu,
+ - [mnt] simplified code using snprintf() instead of arrays manipulations.
 
 Gopherus v1.2 [19 Jan 2020]:
  - [new] bookmarks ("b" key),

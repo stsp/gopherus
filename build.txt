@@ -29,7 +29,7 @@
     locks up during DHCP discovery when used with 16 bit code. Wanna compile
     Watt32 itself? Instructions:
       - unzip watt32s-2.2-dev.10.zip and switch to the "src" directory
-      - apply "config.patch" and "fsm_hack.patch" patches
+      - apply "config.patch" and "fsm_win.patch" patches
       - execute "configur watcom"
       - execute "wmake -f watcom_l.mak"
 
