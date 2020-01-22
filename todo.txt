@@ -1,3 +1,5 @@
+alternative key bindings for function keys (F1 / h, F2 / s, F5 / r, etc..) - in case the OS catches the function key, or user has no fuction keys on his keyboard
+
 user should be able to cancel during the 'resolving...' phase
 
 external viewers (images...)
