@@ -95,6 +95,14 @@ This program is released under the terms of the '2-clause' BSD license.
   - an ethernet card with a working packet driver
 
 
+ *** UTF-8 support ***
+
+ Gopherus decodes all displayable content as UTF-8 and outputs wide characters
+ to the terminal whenever possible (relying on ncursesw). On the DOS platform
+ it limits output to characters in the ASCII range  32..255 and assumes a
+ running codepage set to Latin I.
+
+
  *** License ***
 
 Copyright (C) 2020 Mateusz Viste
