@@ -2,6 +2,8 @@ alternative key bindings for function keys (F1 / h, F2 / s, F5 / r, etc..) - in 
 
 add a function key to go to the current server's main menu
 
+ipv6 are tried to be resolved, which fails...
+
 user should be able to cancel during the 'resolving...' phase
 
 external viewers (images...)
