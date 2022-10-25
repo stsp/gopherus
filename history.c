@@ -42,7 +42,7 @@ void history_back(struct historytype **history) {
 
 
 /* adds a new node to the history list. Returns 0 on success, non-zero otherwise. */
-int history_add(struct historytype **history, char protocol, const char *host, unsigned short port, char itemtype, const char *selector) {
+int history_add(struct historytype **history, unsigned char protocol, const char *host, unsigned short port, char itemtype, const char *selector) {
   struct historytype *result;
 
   /* shortcut - if the new node is identical to the previous page, the user is doing a 'back' action */

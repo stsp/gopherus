@@ -12,7 +12,7 @@ struct historytype {
   char *cache;
   struct historytype *next;
   unsigned short port;
-  char protocol;
+  unsigned char protocol;
   char itemtype;
   long displaymemory[2];  /* used by some display plugins to remember how the item was displayed. this is always initialized to -1 values */
   char host[1];
@@ -22,7 +22,7 @@ struct historytype {
 void history_back(struct historytype **history);
 
 /* adds a new node to the history list. Returns 0 on success, non-zero otherwise. */
-int history_add(struct historytype **history, char protocol, const char *host, unsigned short port, char itemtype, const char *selector);
+int history_add(struct historytype **history, unsigned char protocol, const char *host, unsigned short port, char itemtype, const char *selector);
 
 /* free cache content past latest maxallowedcache bytes */
 void history_cleanupcache(struct historytype *history);
