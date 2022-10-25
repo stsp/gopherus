@@ -1,6 +1,6 @@
 /*
  * This file is part of the Gopherus project.
- * Copyright (C) 2013-2020 Mateusz Viste
+ * Copyright (C) 2013-2022 Mateusz Viste
  */
 
 #include <stdio.h>    /* snprintf() */

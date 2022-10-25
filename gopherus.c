@@ -1,6 +1,6 @@
 /***************************************************************************
  * Gopherus - a console-mode gopher client                                 *
- * Copyright (C) 2013-2020 Mateusz Viste                                   *
+ * Copyright (C) 2013-2022 Mateusz Viste                                   *
  *                                                                         *
  * Redistribution and use in source and binary forms, with or without      *
  * modification, are permitted provided that the following conditions are  *
