@@ -1468,14 +1468,14 @@ int main(int argc, char **argv) {
   /* Load configuration (or defaults) */
   loadcfg(&cfg, argv);
 
-  /* alloc page buffer */
-  buffer = malloc(PAGEBUFSZ);
-
+  /* alloc page buffer + 1 byte for a guardian value to detect overflows */
+  buffer = malloc(PAGEBUFSZ + 1);
   if ((buffer == NULL) || (history_add(&history, PARSEURL_PROTO_GOPHER, "#welcome", 70, '1', "") != 0)) {
     free(buffer);
     ui_puts("Out of memory.");
     return(2);
   }
+  buffer[PAGEBUFSZ] = '#';
 
   if (argc > 1) { /* if some params have been received, parse them */
     char itemtype;
@@ -1640,6 +1640,9 @@ int main(int argc, char **argv) {
   history_flush(history);
 
   ui_close();
+
+  /* look for buffer overflow */
+  if (buffer[PAGEBUFSZ] != '#') ui_puts("WARNING: BUFFER OVERFLOW DETECTED");
   free(buffer);
 
   return(0);
