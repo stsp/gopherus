@@ -162,6 +162,9 @@ static void set_statusbar(const char *msg) {
 }
 
 
+/* parses a buffer that contains a gopher menu and processes the first menu entry
+ * fills itemtype with the gopher type of the entry and sets description, selector, host and port pointers so they point to the corresponding value in the menu.
+ * returns length of the parsed line */
 static unsigned short menuline_explode(char *buffer, unsigned short bufferlen, char *itemtype, char **description, char **selector, char **host, char **port) {
   char *cursor = buffer;
   int endofline = 0, column = 0;
@@ -471,8 +474,8 @@ static int edit_url(struct historytype **history, struct gopherusconfig *cfg) {
     char hostaddr[MAXHOSTLEN];
     char selector[MAXSELLEN];
     unsigned short hostport;
-    int protocol;
-    if ((protocol = parsegopherurl(url, hostaddr, sizeof(hostaddr), &hostport, &itemtype, selector, sizeof(selector))) >= 0) {
+    unsigned char protocol;
+    if ((protocol = parsegopherurl(url, hostaddr, sizeof(hostaddr), &hostport, &itemtype, selector, sizeof(selector))) != PARSEURL_ERROR) {
       history_add(history, protocol, hostaddr, hostport, itemtype, selector);
       draw_urlbar(*history, cfg);
       return(0);
@@ -498,39 +501,86 @@ static int askQuitConfirmation(struct gopherusconfig *cfg) {
 }
 
 
+static long http_skip_headers(char *buffer, long buffersz, struct net_tcpsocket *sock, unsigned short timeout) {
+  long res = 0;
+  long i;
+  int bytesread;
+  time_t now = time(NULL);
+
+  FETCHNEXTCHUNK:
+
+  /* abort on timeout */
+  if (time(NULL) - now > timeout) return(-1);
+
+  /* abort if buffer full - this should never happen, HTTP headers are not that huge */
+  if (res >= buffersz) return(-1);
+
+  bytesread = net_recv(sock, buffer + res, buffersz - res);
+
+  /* reloop if got nothing */
+  if (bytesread == 0) goto FETCHNEXTCHUNK;
+
+  /* error (end of connection) */
+  if (bytesread < 0) return(-1);
+
+  /* got some data, let's look */
+  res += bytesread;
+
+  for (i = 0; i < res - 2; i++) {
+
+    /* find next LF */
+    if (buffer[i] != '\n') continue;
+
+    /* skip the trailing CR, if present */
+    if (buffer[i + 1] == '\r') i++;
+
+    /* is the next byte an LF? then I reached the end of HTTP headers */
+    if (buffer[i + 1] == '\n') {
+      i += 2;
+      /* move any leftover data to the front of the buffer and quit */
+      if (res - i > 0) memmove(buffer, buffer + i, res - i);
+      return(res - i);
+    }
+  }
+  goto FETCHNEXTCHUNK;
+}
+
+
 /* downloads a gopher or http resource and write it to a file or a memory
  * buffer. if *filename is not NULL, the resource will be written in the file
  * (but a valid *buffer is still required) */
-static long loadfile_buff(int protocol, char *hostaddr, unsigned short hostport, char *selector, char *buffer, long buffer_max, char *filename, struct gopherusconfig *cfg, int notui) {
+static long loadfile_buff(unsigned char protocol, char *hostaddr, unsigned short hostport, char *selector, char *buffer, long buffer_max, char *filename, struct gopherusconfig *cfg, int notui) {
   char ipaddr[64];
-  long reslength, byteread, fdlen = 0;
+  long reslength, byteread, totlen = 0;
   int warnflag = 0;
   char statusmsg[128];
   time_t lastrefresh = 0;
   FILE *fd = NULL;
-  int headersdone = 0; /* used notably for HTTP, to localize the end of headers */
-  struct net_tcpsocket *sock;
+  struct net_tcpsocket *sock = NULL;
   time_t lastactivity, curtime;
-  if (hostaddr[0] == '#') { /* embedded start page */
+
+  /* is the call for an embedded page? */
+  if (hostaddr[0] == '#') {
     reslength = loadembeddedstartpage(buffer, buffer_max, hostaddr + 1, cfg->bookmarksfile);
     /* open file, if downloading to a file */
     if (filename != NULL) {
       fd = fopen(filename, "rb"); /* try to open for read - this should fail */
       if (fd != NULL) {
         set_statusbar("!File already exists! Operation aborted.");
-        fclose(fd);
-        return(-1);
+        goto FAIL;
       }
       fd = fopen(filename, "wb"); /* now open for write - this will create the file */
       if (fd == NULL) { /* this should not fail */
         set_statusbar("!Error: could not create the file on disk!");
-        return(-1);
+        goto FAIL;
       }
       fwrite(buffer, 1, reslength, fd);
       fclose(fd);
     }
     return(reslength);
   }
+
+  /* DNS resolution */
   if (dnscache_ask(ipaddr, hostaddr) != 0) {
     snprintf(statusmsg, sizeof(statusmsg), "Resolving '%s'...", hostaddr);
     if (notui == 0) {
@@ -541,10 +591,12 @@ static long loadfile_buff(int protocol, char *hostaddr, unsigned short hostport,
     }
     if (net_dnsresolve(ipaddr, hostaddr) != 0) {
       set_statusbar("!DNS resolution failed!");
-      return(-1);
+      goto FAIL;
     }
     dnscache_add(hostaddr, ipaddr);
   }
+
+  /* connect */
   snprintf(statusmsg, sizeof(statusmsg), "Connecting to %s...", ipaddr);
   if (notui == 0) {
     set_statusbar(statusmsg);
@@ -556,26 +608,26 @@ static long loadfile_buff(int protocol, char *hostaddr, unsigned short hostport,
   sock = net_connect(ipaddr, hostport);
   if (sock == NULL) {
     set_statusbar("!Connection error!");
-    return(-1);
+    goto FAIL;
   }
+
   /* wait for net_connect() to actually connect */
   for (;;) {
     int connstate;
     connstate = net_isconnected(sock, 1);
     if (connstate > 0) break;
     if (connstate < 0) {
-      net_abort(sock);
       set_statusbar("!Connection error!");
-      return(-1);
+      goto FAIL;
     }
     if (ui_kbhit()) {
-      net_abort(sock);
       set_statusbar("Connection aborted by user");
       ui_getkey(); /* consume the pressed key */
-      return(-1);
+      goto FAIL;
     }
   }
-  /* */
+
+  /* build and send the query */
   if (protocol == PARSEURL_PROTO_HTTP) { /* http */
     snprintf(buffer, buffer_max, "GET /%s HTTP/1.0\r\nHOST: %s\r\nUSER-AGENT: Gopherus\r\n\r\n", selector, hostaddr);
   } else { /* gopher */
@@ -583,106 +635,121 @@ static long loadfile_buff(int protocol, char *hostaddr, unsigned short hostport,
   }
   if (net_send(sock, buffer, strlen(buffer)) != (int)strlen(buffer)) {
     set_statusbar("!send() error!");
-    net_close(sock);
-    return(-1);
+    goto FAIL;
   }
+
   /* prepare timers */
   lastactivity = time(NULL);
   curtime = lastactivity;
+
   /* open file, if downloading to a file */
   if (filename != NULL) {
     fd = fopen(filename, "rb"); /* try to open for read - this should fail */
     if (fd != NULL) {
       set_statusbar("!File already exists! Operation aborted.");
-      fclose(fd);
-      net_abort(sock);
-      return(-1);
+      goto FAIL;
     }
     fd = fopen(filename, "wb"); /* now open for write - this will create the file */
     if (fd == NULL) { /* this should not fail */
       set_statusbar("!Error: could not create the file on disk!");
-      net_abort(sock);
-      return(-1);
+      goto FAIL;
     }
   }
-  /* receive answer */
+
+  /* zero out reslength */
   reslength = 0;
-  for (;;) {
-    if (buffer_max + fdlen - reslength < 1) { /* too much data! */
-      set_statusbar("!Error: Server's answer is too long! (truncated)");
-      warnflag = 1;
-      break;
+
+  /* if protocol is http, ignore headers */
+  if (protocol == PARSEURL_PROTO_HTTP) {
+    reslength = http_skip_headers(buffer, buffer_max, sock, 2);
+    if (reslength < 0) {
+      set_statusbar("!Error: Failed to fetch or parse HTTP headers");
+      goto FAIL;
     }
-    byteread = net_recv(sock, buffer + (reslength - fdlen), buffer_max + fdlen - reslength);
-    curtime = time(NULL);
-    if (byteread < 0) break; /* end of connection */
-    if (ui_kbhit() != 0) { /* a key has been pressed - read it */
+  }
+
+  /* receive payload */
+  for (;;) {
+
+    /* a key has been pressed - read it */
+    if (ui_kbhit() != 0) {
       int presskey = ui_getkey();
       if ((presskey == 0x1B) || (presskey == 0x08)) { /* if it's escape or backspace, abort the connection */
         set_statusbar("Connection aborted by the user.");
-        reslength = -1;
-        break;
+        goto FAIL;
       }
     }
-    if (byteread > 0) {
-        lastactivity = curtime;
-        reslength += byteread;
-        /* if protocol is http, ignore headers */
-        if ((protocol == PARSEURL_PROTO_HTTP) && (headersdone == 0)) {
-          int i;
-          for (i = 0; i < reslength - 2; i++) {
-            if (buffer[i] == '\n') {
-              if (buffer[i + 1] == '\r') i++; /* skip CR if following */
-              if (buffer[i + 1] == '\n') {
-                i += 2;
-                headersdone = reslength;
-                for (reslength = 0; i < headersdone; i++) buffer[reslength++] = buffer[i];
-                break;
-              }
-            }
-          }
-        } else {
-          /* refresh the status bar once every second */
-          if (curtime != lastrefresh) {
-            lastrefresh = curtime;
-            snprintf(statusmsg, sizeof(statusmsg), "Downloading... [%ld bytes]", reslength);
-            if (notui == 0) {
-              set_statusbar(statusmsg);
-              draw_statusbar(cfg);
-            } else {
-              ui_puts(statusmsg);
-            }
-          }
-          /* if downloading to file, write stuff to disk */
-          if ((fd != NULL) && (reslength > fdlen)) {
-            int writeres = fwrite(buffer, 1, reslength - fdlen, fd);
-            if (writeres < 0) writeres = 0;
-            fdlen += writeres;
-          }
-      }
-    } else {
+
+    /* look out for buffer space */
+    if (reslength >= buffer_max) { /* too much data! */
+      snprintf(statusmsg, sizeof(statusmsg), "!Error: Server's answer is too long! (truncated to %ld bytes)", reslength);
+      set_statusbar(statusmsg);
+      warnflag = 1;
+      break;
+    }
+
+    byteread = net_recv(sock, buffer + reslength, buffer_max - reslength);
+    curtime = time(NULL);
+
+    /* got nothing */
+    if (byteread == 0) {
       if (curtime - lastactivity > 20) { /* TIMEOUT! */
         set_statusbar("!Timeout while waiting for data!");
         reslength = -1;
-        break;
+        goto FAIL;
+      }
+      continue;
+    }
+
+    /* end of connection */
+    if (byteread < 0) break;
+
+    /* got something */
+    lastactivity = curtime;
+    totlen += byteread;
+
+    /* if downloading to file, write data to disk */
+    if (fd != NULL) {
+      if ((long)fwrite(buffer, 1, byteread, fd) != byteread) {
+        set_statusbar("!Error while writing data to disk");
+        draw_statusbar(cfg);
+        goto FAIL;
+      }
+    } else { /* else just keep it in the buffer */
+      reslength += byteread;
+    }
+
+    /* refresh the status bar once every second */
+    if (curtime != lastrefresh) {
+      lastrefresh = curtime;
+      snprintf(statusmsg, sizeof(statusmsg), "Downloading... [%ld bytes]", totlen);
+      if (notui == 0) {
+        set_statusbar(statusmsg);
+        draw_statusbar(cfg);
+      } else {
+        ui_puts(statusmsg);
       }
     }
   }
+
   if ((reslength >= 0) && (warnflag == 0)) {
     if (notui == 0) set_statusbar("");
     net_close(sock);
   } else {
     net_abort(sock);
   }
-  if (fd != NULL) { /* finish the buffer */
-    if (reslength > fdlen) { /* if anything left in the buffer, write it now */
-      fdlen += fwrite(buffer, 1, reslength - fdlen, fd);
-    }
-    fclose(fd);
-    snprintf(statusmsg, sizeof(statusmsg), "Saved %ld bytes on disk", fdlen);
+
+  if (fd != NULL) { /* if downloading to file: print message */
+    snprintf(statusmsg, sizeof(statusmsg), "Saved %ld bytes on disk", totlen);
     set_statusbar(statusmsg);
   }
+
   return(reslength);
+
+  FAIL:
+  if (fd != NULL) fclose(fd);
+  if (sock != NULL) net_abort(sock);
+  return(-1);
 }
 
 
@@ -854,7 +921,7 @@ static int display_menu(struct historytype **history, struct gopherusconfig *cfg
 
   /* copy the history content into buffer - we need to do this because we'll perform changes on the data */
   bufferlen = (*history)->cachesize;
-  if (bufferlen > buffersize) bufferlen = buffersize;
+  if (bufferlen >= buffersize) bufferlen = buffersize - 1; /* -1 for the final nul terminator */
   memcpy(buffer, (*history)->cache, bufferlen);
   buffer[bufferlen] = 0;
   /* */
@@ -981,7 +1048,7 @@ static int display_menu(struct historytype **history, struct gopherusconfig *cfg
             free(finalselector);
             return(DISPLAY_ORDER_NONE);
           } else { /* itemtype is anything else than type 7 */
-            int tmpproto;
+            unsigned char tmpproto;
             unsigned short tmpport;
             char tmphost[MAXHOSTLEN], tmpitemtype, tmpselector[MAXSELLEN];
             tmpproto = parsegopherurl(curURL, tmphost, sizeof(tmphost), &tmpport, &tmpitemtype, tmpselector, sizeof(tmpselector));
@@ -992,7 +1059,7 @@ static int display_menu(struct historytype **history, struct gopherusconfig *cfg
               }
               tmpitemtype = '9'; /* force the itemtype to 'binary' if 'save as' was requested */
             }
-            if (tmpproto < 0) {
+            if (tmpproto == PARSEURL_ERROR) {
               set_statusbar("!Bad URL");
               break;
             } else if ((tmpproto == PARSEURL_PROTO_GOPHER) || (tmpproto == PARSEURL_PROTO_HTTP)) {
@@ -1258,7 +1325,7 @@ static int display_text(struct historytype **history, struct gopherusconfig *cfg
     /* check if there is a single . on the last line */
     if ((buffer[bufferlen - 1] == '\n') && (buffer[bufferlen - 2] == '.')) bufferlen -= 2;
   }
-  /* terminate the buffer with a NULL terminator */
+  /* terminate the buffer with a nul terminator */
   buffer[bufferlen] = 0;
   /* display the file on screen */
   firstline = 0;
@@ -1395,7 +1462,6 @@ int main(int argc, char **argv) {
   char *fatalerr = NULL;
   char *buffer;
   char *saveas = NULL;
-  int bufferlen;
   struct historytype *history = NULL;
   struct gopherusconfig cfg;
 
@@ -1416,7 +1482,7 @@ int main(int argc, char **argv) {
     char hostaddr[MAXHOSTLEN];
     char selector[MAXSELLEN];
     unsigned short hostport, i;
-    int protocol;
+    unsigned char protocol;
     int goturl = 0;
     for (i = 1; i < argc; i++) {
       /* recognize valid options */
@@ -1443,7 +1509,7 @@ int main(int argc, char **argv) {
         free(buffer);
         return(1);
       }
-      if ((protocol = parsegopherurl(argv[i], hostaddr, sizeof(hostaddr), &hostport, &itemtype, selector, sizeof(selector))) < 0) {
+      if ((protocol = parsegopherurl(argv[i], hostaddr, sizeof(hostaddr), &hostport, &itemtype, selector, sizeof(selector))) == PARSEURL_ERROR) {
         ui_puts("Invalid URL!");
         free(buffer);
         return(1);
@@ -1502,6 +1568,7 @@ int main(int argc, char **argv) {
     if ((history->itemtype == '0') || (history->itemtype == '1') || (history->itemtype == '7') || (history->itemtype == 'h')) { /* if it's a displayable item type... */
       draw_urlbar(history, &cfg);
       if (history->cache == NULL) { /* reload the resource if not in cache already */
+        long bufferlen;
         bufferlen = loadfile_buff(history->protocol, history->host, history->port, history->selector, buffer, PAGEBUFSZ, NULL, &cfg, 0);
         if (bufferlen < 0) {
           history_back(&history);
@@ -1522,6 +1589,7 @@ int main(int argc, char **argv) {
           history->cachesize = bufferlen;
         }
       }
+
       switch (history->itemtype) {
         case '0': /* text file */
           exitflag = display_text(&history, &cfg, buffer, PAGEBUFSZ, TXT_FORMAT_RAW);
@@ -1538,6 +1606,7 @@ int main(int argc, char **argv) {
           exitflag = DISPLAY_ORDER_QUIT;
           break;
       }
+
       if (exitflag == DISPLAY_ORDER_BACK) {
         history_back(&history);
       } else if (exitflag == DISPLAY_ORDER_REFR) {
