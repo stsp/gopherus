@@ -8,9 +8,10 @@
 #include <stdlib.h>   /* atoi() */
 #include "parseurl.h" /* include self for control */
 
-int parsegopherurl(char *url, char *host, unsigned short hostlen, unsigned short *port, char *itemtype, char *selector, unsigned short selectorlen) {
+unsigned char parsegopherurl(char *url, char *host, unsigned short hostlen, unsigned short *port, char *itemtype, char *selector, unsigned short selectorlen) {
   int parserstate = 0;
-  int protocol = PARSEURL_PROTO_GOPHER, x;
+  unsigned char protocol = PARSEURL_PROTO_GOPHER;
+  int x;
   char *curtoken;
   /* set default values */
   *port = 70;
@@ -39,7 +40,7 @@ int parsegopherurl(char *url, char *host, unsigned short hostlen, unsigned short
               *port = 23; /* default port is 23 for telnet */
               *itemtype = '8';
             } else {
-              protocol = PARSEURL_PROTO_UNKNOWN;
+              return(PARSEURL_ERROR);
           }
           break;
         }
@@ -66,7 +67,7 @@ int parsegopherurl(char *url, char *host, unsigned short hostlen, unsigned short
           } else { /* still part of the host */
             *host = *url;
             hostlen--;
-            if (hostlen == 0) return(-1);
+            if (hostlen == 0) return(PARSEURL_ERROR);
             host += 1;
         }
         break;
@@ -101,7 +102,7 @@ int parsegopherurl(char *url, char *host, unsigned short hostlen, unsigned short
             *selector = *url;
             selector += 1;
             selectorlen--;
-            if (selectorlen == 0) return(-2);
+            if (selectorlen == 0) return(PARSEURL_ERROR);
         }
         break;
     }
