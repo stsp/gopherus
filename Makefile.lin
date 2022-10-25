@@ -1,12 +1,12 @@
 #
 # Gopherus Makefile for Linux (and BSD, and probably other POSIX systems)
-# Copyright (C) 2013-2020 Mateusz Viste
+# Copyright (C) 2013-2022 Mateusz Viste
 #
 # 2020-04-17: LDFLAGS/CFLAGS improvements by François Revol
 #
 
 CC ?= gcc
-CFLAGS ?= -std=gnu89 -O3 -Wall -Wextra -pedantic
+CFLAGS ?= -std=gnu99 -O3 -Wall -Wextra -pedantic
 LDFLAGS ?=
 
 NC_CFLAGS := $(shell ncursesw6-config --cflags)
