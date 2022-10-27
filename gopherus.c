@@ -167,22 +167,27 @@ static void set_statusbar(const char *msg) {
  * returns length of the parsed line */
 static unsigned short menuline_explode(char *buffer, unsigned short bufferlen, char *itemtype, char **description, char **selector, char **host, char **port) {
   char *cursor = buffer;
-  int endofline = 0, column = 0;
+  int column = 0;
   if (itemtype != NULL) *itemtype = *cursor;
   cursor += 1;
   if (description != NULL) *description = cursor;
   *selector = NULL;
   *host = NULL;
   *port = NULL;
-  for (; cursor < (buffer + bufferlen); cursor += 1) { /* read the whole line */
-    if (*cursor == '\r') continue; /* silently ignore CR chars */
-    if ((*cursor == '\t') || (*cursor == '\n')) { /* delimiter */
-      if (*cursor == '\n') endofline = 1;
+  for (; cursor < (buffer + bufferlen); cursor++) { /* read the whole line */
+    /* silently ignore CR chars */
+    if (*cursor == '\r') continue;
+
+    /* end of line, I'm done */
+    if (*cursor == '\n') {
       *cursor = 0; /* put a NULL instead to terminate previous string */
-      if (endofline != 0) {
-        cursor += 1;
-        break;
-      }
+      cursor += 1;
+      break;
+    }
+
+    /* delimiter */
+    if (*cursor == '\t') { /* delimiter */
+      *cursor = 0; /* put a NULL instead to terminate previous string */
       if (column == 0) {
         *selector = cursor + 1;
       } else if (column == 1) {
@@ -823,6 +828,7 @@ static int isitemtypeselectable(char itemtype) {
   switch (itemtype) {
     case 'i':  /* inline message */
     case '3':  /* error */
+    case '.':  /* end of menu marker */
       return(0);
     default: /* everything else is selectable */
       return(1);
@@ -839,8 +845,8 @@ static int isitemtypedownloadable(char itemtype) {
 
 
 /* explodes a gopher menu into separate lines. returns amount of lines */
-static long menu_explode(char *buffer, long bufferlen, unsigned char *line_itemtype, char **line_description, char **line_selector, char **line_host, unsigned short *line_port, long maxlines, long *firstlinkline, long *lastlinkline) {
-  char *description, *cursor, *selector, *host, *port, itemtype;
+static long menu_explode(char *buffer, long bufferlen, unsigned char *line_itemtype, char **line_description, unsigned short *line_selector, unsigned short *line_host, unsigned short *line_port, long maxlines, long *firstlinkline, long *lastlinkline) {
+  char *cursor;
   char *singlelinebuf;
   long linecount = 0;
   int screenw = ui_getcolcount();
@@ -851,14 +857,57 @@ static long menu_explode(char *buffer, long bufferlen, unsigned char *line_itemt
   *lastlinkline = -1;
 
   for (cursor = buffer; bufferlen > 0;) {
-    unsigned short menulinelen;
-    menulinelen = menuline_explode(cursor, (bufferlen < 0xffff)?bufferlen:0xffff, &itemtype, &description, &selector, &host, &port);
-    cursor += menulinelen;
-    bufferlen -= menulinelen;
+    unsigned char colid = 0;
+    char *selector = NULL;
+    char *host = NULL;
+    char *port = NULL;
+    char *lineorigin;
+    char itemtype;
 
-    if (itemtype == '.') continue; /* ignore lines starting by '.' - it's most probably the end of menu terminator */
-    if (linecount < maxlines) {
-      char *wrapptr = description;
+    /* abort if too many lines already */
+    if (linecount >= maxlines) {
+      set_statusbar("!ERROR: Too many lines, the document has been truncated.");
+      break;
+    }
+
+    /* remember where the line starts */
+    lineorigin = cursor;
+
+    /* advance cursor to next line, change all tabs to nuls on the way and remember the position of the 3 first columns (selector, host, port) */
+    while (bufferlen) {
+      if (*cursor == '\t') {
+        *cursor = 0;
+        switch (colid) {
+          case 0: /* selector */
+            selector = cursor + 1;
+            break;
+          case 1: /* host */
+            host = cursor + 1;
+            break;
+          case 2: /* port */
+            port = cursor + 1;
+            break;
+        }
+        colid++;
+      }
+      cursor++;
+      bufferlen--;
+      if (*cursor == '\r') *cursor = 0;
+      if (cursor[-1] == '\n') {
+        cursor[-1] = 0;
+        break;
+      }
+    }
+
+    /* consider empty lines as informational (i) */
+    if (lineorigin[0] != 0) {
+      itemtype = *lineorigin;
+    } else {
+      itemtype = 'i';
+    }
+
+    { /* line-wrapping business */
+      char *wrapptr = lineorigin + 1;
       int wraplen;
       int firstiteration = 1;
       if (isitemtypeselectable(itemtype) != 0) {
@@ -871,32 +920,40 @@ static long menu_explode(char *buffer, long bufferlen, unsigned char *line_itemt
         } else {
           wraplen = screenw - 4;
         }
-        if (!firstiteration) itemtype |= 128;
         line_description[linecount] = wrapptr;
         wrapptr = wordwrap(wrapptr, singlelinebuf, wraplen);
         line_description[linecount][strlen(singlelinebuf)] = 0; /* terminate line after wrap */
-        line_selector[linecount] = selector;
-        line_host[linecount] = host;
-        line_itemtype[linecount] = itemtype;
-        if (port != NULL) {
-          line_port[linecount] = atoi(port);
-          if (line_port[linecount] < 1) line_port[linecount] = 70;
+        if (selector == NULL) {
+          line_selector[linecount] = 0;
         } else {
-          line_port[linecount] = 70;
+          line_selector[linecount] = (selector - line_description[linecount]);
         }
-        linecount += 1;
+        if (host == NULL) {
+          line_host[linecount] = 0;
+        } else {
+          line_host[linecount] = (host - line_description[linecount]);
+        }
+        if (port == NULL) {
+          line_port[linecount] = 70;
+        } else {
+          line_port[linecount] = atol(port);
+          if (line_port[linecount] == 0) line_port[linecount] = 70;
+        }
+        line_itemtype[linecount] = itemtype;
+        if (!firstiteration) line_itemtype[linecount] |= 128;
+        linecount++;
         if (wrapptr == NULL) break;
       }
-    } else {
-      set_statusbar("!ERROR: Too many lines, the document has been truncated.");
-      break;
     }
   }
 
-  /* trim out the last line if its starting with a '.' (gopher's end of menu marker) */
+  /* trim out the last line if its starting with a '.' (gopher's "end of menu" marker) */
   if (linecount > 0) {
-    if (line_itemtype[linecount - 1] == '.') linecount -= 1;
+    if (line_itemtype[linecount - 1] == '.') linecount--;
   }
+
+  /* trim out all trailing empty lines */
+  while ((linecount > 0) && (line_description[linecount - 1][0] == 0)) linecount--;
 
   free(singlelinebuf);
 
@@ -907,16 +964,17 @@ static long menu_explode(char *buffer, long bufferlen, unsigned char *line_itemt
 static int display_menu(struct historytype **history, struct gopherusconfig *cfg, char *buffer, long buffersize) {
   long bufferlen, linecount;
   char *line_description[MAXMENULINES];
-  char *line_selector[MAXMENULINES];
-  char *line_host[MAXMENULINES];
-  char curURL[MAXURLLEN];
+  unsigned short line_selector_off[MAXMENULINES];
+  unsigned short line_host_off[MAXMENULINES];
   unsigned short line_port[MAXMENULINES];
   unsigned char line_itemtype[MAXMENULINES];
+  char curURL[MAXURLLEN];
   long x;
   long *selectedline = &(*history)->displaymemory[0];
   long *screenlineoffset = &(*history)->displaymemory[1];
   long firstlinkline, lastlinkline;
   int keypress;
+
   if (*screenlineoffset < 0) *screenlineoffset = 0;
 
   /* copy the history content into buffer - we need to do this because we'll perform changes on the data */
@@ -925,16 +983,17 @@ static int display_menu(struct historytype **history, struct gopherusconfig *cfg
   memcpy(buffer, (*history)->cache, bufferlen);
   buffer[bufferlen] = 0;
   /* */
-  linecount = menu_explode(buffer, bufferlen, line_itemtype, line_description, line_selector, line_host, line_port, MAXMENULINES, &firstlinkline, &lastlinkline);
+  linecount = menu_explode(buffer, bufferlen, line_itemtype, line_description, line_selector_off, line_host_off, line_port, MAXMENULINES, &firstlinkline, &lastlinkline);
 
   /* if there is at least one position, and nothing is selected yet, make it active */
   if ((firstlinkline >= 0) && (*selectedline < 0)) *selectedline = firstlinkline;
 
   for (;;) {
     curURL[0] = 0;
-    /* if any position is selected, print the url in status bar */
+
+    /* if any position is selected, fetch the selected values and print the url in status bar */
     if (*selectedline >= 0) {
-      buildgopherurl(curURL, sizeof(curURL), PARSEURL_PROTO_GOPHER, line_host[*selectedline], line_port[*selectedline], line_itemtype[*selectedline] & 127, line_selector[*selectedline]);
+      buildgopherurl(curURL, sizeof(curURL), PARSEURL_PROTO_GOPHER, line_description[*selectedline] + line_host_off[*selectedline], line_port[*selectedline], line_itemtype[*selectedline] & 127, line_description[*selectedline] + line_selector_off[*selectedline]);
       if (glob_statusbar[0] == 0) set_statusbar(curURL);
     }
     /* start drawing lines of the menu */
@@ -1028,47 +1087,46 @@ static int display_menu(struct historytype **history, struct gopherusconfig *cfg
         break;
       case 0x143: /* F9 */
       case 0x0D: /* ENTER */
-        if (*selectedline >= 0) {
-          if (((line_itemtype[*selectedline] & 127) == '7') && (keypress != 0x143)) { /* a query needs to be issued */
-            char query[MAXQUERYLEN];
-            char *finalselector;
-            size_t finalselectorsz;
-            set_statusbar("Enter a query: ");
-            draw_statusbar(cfg);
-            query[0] = 0;
-            if (editstring(query, sizeof(query), 64, 15, ui_getrowcount() - 1, cfg->attr_statusbarinfo) == 0) break;
-            finalselectorsz = strlen(line_selector[*selectedline]) + strlen(query) + 2; /* add 1 for the TAB, and 1 for the NULL terminator */
-            finalselector = malloc(finalselectorsz);
-            if (finalselector == NULL) {
-              set_statusbar("!Out of memory");
+        if (*selectedline < 0) break; /* no effect if no menu entry is selected */
+        if (((line_itemtype[*selectedline] & 127) == '7') && (keypress != 0x143)) { /* a query needs to be issued */
+          char query[MAXQUERYLEN];
+          char *finalselector;
+          size_t finalselectorsz;
+          set_statusbar("Enter a query: ");
+          draw_statusbar(cfg);
+          query[0] = 0;
+          if (editstring(query, sizeof(query), 64, 15, ui_getrowcount() - 1, cfg->attr_statusbarinfo) == 0) break;
+          finalselectorsz = strlen(line_description[*selectedline] + line_selector_off[*selectedline]) + strlen(query) + 2; /* add 1 for the TAB, and 1 for the NULL terminator */
+          finalselector = malloc(finalselectorsz);
+          if (finalselector == NULL) {
+            set_statusbar("!Out of memory");
+            break;
+          }
+          snprintf(finalselector, finalselectorsz, "%s\t%s", line_description[*selectedline] + line_selector_off[*selectedline], query);
+          history_add(history, PARSEURL_PROTO_GOPHER, line_description[*selectedline] + line_host_off[*selectedline], line_port[*selectedline], line_itemtype[*selectedline] & 127, finalselector);
+          free(finalselector);
+          return(DISPLAY_ORDER_NONE);
+        } else { /* itemtype is anything else than type 7 */
+          unsigned char tmpproto;
+          unsigned short tmpport;
+          char tmphost[MAXHOSTLEN], tmpitemtype, tmpselector[MAXSELLEN];
+          tmpproto = parsegopherurl(curURL, tmphost, sizeof(tmphost), &tmpport, &tmpitemtype, tmpselector, sizeof(tmpselector));
+          if (keypress == 0x143) { /* if 'save as' was requested, force itemtype unless it's not downloadable */
+            if (isitemtypedownloadable(tmpitemtype) == 0) {
+              set_statusbar("!This item type cannot be downloaded");
               break;
             }
-            snprintf(finalselector, finalselectorsz, "%s\t%s", line_selector[*selectedline], query);
-            history_add(history, PARSEURL_PROTO_GOPHER, line_host[*selectedline], line_port[*selectedline], line_itemtype[*selectedline] & 127, finalselector);
-            free(finalselector);
+            tmpitemtype = '9'; /* force the itemtype to 'binary' if 'save as' was requested */
+          }
+          if (tmpproto == PARSEURL_ERROR) {
+            set_statusbar("!Bad URL");
+            break;
+          } else if ((tmpproto == PARSEURL_PROTO_GOPHER) || (tmpproto == PARSEURL_PROTO_HTTP)) {
+            history_add(history, tmpproto, tmphost, tmpport, tmpitemtype, tmpselector);
             return(DISPLAY_ORDER_NONE);
-          } else { /* itemtype is anything else than type 7 */
-            unsigned char tmpproto;
-            unsigned short tmpport;
-            char tmphost[MAXHOSTLEN], tmpitemtype, tmpselector[MAXSELLEN];
-            tmpproto = parsegopherurl(curURL, tmphost, sizeof(tmphost), &tmpport, &tmpitemtype, tmpselector, sizeof(tmpselector));
-            if (keypress == 0x143) { /* if 'save as' was requested, force itemtype unless it's not downloadable */
-              if (isitemtypedownloadable(tmpitemtype) == 0) {
-                set_statusbar("!This item type cannot be downloaded");
-                break;
-              }
-              tmpitemtype = '9'; /* force the itemtype to 'binary' if 'save as' was requested */
-            }
-            if (tmpproto == PARSEURL_ERROR) {
-              set_statusbar("!Bad URL");
-              break;
-            } else if ((tmpproto == PARSEURL_PROTO_GOPHER) || (tmpproto == PARSEURL_PROTO_HTTP)) {
-              history_add(history, tmpproto, tmphost, tmpport, tmpitemtype, tmpselector);
-              return(DISPLAY_ORDER_NONE);
-            } else {
-              set_statusbar("!Unsupported protocol");
-              break;
-            }
+          } else {
+            set_statusbar("!Unsupported protocol");
+            break;
           }
         }
         break;
@@ -1080,16 +1138,16 @@ static int display_menu(struct historytype **history, struct gopherusconfig *cfg
             /* skip not downloadable items */
             if (isitemtypedownloadable(line_itemtype[x]) == 0) continue;
             /* generate a filename for the target */
-            genfnamefromselector(fname, sizeof(fname), line_selector[x]);
+            genfnamefromselector(fname, sizeof(fname), line_description[x] + line_selector_off[x]);
             /* TODO watch out for already-existing files! */
             /* download the file */
-            loadfile_buff(PARSEURL_PROTO_GOPHER, line_host[x], line_port[x], line_selector[x], b, sizeof(b), fname, cfg, 0);
+            loadfile_buff(PARSEURL_PROTO_GOPHER, line_description[x] + line_host_off[x], line_port[x], line_description[x] + line_selector_off[x], b, sizeof(b), fname, cfg, 0);
           }
         }
         break;
       case 0x153: /* DEL */
         if ((history[0]->host[0] == '#') && (history[0]->host[1] == 'w')) {
-          delbookmark(line_host[*selectedline], line_port[*selectedline], line_selector[*selectedline], cfg);
+          delbookmark(line_description[*selectedline] + line_host_off[*selectedline], line_port[*selectedline], line_description[*selectedline] + line_selector_off[*selectedline], cfg);
           return(DISPLAY_ORDER_REFR);
         }
         break;

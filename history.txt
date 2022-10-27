@@ -5,6 +5,7 @@ Gopherus changelog
 Gopherus v1.2.2 [xx xxx xxxx]:
  - [fix] fixed a minor buffer overflow bug
  - [mnt] DOS version supports pages up to 65000 bytes long (was: 32000 bytes)
+ - [mnt] optimizations to decrease memory footprint
 
 Gopherus v1.2.1 [22 Jan 2020]:
  - [fix] fixed crashes in the DOS 16 bit build (patching WATT-32)
