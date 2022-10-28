@@ -7,6 +7,7 @@ Gopherus v1.2.2 [xx xxx xxxx]:
  - [mnt] optimizations to decrease memory footprint
  - [mnt] DOS version: supports pages up to 65000 bytes long (was: 32000 bytes)
  - [mnt] DOS version: increased max amount of lines in a menu from 128 to 512
+ - [mnt] dropped support for the DOS 32-bit (DJGPP) version
 
 Gopherus v1.2.1 [22 Jan 2020]:
  - [fix] fixed crashes in the DOS 16 bit build (patching WATT-32)

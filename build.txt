@@ -9,7 +9,6 @@
  === What compiler to use ===
 
   DOS 16 bit: OpenWatcom v1.9 (+Watt32)
-  DOS 32 bit: DJGPP v2.05 (+Watt32)
   Linux: gcc or clang (+ncursesw and/or SDL2)
   BSD: same as Linux
   Windows: Mingw64 (+SDL2)
