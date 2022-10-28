@@ -7,7 +7,7 @@
 # -os  favor code size over code speed
 # -ox  equivalent to "-obmiler -s"   (-s removes stack overflow checks!)
 
-CFLAGS = -j -ml -0 -bt=dos -wx -we -d0 -obmiler -dPAGEBUFSZ=65000 -dMAXALLOWEDCACHE=30000 -dMAXMENULINES=128 -dDNS_MAXENTRIES=2 -dNOLFN -i=watt32\inc
+CFLAGS = -j -ml -0 -bt=dos -wx -we -d0 -obmiler -dPAGEBUFSZ=65000 -dMAXALLOWEDCACHE=65000 -dMAXMENULINES=512 -dDNS_MAXENTRIES=2 -dNOLFN -i=watt32\inc
 LIB = watt32\lib\wattcpwl.lib
 
 all: gopherus.exe
