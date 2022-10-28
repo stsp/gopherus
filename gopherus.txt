@@ -1,5 +1,5 @@
 
-             Gopherus v1.2 Copyright (C) 2013-2022 Mateusz Viste
+            Gopherus v1.2.2 Copyright (C) 2013-2022 Mateusz Viste
                        http://gopherus.sourceforge.net
 
 
@@ -24,6 +24,7 @@ This program is released under the terms of the '2-clause' BSD license.
    DEL       - Delete bookmark (main screen only)
    F1        - Show help (this file)
    F2        - Go to program's main screen
+   F4        - Go to current server's main menu
    F5        - Refresh current location
    F9        - Download location to disk
    F10       - Download all files in current menu to disk
@@ -105,7 +106,7 @@ This program is released under the terms of the '2-clause' BSD license.
 
  *** License ***
 
-Copyright (C) 2020 Mateusz Viste
+Copyright (C) 2020-2022 Mateusz Viste
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are met:

@@ -1,7 +1,5 @@
 alternative key bindings for function keys (F1 / h, F2 / s, F5 / r, etc..) - in case the OS catches the function key, or user has no fuction keys on his keyboard
 
-add a function key to go to the current server's main menu
-
 ipv6 are tried to be resolved, which fails...
 
 user should be able to cancel during the 'resolving...' phase

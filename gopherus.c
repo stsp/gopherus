@@ -1162,6 +1162,12 @@ static int display_menu(struct historytype **history, struct gopherusconfig *cfg
         history_add(history, PARSEURL_PROTO_GOPHER, "#welcome", 70, '1', "");
         return(DISPLAY_ORDER_NONE);
         break;
+      case 0x13E: /* F4 - server's main menu (gopher only) */
+        if (((*history)->protocol == PARSEURL_PROTO_GOPHER) && ((*history)->host[0] != '#')) {
+          history_add(history, PARSEURL_PROTO_GOPHER, (*history)->host, (*history)->port, '1', "");
+          return(DISPLAY_ORDER_NONE);
+        }
+        break;
       case 0x13F: /* F5 - refresh */
         return(DISPLAY_ORDER_REFR);
         break;
@@ -1430,6 +1436,12 @@ static int display_text(struct historytype **history, struct gopherusconfig *cfg
       case 0x13C: /* F2 - home */
         history_add(history, PARSEURL_PROTO_GOPHER, "#welcome", 70, '1', "");
         return(DISPLAY_ORDER_NONE);
+        break;
+      case 0x13E: /* F4 - server's main menu (gopher only) */
+        if (((*history)->protocol == PARSEURL_PROTO_GOPHER) && ((*history)->host[0] != '#')) {
+          history_add(history, PARSEURL_PROTO_GOPHER, (*history)->host, (*history)->port, '1', "");
+          return(DISPLAY_ORDER_NONE);
+        }
         break;
       case 0x13F: /* F5 - refresh */
         return(DISPLAY_ORDER_REFR);

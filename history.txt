@@ -3,6 +3,7 @@ Gopherus changelog
 
 
 Gopherus v1.2.2 [xx xxx xxxx]:
+ - [new] F4 key loads the main menu of the current server
  - [fix] fixed a minor buffer overflow bug
  - [mnt] optimizations to decrease memory footprint
  - [mnt] DOS version: supports pages up to 65000 bytes long (was: 32000 bytes)
