@@ -739,11 +739,10 @@ static long loadfile_buff(unsigned char protocol, char *hostaddr, unsigned short
 
   if ((totlen >= 0) && (warnflag == 0)) {
     if (notui == 0) set_statusbar("");
-    net_close(sock);
+    net_close(&sock);
   } else {
-    net_abort(sock);
+    net_abort(&sock);
   }
-  sock = NULL;
 
   /* consider 0-sized results as error (probably selector does not exist) */
   if (totlen == 0) {
@@ -766,7 +765,7 @@ static long loadfile_buff(unsigned char protocol, char *hostaddr, unsigned short
     fclose(fd);
     remove(filename);
   }
-  if (sock != NULL) net_abort(sock);
+  if (sock != NULL) net_abort(&sock);
   return(-1);
 }
 
