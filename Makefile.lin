@@ -6,7 +6,7 @@
 #
 
 CC ?= gcc
-CFLAGS ?= -std=gnu99 -O3 -Wall -Wextra -pedantic
+CFLAGS ?= -std=gnu99 -O3 -Wall -Wextra -pedantic -g
 LDFLAGS ?=
 
 NC_CFLAGS := $(shell ncursesw6-config --cflags)

@@ -737,22 +737,35 @@ static long loadfile_buff(unsigned char protocol, char *hostaddr, unsigned short
     }
   }
 
-  if ((reslength >= 0) && (warnflag == 0)) {
+  if ((totlen >= 0) && (warnflag == 0)) {
     if (notui == 0) set_statusbar("");
     net_close(sock);
   } else {
     net_abort(sock);
   }
+  sock = NULL;
 
-  if (fd != NULL) { /* if downloading to file: print message */
+  /* consider 0-sized results as error (probably selector does not exist) */
+  if (totlen == 0) {
+    set_statusbar("!Error: selector does not exist");
+    goto FAIL;
+  }
+
+  /* if downloading to file: close file and print message */
+  if (fd != NULL) {
+    fclose(fd);
+    fd = NULL;
     snprintf(statusmsg, sizeof(statusmsg), "Saved %ld bytes on disk", totlen);
     set_statusbar(statusmsg);
   }
 
-  return(reslength);
+  return(totlen);
 
   FAIL:
-  if (fd != NULL) fclose(fd);
+  if (fd != NULL) {
+    fclose(fd);
+    remove(filename);
+  }
   if (sock != NULL) net_abort(sock);
   return(-1);
 }
