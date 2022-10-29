@@ -8,12 +8,13 @@
 # -ox  equivalent to "-obmiler -s"   (-s removes stack overflow checks!)
 
 CFLAGS = -j -ml -0 -bt=dos -wx -we -d0 -obmiler -dPAGEBUFSZ=65000 -dMAXALLOWEDCACHE=65000 -dMAXMENULINES=512 -dDNS_MAXENTRIES=2 -dNOLFN -i=watt32\inc
+LDFLAGS = -lr -k10240
 LIB = watt32\lib\wattcpwl.lib
 
 all: gopherus.exe
 
 gopherus.exe: gopherus.obj dnscache.obj fs-dos.obj history.obj net-w32.obj parseurl.obj readflin.obj startpg.obj ui-dos.obj wordwrap.obj
-	wcl -lr -k8192 $(LIB) *.obj -fe=gopherus.exe
+	wcl -$(LDFLAGS) $(LIB) *.obj -fe=gopherus.exe
 
 gopherus.obj: gopherus.c
 	*wcc gopherus.c $(CFLAGS)
