@@ -1596,7 +1596,7 @@ int main(int argc, char **argv) {
     buffer[PAGEBUFSZ] = '#';
     buffer[PAGEBUFSZ + 1] = '$';
   }
-  if ((buffer == NULL) || (history_add(&history, PARSEURL_PROTO_GOPHER, "#welcome", 70, '1', "") != 0)) {
+  if (buffer == NULL) {
     fatalerr = "Out of memory!";
     goto GAMEOVER;
   }
@@ -1610,18 +1610,20 @@ int main(int argc, char **argv) {
   /* if in non-interactive mode (-o=...), then fetch the resource and quit */
   if (saveas != NULL) {
     long res;
-    if ((history == NULL) || (history->host[0] == '#')) {
+    if (history == NULL) {
       ui_puts("You must provide an URL when using -o=...");
-      res = -1;
-    } else {
-      res = loadfile_buff(history->protocol, history->host, history->port, history->selector, buffer, PAGEBUFSZ, saveas, &cfg, 1);
-    }
-    /* */
-    if (res < 1) {
-      fatalerr = "Error: failed to fetch the remote resource";
       goto GAMEOVER;
     }
+    res = loadfile_buff(history->protocol, history->host, history->port, history->selector, buffer, PAGEBUFSZ, saveas, &cfg, 1);
+    if (res < 1) {
+      fatalerr = "Error: failed to fetch the remote resource";
+    }
     /* return to the OS */
+    goto GAMEOVER;
+  }
+
+  if (history_add(&history, PARSEURL_PROTO_GOPHER, "#welcome", 70, '1', "") != 0) {
+    fatalerr = "Out of memory!";
     goto GAMEOVER;
   }
 
