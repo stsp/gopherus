@@ -117,6 +117,11 @@ void net_abort(struct net_tcpsocket *socket) {
 }
 
 
+void net_shut(void) {
+  sock_exit();
+}
+
+
 const char *net_engine(void) {
   return(wattcpVersion());
 }

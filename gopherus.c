@@ -1528,9 +1528,9 @@ static void bookmarkfile_createifnone(const char *fname) {
 
 
 int main(int argc, char **argv) {
-  int exitflag;
+  int netinitflag = -1, uiinitflag = -1;
   char *fatalerr = NULL;
-  char *buffer;
+  char *buffer = NULL;
   char *saveas = NULL;
   struct historytype *history = NULL;
   struct gopherusconfig cfg;
@@ -1538,22 +1538,12 @@ int main(int argc, char **argv) {
   /* Load configuration (or defaults) */
   loadcfg(&cfg, argv);
 
-  /* alloc page buffer + 1 byte for a guardian value to detect overflows */
-  buffer = malloc(PAGEBUFSZ + 1);
-  if ((buffer == NULL) || (history_add(&history, PARSEURL_PROTO_GOPHER, "#welcome", 70, '1', "") != 0)) {
-    free(buffer);
-    ui_puts("Out of memory.");
-    return(2);
-  }
-  buffer[PAGEBUFSZ] = '#';
-
   if (argc > 1) { /* if some params have been received, parse them */
     char itemtype;
     char hostaddr[MAXHOSTLEN];
     char selector[MAXSELLEN];
     unsigned short hostport, i;
     unsigned char protocol;
-    int goturl = 0;
     for (i = 1; i < argc; i++) {
       /* recognize valid options */
       if ((argv[i][0] == '-') && (argv[i][1] == 'o') && (argv[i][2] == '=') && (saveas == NULL)) {
@@ -1570,34 +1560,39 @@ int main(int argc, char **argv) {
         ui_puts("");
         ui_puts("This build is dated \"" __DATE__ "\" and handles networking through:");
         ui_puts(net_engine());
-        free(buffer);
         return(1);
       }
       /* assume it is an url then */
-      if (goturl != 0) {
+      if (history != NULL) {
         ui_puts("Invalid parameters list.");
-        free(buffer);
         return(1);
       }
       if ((protocol = parsegopherurl(argv[i], hostaddr, sizeof(hostaddr), &hostport, &itemtype, selector, sizeof(selector))) == PARSEURL_ERROR) {
         ui_puts("Invalid URL!");
-        free(buffer);
         return(1);
       }
-      goturl = 1;
-      history_add(&history, protocol, hostaddr, hostport, itemtype, selector);
-      if (history == NULL) {
-        ui_puts("Out of memory.");
-        free(buffer);
-        return(2);
+      if (history_add(&history, protocol, hostaddr, hostport, itemtype, selector) != 0) {
+        ui_puts("Out of memory!");
+        return(1);
       }
     }
   }
 
-  if (net_init() != 0) {
-    ui_puts("Network subsystem initialization failed!");
-    free(buffer);
-    return(3);
+  /* alloc page buffer + 2 bytes for a guardian value to detect overflows */
+  buffer = malloc(PAGEBUFSZ + 2);
+  if (buffer != NULL) {
+    buffer[PAGEBUFSZ] = '#';
+    buffer[PAGEBUFSZ + 1] = '$';
+  }
+  if ((buffer == NULL) || (history_add(&history, PARSEURL_PROTO_GOPHER, "#welcome", 70, '1', "") != 0)) {
+    fatalerr = "Out of memory!";
+    goto GAMEOVER;
+  }
+
+  netinitflag = net_init();
+  if (netinitflag != 0) {
+    fatalerr = "Network subsystem initialization failed!";
+    goto GAMEOVER;
   }
 
   /* if in non-interactive mode (-o=...), then fetch the resource and quit */
@@ -1609,23 +1604,19 @@ int main(int argc, char **argv) {
     } else {
       res = loadfile_buff(history->protocol, history->host, history->port, history->selector, buffer, PAGEBUFSZ, saveas, &cfg, 1);
     }
-    /* unallocate all the history */
-    history_flush(history);
     /* */
     if (res < 1) {
-      ui_puts("Error: failed to fetch the remote resource");
-      free(buffer);
-      return(1);
+      fatalerr = "Error: failed to fetch the remote resource";
+      goto GAMEOVER;
     }
     /* return to the OS */
-    free(buffer);
-    return(0);
+    goto GAMEOVER;
   }
 
-  if (ui_init() != 0) {
-    ui_puts("ERROR: ui_init() failure");
-    free(buffer);
-    return(4);
+  uiinitflag = ui_init();
+  if (uiinitflag != 0) {
+    fatalerr = "ERROR: ui_init() failure";
+    goto GAMEOVER;
   }
 
   ui_cursor_hide(); /* hide the cursor */
@@ -1635,6 +1626,8 @@ int main(int argc, char **argv) {
   bookmarkfile_createifnone(cfg.bookmarksfile);
 
   for (;;) {
+    int exitflag;
+
     if ((history->itemtype == '0') || (history->itemtype == '1') || (history->itemtype == '7') || (history->itemtype == 'h')) { /* if it's a displayable item type... */
       draw_urlbar(history, &cfg);
       if (history->cache == NULL) { /* reload the resource if not in cache already */
@@ -1697,23 +1690,49 @@ int main(int argc, char **argv) {
       draw_statusbar(&cfg);
       i = strlen(prompt);
       drawstr(prompt, 0x70, 0, ui_getrowcount() - 1, i);
-      if (editstring(filename, 63, 63, i, ui_getrowcount() - 1, 0x70) != 0) {
+      if (editstring(filename, sizeof(filename), sizeof(filename), i, ui_getrowcount() - 1, 0x70) != 0) {
         loadfile_buff(history->protocol, history->host, history->port, history->selector, buffer, PAGEBUFSZ, filename, &cfg, 0);
       }
       history_back(&history);
     }
   }
-  ui_cursor_show(); /* unhide the cursor */
-  ui_cls();
-  if (fatalerr != NULL) ui_puts(fatalerr); /* display error message, if any */
+
+  GAMEOVER:
+
+  if (uiinitflag == 0) {
+    ui_cursor_show(); /* unhide the cursor */
+    ui_cls();
+    ui_close();
+  }
+  if (fatalerr != NULL) {
+    ui_puts(fatalerr); /* display error message, if any */
+    ui_puts("");
+  }
+
+  /* look for buffer overflow and free buffer memory */
+  if (buffer != NULL) {
+    if ((buffer[PAGEBUFSZ] != '#') || (buffer[PAGEBUFSZ + 1] != '$')) {
+      ui_puts("WARNING: BUFFER OVERFLOW DETECTED");
+    }
+    ui_puts("deallocating buffer memory...");
+    free(buffer);
+  }
+
   /* unallocate all the history */
-  history_flush(history);
+  if (history != NULL) {
+    ui_puts("flushing cache history...");
+    history_flush(&history);
+  }
 
-  ui_close();
+  /* cleanup the networking subsystem */
+  if (netinitflag == 0) {
+    ui_puts("uninitializing TCP/IP...");
+    net_shut();
+  }
 
-  /* look for buffer overflow */
-  if (buffer[PAGEBUFSZ] != '#') ui_puts("WARNING: BUFFER OVERFLOW DETECTED");
-  free(buffer);
-
-  return(0);
+  if (fatalerr == NULL) {
+    ui_puts("all done, see you later.");
+    return(0);
+  }
+  return(1);
 }

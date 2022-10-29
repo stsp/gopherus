@@ -27,7 +27,7 @@ int history_add(struct historytype **history, unsigned char protocol, const char
 /* free cache content past latest maxallowedcache bytes */
 void history_cleanupcache(struct historytype *history);
 
-/* flush all history, freeing memory */
-void history_flush(struct historytype *history);
+/* flush all history, freeing memory (sets the history ptr to NULL) */
+void history_flush(struct historytype **history);
 
 #endif

@@ -216,6 +216,10 @@ void net_abort(struct net_tcpsocket *socket) {
 }
 
 
+void net_shut(void) {
+}
+
+
 const char *net_engine(void) {
   return("BSD sockets interface");
 }

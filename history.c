@@ -101,12 +101,12 @@ void history_cleanupcache(struct historytype *history) {
 }
 
 
-/* flush all history, freeing memory */
-void history_flush(struct historytype *history) {
+/* flush all history, freeing memory (sets the history ptr to NULL) */
+void history_flush(struct historytype **history) {
   struct historytype *victim;
-  while (history != NULL) {
-    victim = history;
-    history = history->next;
+  while (*history != NULL) {
+    victim = *history;
+    *history = (*history)->next;
     history_free_node(victim);
   }
 }
