@@ -2,7 +2,7 @@
  * This file is part of the Gopherus project.
  * It provides a set of basic network-related functions.
  *
- * Copyright (C) Mateusz Viste 2013-2020
+ * Copyright (C) Mateusz Viste 2013-2022
  *
  * Provides all network functions used by Gopherus, wrapped around the
  * Watt-32 TCP/IP stack.
@@ -102,7 +102,7 @@ int net_recv(struct net_tcpsocket *socket, char *buff, long maxlen) {
 
 
 /* Close the 'sock' socket. */
-void net_close(struct net_tcpsocket *socket) {
+void net_close(struct net_tcpsocket **socket) {
   /* I could use sock_close() and sock_wait_closed() if I'd want to be
    * friendly, but it's much easier on the tcp stack to send a single RST and
    * forget about the connection (esp. if the peer is misbehaving) */
@@ -111,9 +111,10 @@ void net_close(struct net_tcpsocket *socket) {
 
 
 /* Close the 'sock' socket immediately (to be used when the peer is behaving wrongly) - this is much faster than net_close(). */
-void net_abort(struct net_tcpsocket *socket) {
-  sock_abort(socket->sock);
-  free(socket);
+void net_abort(struct net_tcpsocket **socket) {
+  sock_abort((*socket)->sock);
+  free(*socket);
+  *socket = NULL;
 }
 
 

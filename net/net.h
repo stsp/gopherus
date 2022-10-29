@@ -1,6 +1,6 @@
 /*
  * This file is part of the Gopherus project.
- * Copyright (C) Mateusz Viste 2013-2020
+ * Copyright (C) Mateusz Viste 2013-2022
  */
 
 
@@ -42,10 +42,10 @@ Returns the amount of data read (in bytes) on success, or a negative value other
 int net_recv(struct net_tcpsocket *socket, char *buff, long maxlen);
 
 /* Close the 'sock' socket. */
-void net_close(struct net_tcpsocket *socket);
+void net_close(struct net_tcpsocket **socket);
 
 /* Close the 'sock' socket immediately (to be used when the peer is behaving wrongly) - this is much faster than net_close(). */
-void net_abort(struct net_tcpsocket *socket);
+void net_abort(struct net_tcpsocket **socket);
 
 /* Clean up network-related data initialized by net_init() */
 void net_shut(void);

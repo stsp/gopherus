@@ -1,6 +1,6 @@
 /*
  * This file is part of the Gopherus project
- * Copyright (C) Mateusz Viste 2013-2020
+ * Copyright (C) Mateusz Viste 2013-2022
  *
  * Provides all network functions used by Gopherus, wrapped around POSIX (BSD)
  * sockets (with a few messy ifdefs to support windows)
@@ -204,9 +204,10 @@ int net_recv(struct net_tcpsocket *socket, char *buff, long maxlen) {
 
 
 /* Close the 'sock' socket. */
-void net_close(struct net_tcpsocket *socket) {
-  CLOSESOCK(socket->s);
-  free(socket);
+void net_close(struct net_tcpsocket **socket) {
+  CLOSESOCK((*socket)->s);
+  free(*socket);
+  *socket = NULL;
 }
 
 
@@ -217,6 +218,9 @@ void net_abort(struct net_tcpsocket *socket) {
 
 
 void net_shut(void) {
+#ifdef _WIN32
+  WSACleanup();
+#endif
 }
 
 
