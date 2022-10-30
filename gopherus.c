@@ -66,6 +66,7 @@ struct gopherusconfig {
   int attr_urlbar;
   int attr_urlbardeco;
   char *bookmarksfile;
+  unsigned char notui; /* no TUI output, typically: -o download */
 };
 
 /* statusbar content, used by set_statusbar and draw_statusbar() */
@@ -326,7 +327,7 @@ static void addbookmarkifnotexist(const struct historytype *h, const struct goph
 }
 
 
-static void delbookmark(const char *bhost, unsigned short bport, const char *bsel, struct gopherusconfig *cfg) {
+static void delbookmark(const char *bhost, unsigned short bport, const char *bsel, const struct gopherusconfig *cfg) {
   FILE *fd;
   long woff, roff;
   char lbuf[2ul * (MAXHOSTLEN + MAXSELLEN + 8ul)];
@@ -378,7 +379,7 @@ static void delbookmark(const char *bhost, unsigned short bport, const char *bse
 }
 
 
-static void draw_urlbar(struct historytype *history, struct gopherusconfig *cfg) {
+static void draw_urlbar(struct historytype *history, const struct gopherusconfig *cfg) {
   char urlstr[256];
   ui_putchar('[', cfg->attr_urlbardeco, 0, 0);
   buildgopherurl(urlstr, sizeof(urlstr) - 1, history->protocol, history->host, history->port, history->itemtype, history->selector);
@@ -388,7 +389,7 @@ static void draw_urlbar(struct historytype *history, struct gopherusconfig *cfg)
 }
 
 
-static void draw_statusbar(struct gopherusconfig *cfg) {
+static void draw_statusbar(const struct gopherusconfig *cfg) {
   int y, colattr;
   char *msg = glob_statusbar;
   y = ui_getrowcount() - 1;
@@ -469,7 +470,7 @@ static int editstring(char *url, int maxlen, int maxdisplaylen, int xx, int yy, 
 
 
 /* returns 0 if a new URL has been entered, non-zero otherwise */
-static int edit_url(struct historytype **history, struct gopherusconfig *cfg) {
+static int edit_url(struct historytype **history, const struct gopherusconfig *cfg) {
   char url[MAXURLLEN];
   int urllen;
   urllen = buildgopherurl(url, sizeof(url), (*history)->protocol, (*history)->host, (*history)->port, (*history)->itemtype, (*history)->selector);
@@ -492,7 +493,7 @@ static int edit_url(struct historytype **history, struct gopherusconfig *cfg) {
 
 
 /* Asks for a confirmation to quit. Returns 0 if Quit aborted, non-zero otherwise. */
-static int askQuitConfirmation(struct gopherusconfig *cfg) {
+static int askQuitConfirmation(const struct gopherusconfig *cfg) {
   int keypress;
   set_statusbar("!YOU ARE ABOUT TO QUIT. PRESS ESC TO CONFIRM, OR ANY OTHER KEY TO ABORT.");
   draw_statusbar(cfg);
@@ -551,10 +552,22 @@ static long http_skip_headers(char *buffer, long buffersz, struct net_tcpsocket 
 }
 
 
+/* called by loadfile_buff() to emit messages either to status bar or console */
+static void status_msg(const char *s, const struct gopherusconfig *cfg) {
+  if (cfg->notui != 0) {
+    if (s[0] == '!') s++; /* strip the '!' error prefix when outputting to console */
+    if (s[0] != 0) ui_puts(s);
+  } else {
+    set_statusbar(s);
+    draw_statusbar(cfg);
+  }
+}
+
+
 /* downloads a gopher or http resource and write it to a file or a memory
  * buffer. if *filename is not NULL, the resource will be written in the file
  * (but a valid *buffer is still required) */
-static long loadfile_buff(unsigned char protocol, char *hostaddr, unsigned short hostport, char *selector, char *buffer, long buffer_max, char *filename, struct gopherusconfig *cfg, int notui) {
+static long loadfile_buff(unsigned char protocol, const char *hostaddr, unsigned short hostport, char *selector, char *buffer, long buffer_max, const char *filename, const struct gopherusconfig *cfg) {
   char ipaddr[64];
   long reslength, byteread, totlen = 0;
   int warnflag = 0;
@@ -564,21 +577,26 @@ static long loadfile_buff(unsigned char protocol, char *hostaddr, unsigned short
   struct net_tcpsocket *sock = NULL;
   time_t lastactivity, curtime;
 
+  /* open file if out to file requested */
+  if (filename != NULL) {
+    fd = fopen(filename, "rb"); /* try to open for read - this should fail */
+    if (fd != NULL) {
+      status_msg("!File already exists! Operation aborted.", cfg);
+      fclose(fd);
+      return(-1);
+    }
+    fd = fopen(filename, "wb"); /* now open for write - this will create the file */
+    if (fd == NULL) { /* this should not fail */
+      status_msg("!Error: could not create the file on disk!", cfg);
+      goto FAIL;
+    }
+  }
+
   /* is the call for an embedded page? */
   if (hostaddr[0] == '#') {
     reslength = loadembeddedstartpage(buffer, buffer_max, hostaddr + 1, cfg->bookmarksfile);
-    /* open file, if downloading to a file */
-    if (filename != NULL) {
-      fd = fopen(filename, "rb"); /* try to open for read - this should fail */
-      if (fd != NULL) {
-        set_statusbar("!File already exists! Operation aborted.");
-        goto FAIL;
-      }
-      fd = fopen(filename, "wb"); /* now open for write - this will create the file */
-      if (fd == NULL) { /* this should not fail */
-        set_statusbar("!Error: could not create the file on disk!");
-        goto FAIL;
-      }
+    /* write to file, if downloading to a file */
+    if (fd != NULL) {
       fwrite(buffer, 1, reslength, fd);
       fclose(fd);
     }
@@ -588,14 +606,9 @@ static long loadfile_buff(unsigned char protocol, char *hostaddr, unsigned short
   /* DNS resolution */
   if (dnscache_ask(ipaddr, hostaddr) != 0) {
     snprintf(statusmsg, sizeof(statusmsg), "Resolving '%s'...", hostaddr);
-    if (notui == 0) {
-      set_statusbar(statusmsg);
-      draw_statusbar(cfg);
-    } else {
-      ui_puts(statusmsg);
-    }
+    status_msg(statusmsg, cfg);
     if (net_dnsresolve(ipaddr, hostaddr) != 0) {
-      set_statusbar("!DNS resolution failed!");
+      status_msg("!DNS resolution failed!", cfg);
       goto FAIL;
     }
     dnscache_add(hostaddr, ipaddr);
@@ -603,16 +616,11 @@ static long loadfile_buff(unsigned char protocol, char *hostaddr, unsigned short
 
   /* connect */
   snprintf(statusmsg, sizeof(statusmsg), "Connecting to %s...", ipaddr);
-  if (notui == 0) {
-    set_statusbar(statusmsg);
-    draw_statusbar(cfg);
-  } else {
-    ui_puts(statusmsg);
-  }
+  status_msg(statusmsg, cfg);
 
   sock = net_connect(ipaddr, hostport);
   if (sock == NULL) {
-    set_statusbar("!Connection error!");
+    status_msg("!Connection error!", cfg);
     goto FAIL;
   }
 
@@ -622,11 +630,11 @@ static long loadfile_buff(unsigned char protocol, char *hostaddr, unsigned short
     connstate = net_isconnected(sock, 1);
     if (connstate > 0) break;
     if (connstate < 0) {
-      set_statusbar("!Connection error!");
+      status_msg("!Connection error!", cfg);
       goto FAIL;
     }
     if (ui_kbhit()) {
-      set_statusbar("Connection aborted by user");
+      status_msg("Connection aborted by user", cfg);
       ui_getkey(); /* consume the pressed key */
       goto FAIL;
     }
@@ -639,27 +647,14 @@ static long loadfile_buff(unsigned char protocol, char *hostaddr, unsigned short
     snprintf(buffer, buffer_max, "%s\r\n", selector);
   }
   if (net_send(sock, buffer, strlen(buffer)) != (int)strlen(buffer)) {
-    set_statusbar("!send() error!");
+    status_msg("!send() error!", cfg);
     goto FAIL;
   }
 
   /* prepare timers */
-  lastactivity = time(NULL);
-  curtime = lastactivity;
-
-  /* open file, if downloading to a file */
-  if (filename != NULL) {
-    fd = fopen(filename, "rb"); /* try to open for read - this should fail */
-    if (fd != NULL) {
-      set_statusbar("!File already exists! Operation aborted.");
-      goto FAIL;
-    }
-    fd = fopen(filename, "wb"); /* now open for write - this will create the file */
-    if (fd == NULL) { /* this should not fail */
-      set_statusbar("!Error: could not create the file on disk!");
-      goto FAIL;
-    }
-  }
+  curtime = time(NULL);
+  lastactivity = curtime;
+  lastrefresh = curtime;
 
   /* zero out reslength */
   reslength = 0;
@@ -668,7 +663,7 @@ static long loadfile_buff(unsigned char protocol, char *hostaddr, unsigned short
   if (protocol == PARSEURL_PROTO_HTTP) {
     reslength = http_skip_headers(buffer, buffer_max, sock, 2);
     if (reslength < 0) {
-      set_statusbar("!Error: Failed to fetch or parse HTTP headers");
+      status_msg("!Error: Failed to fetch or parse HTTP headers", cfg);
       goto FAIL;
     }
   }
@@ -680,7 +675,7 @@ static long loadfile_buff(unsigned char protocol, char *hostaddr, unsigned short
     if (ui_kbhit() != 0) {
       int presskey = ui_getkey();
       if ((presskey == 0x1B) || (presskey == 0x08)) { /* if it's escape or backspace, abort the connection */
-        set_statusbar("Connection aborted by the user.");
+        status_msg("Connection aborted by the user.", cfg);
         goto FAIL;
       }
     }
@@ -688,7 +683,7 @@ static long loadfile_buff(unsigned char protocol, char *hostaddr, unsigned short
     /* look out for buffer space */
     if (reslength >= buffer_max) { /* too much data! */
       snprintf(statusmsg, sizeof(statusmsg), "!Error: Server's answer is too long! (truncated to %ld bytes)", reslength);
-      set_statusbar(statusmsg);
+      status_msg(statusmsg, cfg);
       warnflag = 1;
       break;
     }
@@ -696,10 +691,17 @@ static long loadfile_buff(unsigned char protocol, char *hostaddr, unsigned short
     byteread = net_recv(sock, buffer + reslength, buffer_max - reslength);
     curtime = time(NULL);
 
+    /* refresh the status bar once every second */
+    if ((curtime != lastrefresh) || (byteread < 0)) {
+      lastrefresh = curtime;
+      snprintf(statusmsg, sizeof(statusmsg), "Downloading... [%ld bytes]", totlen);
+      status_msg(statusmsg, cfg);
+    }
+
     /* got nothing */
     if (byteread == 0) {
       if (curtime - lastactivity > 20) { /* TIMEOUT! */
-        set_statusbar("!Timeout while waiting for data!");
+        status_msg("!Timeout while waiting for data!", cfg);
         reslength = -1;
         goto FAIL;
       }
@@ -716,29 +718,16 @@ static long loadfile_buff(unsigned char protocol, char *hostaddr, unsigned short
     /* if downloading to file, write data to disk */
     if (fd != NULL) {
       if ((long)fwrite(buffer, 1, byteread, fd) != byteread) {
-        set_statusbar("!Error while writing data to disk");
-        draw_statusbar(cfg);
+        status_msg("!Error while writing data to disk", cfg);
         goto FAIL;
       }
     } else { /* else just keep it in the buffer */
       reslength += byteread;
     }
 
-    /* refresh the status bar once every second */
-    if (curtime != lastrefresh) {
-      lastrefresh = curtime;
-      snprintf(statusmsg, sizeof(statusmsg), "Downloading... [%ld bytes]", totlen);
-      if (notui == 0) {
-        set_statusbar(statusmsg);
-        draw_statusbar(cfg);
-      } else {
-        ui_puts(statusmsg);
-      }
-    }
   }
 
   if ((totlen >= 0) && (warnflag == 0)) {
-    if (notui == 0) set_statusbar("");
     net_close(&sock);
   } else {
     net_abort(&sock);
@@ -746,7 +735,7 @@ static long loadfile_buff(unsigned char protocol, char *hostaddr, unsigned short
 
   /* consider 0-sized results as error (probably selector does not exist) */
   if (totlen == 0) {
-    set_statusbar("!Error: selector does not exist");
+    status_msg("!Error: selector does not exist", cfg);
     goto FAIL;
   }
 
@@ -755,7 +744,7 @@ static long loadfile_buff(unsigned char protocol, char *hostaddr, unsigned short
     fclose(fd);
     fd = NULL;
     snprintf(statusmsg, sizeof(statusmsg), "Saved %ld bytes on disk", totlen);
-    set_statusbar(statusmsg);
+    status_msg(statusmsg, cfg);
   }
 
   return(totlen);
@@ -973,7 +962,7 @@ static long menu_explode(char *buffer, long bufferlen, unsigned char *line_itemt
 }
 
 
-static int display_menu(struct historytype **history, struct gopherusconfig *cfg, char *buffer, long buffersize) {
+static int display_menu(struct historytype **history, const struct gopherusconfig *cfg, char *buffer, long buffersize) {
   long bufferlen, linecount;
   char *line_description[MAXMENULINES];
   unsigned short line_selector_off[MAXMENULINES];
@@ -1153,7 +1142,7 @@ static int display_menu(struct historytype **history, struct gopherusconfig *cfg
             genfnamefromselector(fname, sizeof(fname), line_description[x] + line_selector_off[x]);
             /* TODO watch out for already-existing files! */
             /* download the file */
-            loadfile_buff(PARSEURL_PROTO_GOPHER, line_description[x] + line_host_off[x], line_port[x], line_description[x] + line_selector_off[x], b, sizeof(b), fname, cfg, 0);
+            loadfile_buff(PARSEURL_PROTO_GOPHER, line_description[x] + line_host_off[x], line_port[x], line_description[x] + line_selector_off[x], b, sizeof(b), fname, cfg);
           }
         }
         break;
@@ -1291,7 +1280,7 @@ static int display_menu(struct historytype **history, struct gopherusconfig *cfg
 }
 
 
-static int display_text(struct historytype **history, struct gopherusconfig *cfg, char *buffer, long buffersize, int txtformat) {
+static int display_text(struct historytype **history, const struct gopherusconfig *cfg, char *buffer, long buffersize, int txtformat) {
   char *txtptr;
   char linebuff[256];
   long x, y, firstline, lastline, bufferlen;
@@ -1587,6 +1576,7 @@ int main(int argc, char **argv) {
         ui_puts("Out of memory!");
         return(1);
       }
+      cfg.notui = 1;
     }
   }
 
@@ -1614,10 +1604,7 @@ int main(int argc, char **argv) {
       ui_puts("You must provide an URL when using -o=...");
       goto GAMEOVER;
     }
-    res = loadfile_buff(history->protocol, history->host, history->port, history->selector, buffer, PAGEBUFSZ, saveas, &cfg, 1);
-    if (res < 1) {
-      fatalerr = "Error: failed to fetch the remote resource";
-    }
+    res = loadfile_buff(history->protocol, history->host, history->port, history->selector, buffer, PAGEBUFSZ, saveas, &cfg);
     /* return to the OS */
     goto GAMEOVER;
   }
@@ -1646,7 +1633,7 @@ int main(int argc, char **argv) {
       draw_urlbar(history, &cfg);
       if (history->cache == NULL) { /* reload the resource if not in cache already */
         long bufferlen;
-        bufferlen = loadfile_buff(history->protocol, history->host, history->port, history->selector, buffer, PAGEBUFSZ, NULL, &cfg, 0);
+        bufferlen = loadfile_buff(history->protocol, history->host, history->port, history->selector, buffer, PAGEBUFSZ, NULL, &cfg);
         if (bufferlen < 0) {
           history_back(&history);
           continue;
@@ -1705,7 +1692,7 @@ int main(int argc, char **argv) {
       i = strlen(prompt);
       drawstr(prompt, 0x70, 0, ui_getrowcount() - 1, i);
       if (editstring(filename, sizeof(filename), sizeof(filename), i, ui_getrowcount() - 1, 0x70) != 0) {
-        loadfile_buff(history->protocol, history->host, history->port, history->selector, buffer, PAGEBUFSZ, filename, &cfg, 0);
+        loadfile_buff(history->protocol, history->host, history->port, history->selector, buffer, PAGEBUFSZ, filename, &cfg);
       }
       history_back(&history);
     }
@@ -1728,24 +1715,24 @@ int main(int argc, char **argv) {
     if ((buffer[PAGEBUFSZ] != '#') || (buffer[PAGEBUFSZ + 1] != '$')) {
       ui_puts("WARNING: BUFFER OVERFLOW DETECTED");
     }
-    ui_puts("deallocating buffer memory...");
+    if (cfg.notui == 0) ui_puts("deallocating buffer memory...");
     free(buffer);
   }
 
   /* unallocate all the history */
   if (history != NULL) {
-    ui_puts("flushing cache history...");
+    if (cfg.notui == 0) ui_puts("flushing cache history...");
     history_flush(&history);
   }
 
   /* cleanup the networking subsystem */
   if (netinitflag == 0) {
-    ui_puts("uninitializing TCP/IP...");
+    if (cfg.notui == 0) ui_puts("uninitializing TCP/IP...");
     net_shut();
   }
 
   if (fatalerr == NULL) {
-    ui_puts("all done, see you later.");
+    if (cfg.notui == 0) ui_puts("all done, see you later.");
     return(0);
   }
   return(1);
