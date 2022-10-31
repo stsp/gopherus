@@ -8,103 +8,95 @@ classic text interface to the gopherspace.
 This program is released under the terms of the '2-clause' BSD license.
 
 
- *** Key bindings ***
+### KEY BINDINGS #############################################################
 
- Gopherus is a console-mode gopher client entirely keyboard-driven, hence
- knowing its key bindings is mandatory for comfortable browsing.
+Gopherus is a console-mode gopher client entirely keyboard-driven, hence
+knowing its key bindings is mandatory for comfortable browsing.
 
- Key bindings:
-   TAB       - Switch to/from URL bar edition
-   ESC       - Quit Gopherus (requires a confirmation)
-   UP/DOWN   - Scroll the screen's content up/down by one line
-   PGUP/PGDW - Scroll the screen's content up/down by one page
-   HOME/END  - Jump to the top/bottom of the document
-   BACKSPC   - Go back to the previous location
-   B         - Bookmark current location
-   DEL       - Delete bookmark (main screen only)
-   F1        - Show help (this file)
-   F2        - Go to program's main screen
-   F4        - Go to current server's main menu
-   F5        - Refresh current location
-   F9        - Download location to disk
-   F10       - Download all files in current menu to disk
+Key bindings:
 
-
- *** Customizing the color scheme ***
-
- The Gopherus color scheme can be customized, should the default one not suit
- you. To customize the color scheme used by Gopherus, you will have to set an
- environnment variable 'GOPHERUSCOLOR' prior to Gopherus launching. This
- variable have to contain exacty 6 color attributes. Each attribute describes
- the foreground/background color for a given element of the Gopherus user
- interface. An attribute is composed from two hexadecimal digits: XY, where X
- is the background color, and Y is the foreground color. Colors are indexed as
- in the classic CGA palette, that is:
-
- Index - Color
-   0   -  black
-   1   -  low blue
-   2   -  low green
-   3   -  low cyan
-   4   -  low red
-   5   -  low magenta
-   6   -  low brown
-   7   -  light gray
-   8   -  dark gray
-   9   -  high blue
-   A   -  high green
-   B   -  high cyan
-   C   -  high red
-   D   -  high magenta
-   E   -  yellow
-   F   -  high intensity white
-
- SET GOPHERUSCOLOR=aabbccddeeffgghhii
-                    | | | | | | | | |
-                    | | | | | | | | |
-                    | | | | | | | | +- Selected item in menu
-                    | | | | | | | |
-                    | | | | | | | +--- Selectable items in menu
-                    | | | | | | |
-                    | | | | | | +----- Error item in menu
-                    | | | | | |
-                    | | | | | +------- Itemtype column in menus
-                    | | | | |
-                    | | | | +--------- URL bar side decorations
-                    | | | |
-                    | | | +----------- URL bar
-                    | | |
-                    | | +------------- Status bar (warning)
-                    | |
-                    | +--------------- Status bar (information)
-                    |
-                    +----------------- Normal text (text files or 'i' items)
-
- Examples:
-  The default palette used by Gopherus is.......: "177047707818141220"
-  For a black & white mode, use.................: "077070707808070770"
-  Missing those green phosphor CRTs from 1980?..: "022020202002020220"
+TAB       - Switch to/from URL bar edition
+ESC       - Quit Gopherus (requires a confirmation)
+UP/DOWN   - Scroll the screen's content up/down by one line
+PGUP/PGDW - Scroll the screen's content up/down by one page
+HOME/END  - Jump to the top/bottom of the current document
+BACKSPC   - Go back to the previous location
+B         - Bookmark current location
+DEL       - Delete bookmark (main screen only)
+F1        - Show help (this file)
+F2        - Go to program's main screen
+F4        - Go to current server's main menu
+F5        - Refresh current location
+F9        - Download location to disk
+F10       - Download all files in current menu to disk
 
 
- *** Requirements ***
+### CUSTOM COLOR SCHEMES #####################################################
 
- Gopherus has been designed with ancient hardware in mind, hence it doesn't
- need much to run. But still, the 16-bit DOS version requires at least:
-  - an MDA video card
-  - some kind of CPU (8086+)
-  - 400K of available RAM
-  - an ethernet card with a working packet driver
+The Gopherus color scheme can be customized. To do so, you will have to set a
+"GOPHERUSCOLOR" environnment variable prior to launching Gopherus. This
+variable must contain exactly 6 color attributes. Each attribute describes the
+foreground and background color for a given element of the user interface. An
+attribute is composed from two hexadecimal digits: XY, where X is the
+background color, and Y is the foreground color. Colors are indexed as in the
+classic CGA palette:
+
+0 = black
+1 = low blue
+2 = low green
+3 = low cyan
+4 = low red
+5 = low magenta
+6 = low brown
+7 = light gray
+8 = dark gray
+9 = high blue
+A = high green
+B = high cyan
+C = high red
+D = high magenta
+E = yellow
+F = high intensity white
+
+SET GOPHERUSCOLOR=aabbccddeeffgghhii
+                   | | | | | | | | |
+                   | | | | | | | | |
+                   | | | | | | | | +- Selected item in menu
+                   | | | | | | | +--- Selectable items in menu
+                   | | | | | | +----- Error item in menu
+                   | | | | | +------- Itemtype column in menus
+                   | | | | +--------- URL bar side decorations
+                   | | | +----------- URL bar
+                   | | +------------- Status bar (warning)
+                   | +--------------- Status bar (information)
+                   +----------------- Normal text (text files or 'i' items)
+
+Examples:
+
+Default Gopherus palette....: "177047707818141220"
+Black & white...............: "077070707808070770"
+Missing green, 1980 CRTs?...: "022020202002020220"
 
 
- *** UTF-8 support ***
+### REQUIREMENTS #############################################################
 
- Gopherus decodes all displayable content as UTF-8 and outputs wide characters
- to the terminal whenever possible (relying on ncursesw). On the DOS platform
- it limits output to characters in the ASCII range  32..255 and assumes a
- running codepage set to Latin I.
+Gopherus has been designed with ancient hardware in mind, hence it doesn't
+need much to run. The 16-bit DOS version requires at least:
+ - an MDA video card
+ - some kind of CPU (8086+)
+ - 400K of available RAM
+ - an ethernet card with a working packet driver
 
 
- *** License ***
+### UTF-8 SUPPORT ############################################################
+
+Gopherus decodes all displayable content as UTF-8 and outputs wide characters
+to the terminal whenever possible (relying on ncursesw). On the DOS platform
+it limits output to characters in the ASCII range  32..255 and assumes a
+running codepage set to Latin I.
+
+
+### LICENSE ##################################################################
 
 Copyright (C) 2020-2022 Mateusz Viste
 
@@ -128,3 +120,6 @@ SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
 CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+
+###################################################################### EOF ###
