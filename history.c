@@ -18,7 +18,7 @@ static void history_free_node(struct historytype *node) {
 
 
 /* remove the last visited page from history */
-void history_back(struct historytype **history) {
+void history_pop(struct historytype **history) {
   struct historytype *victim;
   if (*history != NULL) {
     victim = *history;
@@ -42,7 +42,7 @@ void history_back(struct historytype **history) {
 
 
 /* adds a new node to the history list. Returns 0 on success, non-zero otherwise. */
-int history_add(struct historytype **history, unsigned char protocol, const char *host, unsigned short port, char itemtype, const char *selector) {
+int history_push(struct historytype **history, unsigned char protocol, const char *host, unsigned short port, char itemtype, const char *selector) {
   struct historytype *result;
 
   /* shortcut - if the new node is identical to the previous page, the user is doing a 'back' action */
@@ -53,7 +53,7 @@ int history_add(struct historytype **history, unsigned char protocol, const char
           if (port == (*history)->next->port) { /* same port */
             if (itemtype == (*history)->next->itemtype) { /* same itemtype */
               if (strcmp(selector, (*history)->next->selector) == 0) { /* same resource */
-                history_back(history); /* do a 'back' action in the history list */
+                history_pop(history); /* do a 'back' action in the history list */
                 return(0);  /* return success */
               }
             }
@@ -102,7 +102,7 @@ void history_cleanupcache(struct historytype *history) {
 
 
 /* flush all history, freeing memory (sets the history ptr to NULL) */
-void history_flush(struct historytype **history) {
+void history_clear(struct historytype **history) {
   struct historytype *victim;
   while (*history != NULL) {
     victim = *history;

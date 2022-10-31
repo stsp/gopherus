@@ -482,7 +482,7 @@ static int edit_url(struct historytype **history, const struct gopherusconfig *c
     unsigned short hostport;
     unsigned char protocol;
     if ((protocol = parsegopherurl(url, hostaddr, sizeof(hostaddr), &hostport, &itemtype, selector, sizeof(selector))) != PARSEURL_ERROR) {
-      history_add(history, protocol, hostaddr, hostport, itemtype, selector);
+      history_push(history, protocol, hostaddr, hostport, itemtype, selector);
       draw_urlbar(*history, cfg);
       return(0);
     }
@@ -1104,7 +1104,7 @@ static int display_menu(struct historytype **history, const struct gopherusconfi
             break;
           }
           snprintf(finalselector, finalselectorsz, "%s\t%s", line_description[*selectedline] + line_selector_off[*selectedline], query);
-          history_add(history, PARSEURL_PROTO_GOPHER, line_description[*selectedline] + line_host_off[*selectedline], line_port[*selectedline], line_itemtype[*selectedline] & 127, finalselector);
+          history_push(history, PARSEURL_PROTO_GOPHER, line_description[*selectedline] + line_host_off[*selectedline], line_port[*selectedline], line_itemtype[*selectedline] & 127, finalselector);
           free(finalselector);
           return(DISPLAY_ORDER_NONE);
         } else { /* itemtype is anything else than type 7 */
@@ -1123,7 +1123,7 @@ static int display_menu(struct historytype **history, const struct gopherusconfi
             set_statusbar("!Bad URL");
             break;
           } else if ((tmpproto == PARSEURL_PROTO_GOPHER) || (tmpproto == PARSEURL_PROTO_HTTP)) {
-            history_add(history, tmpproto, tmphost, tmpport, tmpitemtype, tmpselector);
+            history_push(history, tmpproto, tmphost, tmpport, tmpitemtype, tmpselector);
             return(DISPLAY_ORDER_NONE);
           } else {
             set_statusbar("!Unsupported protocol");
@@ -1156,16 +1156,16 @@ static int display_menu(struct historytype **history, const struct gopherusconfi
         if (askQuitConfirmation(cfg) != 0) return(DISPLAY_ORDER_QUIT);
         break;
       case 0x13B: /* F1 - help */
-        history_add(history, PARSEURL_PROTO_GOPHER, "#manual", 70, '0', "");
+        history_push(history, PARSEURL_PROTO_GOPHER, "#manual", 70, '0', "");
         return(DISPLAY_ORDER_NONE);
         break;
       case 0x13C: /* F2 - home */
-        history_add(history, PARSEURL_PROTO_GOPHER, "#welcome", 70, '1', "");
+        history_push(history, PARSEURL_PROTO_GOPHER, "#welcome", 70, '1', "");
         return(DISPLAY_ORDER_NONE);
         break;
       case 0x13E: /* F4 - server's main menu (gopher only) */
         if (((*history)->protocol == PARSEURL_PROTO_GOPHER) && ((*history)->host[0] != '#')) {
-          history_add(history, PARSEURL_PROTO_GOPHER, (*history)->host, (*history)->port, '1', "");
+          history_push(history, PARSEURL_PROTO_GOPHER, (*history)->host, (*history)->port, '1', "");
           return(DISPLAY_ORDER_NONE);
         }
         break;
@@ -1431,16 +1431,16 @@ static int display_text(struct historytype **history, const struct gopherusconfi
         if (askQuitConfirmation(cfg) != 0) return(DISPLAY_ORDER_QUIT);
         break;
       case 0x13B: /* F1 - help */
-        history_add(history, PARSEURL_PROTO_GOPHER, "#manual", 70, '0', "");
+        history_push(history, PARSEURL_PROTO_GOPHER, "#manual", 70, '0', "");
         return(DISPLAY_ORDER_NONE);
         break;
       case 0x13C: /* F2 - home */
-        history_add(history, PARSEURL_PROTO_GOPHER, "#welcome", 70, '1', "");
+        history_push(history, PARSEURL_PROTO_GOPHER, "#welcome", 70, '1', "");
         return(DISPLAY_ORDER_NONE);
         break;
       case 0x13E: /* F4 - server's main menu (gopher only) */
         if (((*history)->protocol == PARSEURL_PROTO_GOPHER) && ((*history)->host[0] != '#')) {
-          history_add(history, PARSEURL_PROTO_GOPHER, (*history)->host, (*history)->port, '1', "");
+          history_push(history, PARSEURL_PROTO_GOPHER, (*history)->host, (*history)->port, '1', "");
           return(DISPLAY_ORDER_NONE);
         }
         break;
@@ -1448,7 +1448,7 @@ static int display_text(struct historytype **history, const struct gopherusconfi
         return(DISPLAY_ORDER_REFR);
         break;
       case 0x143: /* F9 - download */
-        history_add(history, (*history)->protocol, (*history)->host, (*history)->port, '9', (*history)->selector);
+        history_push(history, (*history)->protocol, (*history)->host, (*history)->port, '9', (*history)->selector);
         return(DISPLAY_ORDER_NONE);
         break;
       case 0x148: /* UP */
@@ -1590,7 +1590,7 @@ int main(int argc, char **argv) {
         ui_puts("Invalid URL!");
         return(1);
       }
-      if (history_add(&history, protocol, hostaddr, hostport, itemtype, selector) != 0) {
+      if (history_push(&history, protocol, hostaddr, hostport, itemtype, selector) != 0) {
         ui_puts("Out of memory!");
         return(1);
       }
@@ -1643,7 +1643,7 @@ int main(int argc, char **argv) {
 
     /* preload history with the welcome screen if history is empty  */
     if (history == NULL) {
-      if (history_add(&history, PARSEURL_PROTO_GOPHER, "#welcome", 70, '1', "") != 0) {
+      if (history_push(&history, PARSEURL_PROTO_GOPHER, "#welcome", 70, '1', "") != 0) {
         fatalerr = "Out of memory!";
         goto GAMEOVER;
       }
@@ -1655,7 +1655,7 @@ int main(int argc, char **argv) {
         long bufferlen;
         bufferlen = loadfile_buff(history->protocol, history->host, history->port, history->selector, buffer, PAGEBUFSZ, NULL, &cfg);
         if (bufferlen < 0) {
-          history_back(&history);
+          history_pop(&history);
           continue;
         } else {
           history_cleanupcache(history);
@@ -1665,7 +1665,7 @@ int main(int argc, char **argv) {
             history->cache = malloc(bufferlen);
           }
           if (history->cache == NULL) {
-            history_back(&history);
+            history_pop(&history);
             set_statusbar("!Out of memory!");
             continue;
           }
@@ -1692,7 +1692,7 @@ int main(int argc, char **argv) {
       }
 
       if (exitflag == DISPLAY_ORDER_BACK) {
-        history_back(&history);
+        history_pop(&history);
       } else if (exitflag == DISPLAY_ORDER_REFR) {
         free(history->cache);
         history->cache = NULL;
@@ -1714,7 +1714,7 @@ int main(int argc, char **argv) {
       if (editstring(filename, sizeof(filename), sizeof(filename), i, ui_getrowcount() - 1, 0x70) != 0) {
         loadfile_buff(history->protocol, history->host, history->port, history->selector, buffer, PAGEBUFSZ, filename, &cfg);
       }
-      history_back(&history);
+      history_pop(&history);
     }
   }
 
@@ -1742,7 +1742,7 @@ int main(int argc, char **argv) {
   /* unallocate all the history */
   if (history != NULL) {
     if (cfg.notui == 0) ui_puts("flushing cache history...");
-    history_flush(&history);
+    history_clear(&history);
   }
 
   /* cleanup the networking subsystem */

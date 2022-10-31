@@ -19,15 +19,15 @@ struct historytype {
 };
 
 /* remove the last visited page from history (goes back to the previous one) */
-void history_back(struct historytype **history);
+void history_pop(struct historytype **history);
 
 /* adds a new node to the history list. Returns 0 on success, non-zero otherwise. */
-int history_add(struct historytype **history, unsigned char protocol, const char *host, unsigned short port, char itemtype, const char *selector);
+int history_push(struct historytype **history, unsigned char protocol, const char *host, unsigned short port, char itemtype, const char *selector);
 
 /* free cache content past latest maxallowedcache bytes */
 void history_cleanupcache(struct historytype *history);
 
 /* flush all history, freeing memory (sets the history ptr to NULL) */
-void history_flush(struct historytype **history);
+void history_clear(struct historytype **history);
 
 #endif
