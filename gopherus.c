@@ -563,7 +563,6 @@ static void status_msg(const char *s, const struct gopherusconfig *cfg) {
     if (s[0] != 0) ui_puts(s);
   } else {
     set_statusbar(s);
-    draw_statusbar(cfg);
   }
 }
 
@@ -700,6 +699,7 @@ static long loadfile_buff(unsigned char protocol, const char *hostaddr, unsigned
       lastrefresh = curtime;
       snprintf(statusmsg, sizeof(statusmsg), "Downloading... [%ld bytes]", totlen);
       status_msg(statusmsg, cfg);
+      if (cfg->notui == 0) draw_statusbar(cfg);
     }
 
     /* got nothing */
