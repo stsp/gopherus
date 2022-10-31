@@ -125,6 +125,9 @@ static void loadcfg(struct gopherusconfig *cfg) {
   static char sbuf[256];
   int x;
 
+  /* for starters let's zero out the struct */
+  memset(cfg, 0, sizeof(*cfg));
+
   /* get bookmarks file location (will be useful later) */
   cfg->bookmarksfile = bookmarks_getfname(sbuf, sizeof(sbuf));
 
