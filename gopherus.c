@@ -119,13 +119,14 @@ static int hex2int(char c) {
 }
 
 
-static void loadcfg(struct gopherusconfig *cfg, char **argv) {
-  char *defaultcolorscheme = "177047707818141220";
-  char *colorstring;
+static void loadcfg(struct gopherusconfig *cfg) {
+  const char *defaultcolorscheme = "177047707818141220";
+  const char *colorstring;
+  static char sbuf[256];
   int x;
 
   /* get bookmarks file location (will be useful later) */
-  cfg->bookmarksfile = bookmarks_getfname(argv[0]);
+  cfg->bookmarksfile = bookmarks_getfname(sbuf, sizeof(sbuf));
 
   /* */
   colorstring = getenv("GOPHERUSCOLOR");
@@ -1537,7 +1538,7 @@ int main(int argc, char **argv) {
   struct gopherusconfig cfg;
 
   /* Load configuration (or defaults) */
-  loadcfg(&cfg, argv);
+  loadcfg(&cfg);
 
   if (argc > 1) { /* if some params have been received, parse them */
     char itemtype;

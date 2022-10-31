@@ -1,6 +1,6 @@
 /*
  * This file is part of the Gopherus project.
- * Copyright (C) 2019 Mateusz Viste
+ * Copyright (C) 2019-2022 Mateusz Viste
  */
 
 #include <fcntl.h>
@@ -58,12 +58,12 @@ static int exepath(char *result) {
   return(lastsep + 1);
 }
 
-char *bookmarks_getfname(const char *argv0) {
-  static char b[128 + 12];
+char *bookmarks_getfname(char *s, size_t ssz) {
   int plen;
-  plen = exepath(b);
-  memcpy(b + plen, "GOPHERUS.BKM", 13);
-  return(b);
+  if (ssz < 128 + 13) return(NULL);
+  plen = exepath(s);
+  memcpy(s + plen, "GOPHERUS.BKM", 13);
+  return(s);
 }
 
 void filetrunc(const char *fname, long sz) {
