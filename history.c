@@ -17,16 +17,16 @@ static void history_free_node(struct historytype *node) {
 }
 
 
-/* remove the last visited page from history (goes back to the previous one) */
+/* remove the last visited page from history */
 void history_back(struct historytype **history) {
   struct historytype *victim;
   if (*history != NULL) {
-    if ((*history)->next != NULL) {
-      victim = *history;
-      *history = (*history)->next;
-      history_free_node(victim);
-    }
+    victim = *history;
+    *history = (*history)->next;
+    history_free_node(victim);
   }
+  if (*history == NULL) return;
+
   /* check if the last request was a query, and if not in cache, put a message instead to avoid reloading a query again */
   if (((*history)->itemtype == '7') && ((*history)->cache == NULL)) {
     char *msg = "3Query not in cache\ni\niThis location is not available in the local cache. Gopherus is not reissuing custom queries automatically. If you wish to force a reload, press F5.\n";

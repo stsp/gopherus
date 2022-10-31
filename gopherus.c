@@ -1545,15 +1545,32 @@ int main(int argc, char **argv) {
     char selector[MAXSELLEN];
     unsigned short hostport, i;
     unsigned char protocol;
+
     for (i = 1; i < argc; i++) {
-      /* recognize valid options */
+      /* catch -o outfile */
+      if ((strcmp(argv[i], "-o") == 0) && (saveas == NULL)) {
+        i++;
+        if ((i < argc) && (argv[i][0] != '-')) {
+          cfg.notui = 1; /* switch into non-interactive mode */
+          saveas = argv[i];
+          continue;
+        } else {
+          ui_puts("Error: -o must be followed by a filename");
+          return(1);
+        }
+      }
+
+      /* catch legacy -o=outfile format (recognized for compatibility with pre-1.2.2 syntax) */
       if ((argv[i][0] == '-') && (argv[i][1] == 'o') && (argv[i][2] == '=') && (saveas == NULL)) {
         saveas = argv[i] + 3;
         continue;
-      } else if ((argv[i][0] == '/') || (argv[i][0] == '-')) { /* unknown parameter */
+      }
+
+      /* catch any unknown argument */
+      if (argv[i][0] == '-') {
         ui_puts("Gopherus v" pVer " Copyright (C) " pDate " Mateusz Viste");
         ui_puts("");
-        ui_puts("Usage: gopherus [url [-o=outfile]]");
+        ui_puts("Usage: gopherus [url [-o outfile]]");
         ui_puts("");
         ui_puts("Latest version can be found at the following addresses:");
         ui_puts("  http://gopherus.sourceforge.net");
@@ -1563,6 +1580,7 @@ int main(int argc, char **argv) {
         ui_puts(net_engine());
         return(1);
       }
+
       /* assume it is an url then */
       if (history != NULL) {
         ui_puts("Invalid parameters list.");
@@ -1576,7 +1594,6 @@ int main(int argc, char **argv) {
         ui_puts("Out of memory!");
         return(1);
       }
-      cfg.notui = 1;
     }
   }
 
@@ -1601,16 +1618,11 @@ int main(int argc, char **argv) {
   if (saveas != NULL) {
     long res;
     if (history == NULL) {
-      ui_puts("You must provide an URL when using -o=...");
+      ui_puts("You must provide an URL when using -o");
       goto GAMEOVER;
     }
     res = loadfile_buff(history->protocol, history->host, history->port, history->selector, buffer, PAGEBUFSZ, saveas, &cfg);
     /* return to the OS */
-    goto GAMEOVER;
-  }
-
-  if (history_add(&history, PARSEURL_PROTO_GOPHER, "#welcome", 70, '1', "") != 0) {
-    fatalerr = "Out of memory!";
     goto GAMEOVER;
   }
 
@@ -1628,6 +1640,14 @@ int main(int argc, char **argv) {
 
   for (;;) {
     int exitflag;
+
+    /* preload history with the welcome screen if history is empty  */
+    if (history == NULL) {
+      if (history_add(&history, PARSEURL_PROTO_GOPHER, "#welcome", 70, '1', "") != 0) {
+        fatalerr = "Out of memory!";
+        goto GAMEOVER;
+      }
+    }
 
     if ((history->itemtype == '0') || (history->itemtype == '1') || (history->itemtype == '7') || (history->itemtype == 'h')) { /* if it's a displayable item type... */
       draw_urlbar(history, &cfg);
