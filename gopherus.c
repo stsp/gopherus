@@ -90,7 +90,7 @@ struct gopherusconfig {
   int attr_statusbarwarn;
   int attr_urlbar;
   int attr_urlbardeco;
-  char *bookmarksfile;
+  const char *bookmarksfile;
   unsigned char notui; /* no TUI output, typically: -o download */
   unsigned short keys[KEY_COUNT]; /* key bindings */
 };
