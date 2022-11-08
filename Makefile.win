@@ -6,11 +6,11 @@
 CFLAGS = -std=gnu89 -O3 -Wall -Wextra -pedantic
 CC = gcc
 
-all: gopherus-sdl.exe
+all: gopherus.exe
 
-gopherus-sdl.exe: gopherus.o dnscache.o fs-win.o history.o net-bsd.o parseurl.o readflin.o startpg.o ui-sdl.o wordwrap.o
+gopherus.exe: gopherus.o dnscache.o fs-win.o history.o net-bsd.o parseurl.o readflin.o startpg.o ui-curse.o wordwrap.o
 	windres win\gopherus.rc -O coff -o win\gopherus.res
-	gcc -mwindows gopherus.o dnscache.o fs-win.o history.o net-bsd.o parseurl.o readflin.o startpg.o ui-sdl.o wordwrap.o win\gopherus.res -o gopherus-sdl.exe -Lwin -lSDL2 -lws2_32 $(CFLAGS)
+	gcc gopherus.o dnscache.o fs-win.o history.o net-bsd.o parseurl.o readflin.o startpg.o ui-curse.o wordwrap.o win\gopherus.res -o gopherus.exe -Lwin -lws2_32 $(CFLAGS)
 
 net-bsd.o: net/net-bsd.c
 	gcc -c net/net-bsd.c -o net-bsd.o $(CFLAGS)
@@ -18,21 +18,20 @@ net-bsd.o: net/net-bsd.c
 fs-win.o: fs/fs-win.c
 	gcc -c fs/fs-win.c -o fs-win.o $(CFLAGS)
 
-ui-sdl.o: ui/ui-sdl.c
-	gcc -c ui/ui-sdl.c -o ui-sdl.o $(CFLAGS)
+ui-curse.o: ui/ui-curse.c
+	gcc -c ui/ui-curse.c -o ui-curse.o $(CFLAGS)
 
 wraptest.exe: wraptest.c wordwrap.o
 	gcc wraptest.c wordwrap.o -o wraptest.exe $(CFLAGS)
 
-release: gopherus-sdl.exe
+release: gopherus.exe
 	if exist pkg_win\nul del /s /q pkg_win\*
 	mkdir pkg_win
 	copy gopherus-sdl.exe pkg_win
-	copy win\sdl2.dll pkg_win
 	copy gopherus.txt pkg_win
 	copy history.txt pkg_win
 	echo Subdirectory pkg_win ready to be ziped!
 
 clean:
 	del *.o
-	del gopherus-sdl.exe
+	del gopherus.exe

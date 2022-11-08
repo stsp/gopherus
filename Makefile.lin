@@ -20,9 +20,6 @@ all: gopherus
 gopherus: gopherus.o dnscache.o fs/fs-lin.o history.o net-bsd.o parseurl.o readflin.o startpg.o ui-curse.o wordwrap.o
 	$(CC) gopherus.o dnscache.o fs/fs-lin.o history.o net-bsd.o parseurl.o readflin.o startpg.o ui-curse.o wordwrap.o -o gopherus $(LDFLAGS) $(NC_LDFLAGS) $(CFLAGS) $(NC_CFLAGS)
 
-gopherus-sdl: gopherus.o dnscache.o fs/fs-lin.o history.o net-bsd.o parseurl.o readflin.o startpg.o ui-sdl.o wordwrap.o
-	$(CC) gopherus.o dnscache.o fs/fs-lin.o history.o net-bsd.o parseurl.o readflin.o startpg.o ui-sdl.o wordwrap.o -o gopherus-sdl $(LDFLAGS) $(SDL_LDFLAGS) $(CFLAGS) $(SDL_CFLAGS)
-
 net-bsd.o: net/net-bsd.c
 	$(CC) -c net/net-bsd.c -o net-bsd.o $(CFLAGS)
 
