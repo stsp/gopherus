@@ -17,6 +17,15 @@ char *bookmarks_getfname(char *s, size_t ssz) {
   return(s);
 }
 
+
+char *config_getfname(char *s, size_t ssz) {
+  snprintf(s, ssz, "%s/Gopherus", getenv("APPDATA"));
+  CreateDirectory(s, NULL);
+  snprintf(s, ssz, "%s/Gopherus/gopherus.cfg", getenv("APPDATA"));
+  return(s);
+}
+
+
 void filetrunc(const char *fname, long sz) {
   HANDLE fh;
   fh = CreateFileA(fname, GENERIC_WRITE, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);

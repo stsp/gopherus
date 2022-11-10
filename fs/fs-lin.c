@@ -15,6 +15,14 @@ char *bookmarks_getfname(char *s, size_t ssz) {
   return(s);
 }
 
+
+/* returns path and filename of the config file */
+char *config_getfname(char *s, size_t ssz) {
+  snprintf(s, ssz, "%s/.gopherus.conf", getenv("HOME"));
+  return(s);
+}
+
+
 void filetrunc(const char *fname, long sz) {
   truncate(fname, sz);
 }

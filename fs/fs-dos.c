@@ -66,6 +66,16 @@ char *bookmarks_getfname(char *s, size_t ssz) {
   return(s);
 }
 
+
+char *config_getfname(char *s, size_t ssz) {
+  int plen;
+  if (ssz < 128 + 13) return(NULL);
+  plen = exepath(s);
+  memcpy(s + plen, "GOPHERUS.CFG", 13);
+  return(s);
+}
+
+
 void filetrunc(const char *fname, long sz) {
   int handle;
   handle = open(fname, O_RDWR | O_BINARY);

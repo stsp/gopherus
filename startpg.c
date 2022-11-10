@@ -1,6 +1,6 @@
 /*
  * This file is part of the Gopherus project.
- * Copyright (C) 2013-2019 Mateusz Viste
+ * Copyright (C) 2013-2022 Mateusz Viste
  */
 
 #include <stdio.h>
@@ -14,8 +14,8 @@
 #include "startpg.h"
 
 
-static unsigned short idoc_unpack(char *buf, unsigned short bufsz, const unsigned char *idoc, unsigned short bytelen) {
-  unsigned short i = 0, y = 0;
+static size_t idoc_unpack(char *buf, size_t bufsz, const unsigned char *idoc, size_t bytelen) {
+  size_t i = 0, y = 0;
   for (; i < bytelen; i++) {
     if (idoc[i] < 128) {
       buf[y++] = idoc[i];
@@ -34,10 +34,9 @@ static unsigned short idoc_unpack(char *buf, unsigned short bufsz, const unsigne
 
 
 /* loads the embedded start page into a memory buffer and returns */
-int loadembeddedstartpage(char *buffer, unsigned long buffer_max, const char *token, const char *bookmarksfile) {
-  unsigned short res;
+size_t loadembeddedstartpage(char *buffer, size_t buffer_max, const char *token, const char *bookmarksfile) {
+  size_t res;
   unsigned short favcount = 0;
-  if (buffer_max > 0xffff) buffer_max = 0xffff; /* avoid 16 bit clipping */
   if (token[0] == 'm') { /* manual */
     res = idoc_unpack(buffer, buffer_max, idoc_manual, sizeof(idoc_manual));
   } else { /* welcome screen */
@@ -47,12 +46,14 @@ int loadembeddedstartpage(char *buffer, unsigned long buffer_max, const char *to
     f = fopen(bookmarksfile, "rb");
     if (f != NULL) {
       for (;;) {
-        unsigned short r;
+        size_t r;
         if ((res + 2ul * (MAXHOSTLEN + MAXSELLEN + 8ul)) > buffer_max) break;
         r = readfline(buffer + res, 2ul * (MAXHOSTLEN + MAXSELLEN + 8ul), f);
         if (r == 0) break;
-        if (r < 3) continue; /* skip empty lines */
+        if (r == 1) continue; /* skip empty lines */
+        r--; /* readfline() returns line len - 1 */
         res += r;
+        buffer[res++] = '\n';
         if (favcount < 0xffff) favcount++;
       }
       fclose(f);

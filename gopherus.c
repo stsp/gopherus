@@ -153,39 +153,118 @@ static int hex2int(char c) {
 }
 
 
+static void rtrim(char *s) {
+  char *lastchar = NULL;
+  for (; *s != 0; s++) {
+    if ((*s != ' ') && (*s != '\t')) lastchar = s;
+  }
+  if (lastchar != NULL) {
+    lastchar++;
+    *lastchar = 0;
+  }
+}
+
+
+static char *cfg_tokvaldelim(char **val, char *line) {
+  char *tok = NULL;
+
+  *val = NULL;
+
+  /* skip any white spaces */
+  while ((*line == ' ') || (*line == '\t')) line++;
+
+  /* found token? */
+  if (*line == 0) return(NULL);
+  tok = line;
+
+  /* skip to first white space or = */
+  while ((*line != 0) && (*line != ' ') && (*line != '\t') && (*line != '=')) line++;
+
+  /* end of string? */
+  if (*line == 0) return(NULL);
+
+  /* eq char? */
+  if (*line == '=') *val = line + 1;
+
+  /* terminate token */
+  *line = 0;
+  line++;
+
+  /* skip whitespaces */
+  while ((*line == ' ') || (*line == '\t')) line++;
+
+  /* now I should have either an eq sign or the start of my value */
+  if (*val != NULL) {
+    *val = line;
+    goto RTRIM_VAL;
+  }
+
+  /* if am here then it must be an eq sign */
+  if (*line != '=') return(NULL);
+
+  /* skip the eq sign, as well as any white spaces that follow */
+  line++;
+  while ((*line == ' ') || (*line == '\t')) line++;
+  *val = line;
+
+  /* right-trim value */
+  RTRIM_VAL:
+  rtrim(*val);
+
+  return(tok);
+}
+
+
+/* parses configfile and fill key bindings in cfg accordingly, as well as colorstring */
+static void cfgfileread(struct gopherusconfig *cfg, char *colorstring, const char *configfile) {
+  FILE *fd;
+  size_t len;
+  char *tok, *val;
+  char buff[128];
+
+  fd = fopen(configfile, "rb");
+  if (fd == NULL) return;
+
+  /* read the file line by line */
+  for (;;) {
+    len = readfline(buff, sizeof(buff), fd);
+    if (len == 0) break; /* EOF */
+    len--; /* readfline() returns len of line incl. its nul terminator */
+
+    /* skip comments */
+    if (buff[0] == '#') continue;
+
+    /* explode line into a token - value pair */
+    tok = cfg_tokvaldelim(&val, buff);
+    if (tok == NULL) continue;
+
+    /* token lookup */
+
+    if ((strcasecmp(tok, "colors") == 0) && (strlen(val) >= 18)) {
+      memcpy(colorstring, val, 18);
+      colorstring[18] = 0;
+    }
+
+    /* TODO: key bindings */
+
+  }
+
+  fclose(fd);
+}
+
+
 static void loadcfg(struct gopherusconfig *cfg) {
-  const char *defaultcolorscheme = "177047707818141220";
-  const char *colorstring = NULL;
-  static char sbuf[256];
+  char colorstring[20] = "177047707818141220"; /* preload with default color scheme */
+  const char *configfile = NULL;
+  char sbuf[256];
   int x;
 
   /* for starters let's zero out the struct */
   memset(cfg, 0, sizeof(*cfg));
 
-  /* get bookmarks file location (will be useful later) */
-  cfg->bookmarksfile = bookmarks_getfname(sbuf, sizeof(sbuf));
-
-  /* load color scheme */
-  colorstring = getenv("GOPHERUSCOLOR");
-  if ((colorstring != NULL) && (strlen(colorstring) == 18)) {
-    for (x = 0; x < 18; x++) {
-      if (hex2int(colorstring[x]) < 0) {
-        colorstring = NULL;
-        break;
-      }
-    }
-  }
-  if (colorstring == NULL) colorstring = defaultcolorscheme;
-  /* interpret values from the color scheme variable */
-  cfg->attr_textnorm = (hex2int(colorstring[0]) << 4) | hex2int(colorstring[1]);
-  cfg->attr_statusbarinfo = (hex2int(colorstring[2]) << 4) | hex2int(colorstring[3]);
-  cfg->attr_statusbarwarn = (hex2int(colorstring[4]) << 4) | hex2int(colorstring[5]);
-  cfg->attr_urlbar = (hex2int(colorstring[6]) << 4) | hex2int(colorstring[7]);
-  cfg->attr_urlbardeco = (hex2int(colorstring[8]) << 4) | hex2int(colorstring[9]);
-  cfg->attr_menutype = (hex2int(colorstring[10]) << 4) | hex2int(colorstring[11]);
-  cfg->attr_menuerr = (hex2int(colorstring[12]) << 4) | hex2int(colorstring[13]);
-  cfg->attr_menuselectable = (hex2int(colorstring[14]) << 4) | hex2int(colorstring[15]);
-  cfg->attr_menucurrent = (hex2int(colorstring[16]) << 4) | hex2int(colorstring[17]);
+  /* get bookmarks and config files locations (will be useful later) */
+  cfg->bookmarksfile = strdup(bookmarks_getfname(sbuf, sizeof(sbuf)));
+  configfile = config_getfname(sbuf, sizeof(sbuf));
 
   /* preload default key bindings */
   for (x = 0; x < KEY_COUNT; x++) cfg->keys[x] = 0;
@@ -209,6 +288,20 @@ static void loadcfg(struct gopherusconfig *cfg) {
   cfg->keys[KEY_REFRESH]  = 0x13F;  /* F5 */
   cfg->keys[KEY_SAVE_AS]  = 0x143;  /* F9 */
   cfg->keys[KEY_DOWN_ALL] = 0x144;  /* F10 */
+
+  /* parse the config file */
+  if (configfile != NULL) cfgfileread(cfg, colorstring, configfile);
+
+  /* interpret values from the color scheme string */
+  cfg->attr_textnorm = (hex2int(colorstring[0]) << 4) | hex2int(colorstring[1]);
+  cfg->attr_statusbarinfo = (hex2int(colorstring[2]) << 4) | hex2int(colorstring[3]);
+  cfg->attr_statusbarwarn = (hex2int(colorstring[4]) << 4) | hex2int(colorstring[5]);
+  cfg->attr_urlbar = (hex2int(colorstring[6]) << 4) | hex2int(colorstring[7]);
+  cfg->attr_urlbardeco = (hex2int(colorstring[8]) << 4) | hex2int(colorstring[9]);
+  cfg->attr_menutype = (hex2int(colorstring[10]) << 4) | hex2int(colorstring[11]);
+  cfg->attr_menuerr = (hex2int(colorstring[12]) << 4) | hex2int(colorstring[13]);
+  cfg->attr_menuselectable = (hex2int(colorstring[14]) << 4) | hex2int(colorstring[15]);
+  cfg->attr_menucurrent = (hex2int(colorstring[16]) << 4) | hex2int(colorstring[17]);
 }
 
 
@@ -335,12 +428,13 @@ static void addbookmarkifnotexist(const struct historytype *h, const struct goph
   fd = fopen(cfg->bookmarksfile, "rb");
   if (fd != NULL) {
     for (;;) {
-      unsigned short llen;
+      size_t llen;
       char lbuf[2ul * (MAXHOSTLEN + MAXSELLEN + 8ul)];
       unsigned short iport;
       char *sel, *host, *port;
       llen = readfline(lbuf, sizeof(lbuf), fd);
       if (llen == 0) break;
+      llen--; /* readfline() returns len of line incl. nul-terminator */
       /* */
       menuline_explode(lbuf, llen, NULL, NULL, &sel, &host, &port);
       /* check if same as *h */
@@ -393,7 +487,8 @@ static void delbookmark(const char *bhost, unsigned short bport, const char *bse
   if (fd == NULL) return;
   /* read lines until match found (or eof reached) */
   for (;;) {
-    unsigned short iport, llen;
+    long iport;
+    size_t llen;
     char *sel, *host, *port;
     woff = ftell(fd); /* this where I will write, if match found */
     llen = readfline(lbuf, sizeof(lbuf), fd);
@@ -401,10 +496,11 @@ static void delbookmark(const char *bhost, unsigned short bport, const char *bse
       fclose(fd);
       return;
     }
+    llen--; /* readfline() returns len of line incl. nul-terminator */
     /* */
     iport = 70;
     menuline_explode(lbuf, llen, NULL, NULL, &sel, &host, &port);
-    if (port != NULL) iport = atoi(port);
+    if (port != NULL) iport = atol(port);
     /* */
     if (bport != iport) continue;
     if ((bhost == NULL) && (host != NULL)) continue;
@@ -1623,6 +1719,10 @@ int main(int argc, char **argv) {
         ui_puts("Latest version can be found at the following addresses:");
         ui_puts("  http://gopherus.sourceforge.net");
         ui_puts("  gopher://gopher.viste.fr");
+        ui_puts("");
+        ui_puts("Configuration file is looked at this location:");
+        config_getfname(selector, sizeof(selector));
+        ui_puts(selector);
         ui_puts("");
         ui_puts("This build is dated \"" __DATE__ "\" and handles networking through:");
         ui_puts(net_engine());
