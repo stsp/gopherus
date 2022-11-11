@@ -1,31 +1,43 @@
 #
-# Gopherus Makefile for Windows (mingw64)
-# Copyright (C) 2013-2019 Mateusz Viste
+# Gopherus Makefile for Windows (cross-compile from Linux using mingw64)
+# Copyright (C) 2013-2022 Mateusz Viste
+#
+# _WIN32_WINNT value is the minimum required windows version:
+#  0x0500  Windows 2000
+#  0x0501  Windows XP
+#  0x0502  Windows Server 2003
+#  0x0600  Windows Vista
+#  0x0601  Windows 7
+#  0x0602  Windows 8
+#  0x0603  Windows 8.1
+#  0x0A00  Windows 10
 #
 
-CFLAGS = -std=gnu89 -O3 -Wall -Wextra -pedantic
-CC = gcc
+CFLAGS = -std=gnu99 -O3 -Wall -Wextra -pedantic -D_WIN32_WINNT=0x0600
+LDLIBS = -lws2_32 -lncursesw
+CC = /usr/bin/x86_64-w64-mingw32-gcc
+WINDRES = x86_64-w64-mingw32-windres
 
 all: gopherus.exe
 
 gopherus.exe: gopherus.o dnscache.o fs-win.o history.o net-bsd.o parseurl.o readflin.o startpg.o ui-curse.o wordwrap.o
-	windres win\gopherus.rc -O coff -o win\gopherus.res
-	gcc gopherus.o dnscache.o fs-win.o history.o net-bsd.o parseurl.o readflin.o startpg.o ui-curse.o wordwrap.o win\gopherus.res -o gopherus.exe -Lwin -lws2_32 $(CFLAGS)
+	$(WINDRES) win/gopherus.rc -O coff -o win/gopherus.res
+	$(CC) gopherus.o dnscache.o fs-win.o history.o net-bsd.o parseurl.o readflin.o startpg.o ui-curse.o wordwrap.o win/gopherus.res -o gopherus.exe -Lwin $(LDLIBS) $(CFLAGS)
 
 net-bsd.o: net/net-bsd.c
-	gcc -c net/net-bsd.c -o net-bsd.o $(CFLAGS)
+	$(CC) -c net/net-bsd.c -o net-bsd.o $(CFLAGS)
 
 fs-win.o: fs/fs-win.c
-	gcc -c fs/fs-win.c -o fs-win.o $(CFLAGS)
+	$(CC) -c fs/fs-win.c -o fs-win.o $(CFLAGS)
 
 ui-curse.o: ui/ui-curse.c
-	gcc -c ui/ui-curse.c -o ui-curse.o $(CFLAGS)
+	$(CC) -c ui/ui-curse.c -o ui-curse.o $(CFLAGS)
 
 wraptest.exe: wraptest.c wordwrap.o
-	gcc wraptest.c wordwrap.o -o wraptest.exe $(CFLAGS)
+	$(CC) wraptest.c wordwrap.o -o wraptest.exe $(CFLAGS)
 
 release: gopherus.exe
-	if exist pkg_win\nul del /s /q pkg_win\*
+	if exist pkg_win\nul del /s /q pkg_win/*
 	mkdir pkg_win
 	copy gopherus-sdl.exe pkg_win
 	copy gopherus.txt pkg_win
@@ -33,5 +45,5 @@ release: gopherus.exe
 	echo Subdirectory pkg_win ready to be ziped!
 
 clean:
-	del *.o
-	del gopherus.exe
+	rm -f *.o
+	rm gopherus.exe

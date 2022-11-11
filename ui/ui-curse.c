@@ -2,15 +2,21 @@
  * This file is part of the gopherus project.
  * It provides abstract functions to draw on screen.
  *
- * Copyright (C) 2013-2020 Mateusz Viste
+ * Copyright (C) 2013-2022 Mateusz Viste
  *
- * Provides all UI functions used by Gopherus, basing on the curses api.
+ * Provides all UI functions used by Gopherus, basing on the ncursesw api.
  */
 
 #define _XOPEN_SOURCE_EXTENDED
 
 #include <locale.h>
+
+#ifdef _WIN32
+#include <ncursesw/curses.h>
+#else
 #include <curses.h> /* relates to ncursesw (include dir set in Makefile) */
+#endif
+
 #include <stdio.h> /* this one contains the NULL definition */
 #include <string.h>
 

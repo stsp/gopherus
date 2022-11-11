@@ -11,7 +11,7 @@
   DOS 16 bit: OpenWatcom v1.9 (+Watt32)
   Linux: gcc or clang (+ncursesw)
   BSD: same as Linux
-  Windows: Mingw64 (+pdcurses)
+  Windows: Mingw64 (+ncursesw)
 
 
  === Customization ===
@@ -34,9 +34,7 @@
 
   Linux, BSD & Windows
     Non-DOS versions are built against the ncursesw library to access the
-    terminal. Alternatively, you can also build gopherus using SDL2 support
-    instead (make -f Makefile.xxx gopherus-sdl). All network operations
-    are performed using classic BSD-style sockets.
+    terminal. All network operations are performed using BSD-style sockets.
 
 
                                                               - Mateusz Viste

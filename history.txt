@@ -5,13 +5,14 @@ Gopherus changelog
 Gopherus v1.2.2 [xx xxx xxxx]:
  - [new] F4 key loads the main menu of the current server
  - [new] key bindings can be reconfigured through a configuration file
+ - [new] 0-byte answers are interpreted as a "selector does not exist" error
  - [fix] fixed a minor buffer overflow
- - [mnt] 0-byte answers are interpreted as a "selector does not exist" error
  - [mnt] optimizations to decrease memory footprint
+ - [mnt] Windows version is cross-compiled with mingw64 and requires x86_64
  - [mnt] DOS version: supports pages up to 65000 bytes long (was: 32000 bytes)
  - [mnt] DOS version: increased max amount of lines in a menu from 128 to 512
  - [mnt] dropped support for the DOS 32-bit (DJGPP) version
- - [mnt] dropped the SDL2 target, Windows build relies on pdcurses
+ - [mnt] dropped the SDL2 target
 
 Gopherus v1.2.1 [22 Jan 2020]:
  - [fix] fixed crashes in the DOS 16 bit build (patching WATT-32)

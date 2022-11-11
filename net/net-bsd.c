@@ -14,6 +14,7 @@
 
 #ifdef _WIN32
   #include <winsock2.h> /* socket() */
+  #include <ws2tcpip.h> /* inet_pton(), inet_ntop() */
   #include <io.h>       /* closesocket() */
   #define CLOSESOCK(x) closesocket(x)
 #else
