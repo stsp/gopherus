@@ -330,7 +330,7 @@ static int loadcfg(struct gopherusconfig *cfg) {
   cfg->keys[KEY_END]      = 335;  /* END */
   cfg->keys[KEY_ENTER]    =  13;  /* ENTER (AKA RETURN) */
   cfg->keys[KEY_BACKSPC]  =   8;  /* BACKSPACE */
-  cfg->keys[KEY_DEL]      = 323;  /* DEL */
+  cfg->keys[KEY_DEL]      = 339;  /* DEL */
   cfg->keys[KEY_ESC]      =  27;  /* ESCAPE */
   cfg->keys[KEY_TAB]      =   9;  /* TAB */
   cfg->keys[KEY_BOOKMARK] =  98;  /* 'b' */
@@ -1851,12 +1851,11 @@ int main(int argc, char **argv) {
 
   /* if in non-interactive mode (-o=...), then fetch the resource and quit */
   if (saveas != NULL) {
-    long res;
     if (history == NULL) {
       ui_puts("You must provide an URL when using -o");
       goto GAMEOVER;
     }
-    res = loadfile_buff(history->protocol, history->host, history->port, history->selector, buffer, PAGEBUFSZ, saveas, &cfg);
+    loadfile_buff(history->protocol, history->host, history->port, history->selector, buffer, PAGEBUFSZ, saveas, &cfg);
     /* return to the OS */
     goto GAMEOVER;
   }
