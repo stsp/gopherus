@@ -10,17 +10,15 @@ This program is released under the terms of the '2-clause' BSD license.
 
 ### KEY BINDINGS #############################################################
 
-Gopherus is a console-mode gopher client entirely keyboard-driven, hence
-knowing its key bindings is mandatory for comfortable browsing.
-
-Key bindings:
+Gopherus is a console-mode gopher client entirely keyboard-driven. Its default
+key bindings are listed below:
 
 TAB       - Switch to/from URL bar edition
 ESC       - Quit Gopherus (requires a confirmation)
 UP/DOWN   - Scroll the screen's content up/down by one line
 PGUP/PGDW - Scroll the screen's content up/down by one page
 HOME/END  - Jump to the top/bottom of the current document
-BACKSPC   - Go back to the previous location
+BACKSPACE - Go back to the previous location
 B         - Bookmark current location
 DEL       - Delete bookmark (main screen only)
 F1        - Show help (this file)
@@ -30,18 +28,41 @@ F5        - Refresh current location
 F9        - Download location to disk
 F10       - Download all files in current menu to disk
 
+Key bindings can be reconfigured through the Gopherus configuration file by
+assigning key scancodes to following configuration variables:
+
+key.home     = 327
+key.end      = 335
+key.enter    =  13
+key.backspc  =   8
+key.del      = 323
+key.esc      =  27
+key.tab      =   9
+key.bookmark =  98
+key.up       = 328
+key.down     = 336
+key.left     = 331
+key.right    = 333
+key.pgup     = 329
+key.pgdown   = 337
+key.help     = 315
+key.jmp_home = 316
+key.jmp_main = 318
+key.refresh  = 319
+key.save_as  = 323
+key.down_all = 324
+
+Learn the scancode of your keyboard's keys by running "gopherus -keycodes".
+
 
 ### CUSTOM COLOR SCHEMES #####################################################
 
 The Gopherus color scheme can be customized. To do so, you will have to set a
-"colors" in Gopherus' configuration file. The Gopherus configuration file's
-location depends on your platform. Run "gopherus --help" to learn it.
-
-The "colors" variable must contain exactly 6 color attributes. Each attribute
-describes the foreground and background color of a given UI element. An
-attribute is composed from two hexadecimal digits: XY, where X is the
-background color, and Y is the foreground color. Colors are indexed as in the
-classic CGA palette:
+"colors" variable in Gopherus' configuration file. This variable must contain
+exactly 6 color attributes. Each attribute describes the foreground and
+background color of a given UI element. An attribute is composed of two hex
+digits: BF, where B is the background color, and F is the foreground color.
+Colors are indexed as in the classic CGA palette:
 
 0 = black
 1 = low blue
@@ -78,6 +99,12 @@ Examples:
 Default Gopherus palette....: 177047707818141220
 Black & white...............: 077070707808070770
 Missing green, 1980 CRTs?...: 022020202002020220
+
+
+### CONFIGURATION FILE LOCATION ##############################################
+
+The Gopherus configuration file's location depends on your platform.
+Run "gopherus --help" to learn it.
 
 
 ### REQUIREMENTS #############################################################

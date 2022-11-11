@@ -153,6 +153,17 @@ static int hex2int(char c) {
 }
 
 
+/* returns 0 if s starts with prefix, -1 otherwise */
+static int strstartswith(const char *prefix, const char *s) {
+  for (;;) {
+    if (*prefix == 0) return(0);
+    if (*prefix != *s) return(-1);
+    prefix++;
+    s++;
+  }
+}
+
+
 static void rtrim(char *s) {
   char *lastchar = NULL;
   for (; *s != 0; s++) {
@@ -216,44 +227,91 @@ static char *cfg_tokvaldelim(char **val, char *line) {
 
 
 /* parses configfile and fill key bindings in cfg accordingly, as well as colorstring */
-static void cfgfileread(struct gopherusconfig *cfg, char *colorstring, const char *configfile) {
+static int cfgfileread(struct gopherusconfig *cfg, char *colorstring, const char *configfile) {
   FILE *fd;
   size_t len;
   char *tok, *val;
   char buff[128];
+  size_t linecount;
+  int errflag = 0;
 
   fd = fopen(configfile, "rb");
-  if (fd == NULL) return;
+  if (fd == NULL) return(0); /* missing configuration file is not an error condition */
 
   /* read the file line by line */
-  for (;;) {
+  for (linecount = 1;; linecount++) {
+    /* key definitions, must be in exactly the same order as the enum KEYS list */
+    const char *keydef[] = {"", "home", "end", "enter", "backspc", "del", "esc", "tab", "bookmark", "up", "down", "left", "right", "pgup", "pgdown", "help", "jmp_home", "jmp_main", "refresh", "save_as", "down_all"};
+
     len = readfline(buff, sizeof(buff), fd);
     if (len == 0) break; /* EOF */
     len--; /* readfline() returns len of line incl. its nul terminator */
 
-    /* skip comments */
-    if (buff[0] == '#') continue;
+    /* skip comments and empty lines */
+    if ((len == 0) || (buff[0] == '#')) continue;
 
     /* explode line into a token - value pair */
     tok = cfg_tokvaldelim(&val, buff);
-    if (tok == NULL) continue;
-
-    /* token lookup */
-
-    if ((strcasecmp(tok, "colors") == 0) && (strlen(val) >= 18)) {
-      memcpy(colorstring, val, 18);
-      colorstring[18] = 0;
+    if (tok == NULL) {
+      snprintf(buff, sizeof(buff), "ERR: Invalid token=value syntax on line #%zu of %s", linecount, configfile);
+      ui_puts(buff);
+      errflag = -1;
+      continue;
     }
 
-    /* TODO: key bindings */
+    /******** token lookup ********/
 
+    if (strcmp(tok, "colors") == 0) {
+      unsigned char i = 0;
+      if (strlen(val) == 18) {
+        memcpy(colorstring, val, 18);
+        colorstring[18] = 0;
+        /* validate that colorstring is a string of 18 hex values */
+        for (i = 0; i < 18; i++) {
+          if (hex2int(colorstring[i]) < 0) break;
+        }
+      }
+      if (i != 18) {
+        snprintf(buff, sizeof(buff), "ERR: Invalid 'colors' string on line #%zu of %s", linecount, configfile);
+        ui_puts(buff);
+        errflag = -1;
+      }
+      continue;
+    }
+
+    if (strstartswith("key.", tok) == 0) {
+      unsigned char i;
+      tok += 4;
+      for (i = 1; i < KEY_COUNT; i++) {
+        if (strcmp(tok, keydef[i]) == 0) {
+          cfg->keys[i] = atoi(val);
+          if (cfg->keys[i] == 0) {
+            snprintf(buff, sizeof(buff), "ERR: Invalid key value on line #%zu of %s", linecount, configfile);
+            ui_puts(buff);
+            errflag = -1;
+          }
+        }
+      }
+      if (i != KEY_COUNT) {
+        snprintf(buff, sizeof(buff), "ERR: Invalid key name on line #%zu of %s", linecount, configfile);
+        ui_puts(buff);
+        errflag = -1;
+      }
+      continue;
+    }
+
+    /* invalid token */
+    snprintf(buff, sizeof(buff), "ERR: Invalid token on line #%zu of %s", linecount, configfile);
+    ui_puts(buff);
+    errflag = -1;
   }
 
   fclose(fd);
+  return(errflag);
 }
 
 
-static void loadcfg(struct gopherusconfig *cfg) {
+static int loadcfg(struct gopherusconfig *cfg) {
   char colorstring[20] = "177047707818141220"; /* preload with default color scheme */
   const char *configfile = NULL;
   char sbuf[256];
@@ -268,29 +326,31 @@ static void loadcfg(struct gopherusconfig *cfg) {
 
   /* preload default key bindings */
   for (x = 0; x < KEY_COUNT; x++) cfg->keys[x] = 0;
-  cfg->keys[KEY_HOME]     = 0x147;  /* HOME */
-  cfg->keys[KEY_END]      = 0x14F;  /* END */
-  cfg->keys[KEY_ENTER]    = 0x0D;   /* ENTER (AKA RETURN) */
-  cfg->keys[KEY_BACKSPC]  = 0x08;   /* BACKSPACE */
-  cfg->keys[KEY_DEL]      = 0x143;  /* DEL */
-  cfg->keys[KEY_ESC]      = 0x1B;   /* ESCAPE */
-  cfg->keys[KEY_TAB]      = 0x09;   /* TAB */
-  cfg->keys[KEY_BOOKMARK] = 'b';
-  cfg->keys[KEY_UP]       = 0x148;  /* UP */
-  cfg->keys[KEY_DOWN]     = 0x150;  /* DOWN */
-  cfg->keys[KEY_LEFT]     = 0x14B;  /* LEFT */
-  cfg->keys[KEY_RIGHT]    = 0x14D;  /* RIGHT */
-  cfg->keys[KEY_PGUP]     = 0x149;  /* PAGE UP */
-  cfg->keys[KEY_PGDOWN]   = 0x151;  /* PAGE DOWN */
-  cfg->keys[KEY_HELP]     = 0x13B;  /* F1 */
-  cfg->keys[KEY_JMP_HOME] = 0x13C;  /* F2 */
-  cfg->keys[KEY_JMP_MAIN] = 0x13E;  /* F4 */
-  cfg->keys[KEY_REFRESH]  = 0x13F;  /* F5 */
-  cfg->keys[KEY_SAVE_AS]  = 0x143;  /* F9 */
-  cfg->keys[KEY_DOWN_ALL] = 0x144;  /* F10 */
+  cfg->keys[KEY_HOME]     = 327;  /* HOME */
+  cfg->keys[KEY_END]      = 335;  /* END */
+  cfg->keys[KEY_ENTER]    =  13;  /* ENTER (AKA RETURN) */
+  cfg->keys[KEY_BACKSPC]  =   8;  /* BACKSPACE */
+  cfg->keys[KEY_DEL]      = 323;  /* DEL */
+  cfg->keys[KEY_ESC]      =  27;  /* ESCAPE */
+  cfg->keys[KEY_TAB]      =   9;  /* TAB */
+  cfg->keys[KEY_BOOKMARK] =  98;  /* 'b' */
+  cfg->keys[KEY_UP]       = 328;  /* UP */
+  cfg->keys[KEY_DOWN]     = 336;  /* DOWN */
+  cfg->keys[KEY_LEFT]     = 331;  /* LEFT */
+  cfg->keys[KEY_RIGHT]    = 333;  /* RIGHT */
+  cfg->keys[KEY_PGUP]     = 329;  /* PAGE UP */
+  cfg->keys[KEY_PGDOWN]   = 337;  /* PAGE DOWN */
+  cfg->keys[KEY_HELP]     = 315;  /* F1 */
+  cfg->keys[KEY_JMP_HOME] = 316;  /* F2 */
+  cfg->keys[KEY_JMP_MAIN] = 318;  /* F4 */
+  cfg->keys[KEY_REFRESH]  = 319;  /* F5 */
+  cfg->keys[KEY_SAVE_AS]  = 323;  /* F9 */
+  cfg->keys[KEY_DOWN_ALL] = 324;  /* F10 */
 
   /* parse the config file */
-  if (configfile != NULL) cfgfileread(cfg, colorstring, configfile);
+  if (configfile != NULL) {
+    if (cfgfileread(cfg, colorstring, configfile) != 0) return(-1);
+  }
 
   /* interpret values from the color scheme string */
   cfg->attr_textnorm = (hex2int(colorstring[0]) << 4) | hex2int(colorstring[1]);
@@ -302,6 +362,8 @@ static void loadcfg(struct gopherusconfig *cfg) {
   cfg->attr_menuerr = (hex2int(colorstring[12]) << 4) | hex2int(colorstring[13]);
   cfg->attr_menuselectable = (hex2int(colorstring[14]) << 4) | hex2int(colorstring[15]);
   cfg->attr_menucurrent = (hex2int(colorstring[16]) << 4) | hex2int(colorstring[17]);
+
+  return(0);
 }
 
 
@@ -1672,6 +1734,25 @@ static void bookmarkfile_createifnone(const char *fname) {
 }
 
 
+static void keycodes(void) {
+  char buf[8];
+  unsigned short k, lastk = 0;
+
+  ui_init();
+  drawstr("Press keys to see their scancodes. These scancode values may be", 0x07, 0, 0, 70);
+  drawstr("used in the gopherus configuration file to redefine key bindings.", 0x07, 0, 1, 70);
+  drawstr("Press the SPACE key twice to quit.", 0x07, 0, 2, 70);
+  for (;;) {
+    k = ui_getkey();
+    if ((k == 32) && (lastk == 32)) break;
+    lastk = k;
+    sprintf(buf, "%u", k);
+    drawstr(buf, 0x02, 0, 4, 20);
+  }
+  ui_close();
+}
+
+
 int main(int argc, char **argv) {
   int netinitflag = -1, uiinitflag = -1;
   char *fatalerr = NULL;
@@ -1680,8 +1761,14 @@ int main(int argc, char **argv) {
   struct historytype *history = NULL;
   struct gopherusconfig cfg;
 
+  /* special mode: gopherus -keycodes */
+  if ((argc == 2) && (strcasecmp(argv[1], "-keycodes") == 0)) {
+    keycodes();
+    return(0);
+  }
+
   /* Load configuration (or defaults) */
-  loadcfg(&cfg);
+  if (loadcfg(&cfg) != 0) return(1);
 
   if (argc > 1) { /* if some params have been received, parse them */
     char itemtype;
