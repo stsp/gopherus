@@ -1739,16 +1739,19 @@ static void keycodes(void) {
   unsigned short k, lastk = 0;
 
   ui_init();
+  ui_cls();
   drawstr("Press keys to see their scancodes. These scancode values may be", 0x07, 0, 0, 70);
   drawstr("used in the gopherus configuration file to redefine key bindings.", 0x07, 0, 1, 70);
   drawstr("Press the SPACE key twice to quit.", 0x07, 0, 2, 70);
+  ui_locate(4, 0);
   for (;;) {
     k = ui_getkey();
     if ((k == 32) && (lastk == 32)) break;
     lastk = k;
-    sprintf(buf, "%u", k);
+    sprintf(buf, " %u", k);
     drawstr(buf, 0x02, 0, 4, 20);
   }
+  ui_cls();
   ui_close();
 }
 
