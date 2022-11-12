@@ -8,10 +8,10 @@
 
  === What compiler to use ===
 
-  DOS 16 bit: OpenWatcom v1.9 (+Watt32)
-  Linux: gcc or clang (+ncursesw)
-  BSD: same as Linux
-  Windows: Mingw64 (+ncursesw)
+  DOS 16 bit: OpenWatcom v1.9 (+Watt32)    wmake -f Makefile.dos
+  Linux: gcc or clang (+ncursesw)          make -f Makefile.lin
+  BSD: same as Linux                       make -f Makefile.lin
+  Windows: Mingw64 (+ncursesw)             make -f Makefile.win
 
 
  === Customization ===

@@ -57,12 +57,11 @@ Learn the scancode of your keyboard's keys by running "gopherus -keycodes".
 
 ### CUSTOM COLOR SCHEMES #####################################################
 
-The Gopherus color scheme can be customized. To do so, you will have to set a
-"colors" variable in Gopherus' configuration file. This variable must contain
-exactly 6 color attributes. Each attribute describes the foreground and
-background color of a given UI element. An attribute is composed of two hex
-digits: BF, where B is the background color, and F is the foreground color.
-Colors are indexed as in the classic CGA palette:
+The Gopherus color scheme can be customized using a "colors" variable in the
+configuration file. This variable must contain exactly 6 color attributes,
+each describing the foreground and background color of a given UI element. An
+attribute is composed of two hex digits: BF, where B is the background color,
+and F is the foreground color. Colors indexes follow the classic CGA palette:
 
 0 = black
 1 = low blue
@@ -96,14 +95,14 @@ colors = aabbccddeeffgghhii
 
 Examples:
 
-Default Gopherus palette....: 177047707818141220
-Black & white...............: 077070707808070770
-Missing green, 1980 CRTs?...: 022020202002020220
+Default Gopherus palette....:  colors = 177047707818141220
+Black & white...............:  colors = 077070707808070770
+Missing green, 1980 CRTs?...:  colors = 022020202002020220
 
 
 ### CONFIGURATION FILE LOCATION ##############################################
 
-The Gopherus configuration file's location depends on your platform.
+The location of the Gopherus config file depends on your platform.
 Run "gopherus --help" to learn it.
 
 
@@ -121,8 +120,8 @@ need much to run. The 16-bit DOS version requires at least:
 
 Gopherus decodes all displayable content as UTF-8 and outputs wide characters
 to the terminal whenever possible (relying on ncursesw). On the DOS platform
-it limits output to characters in the ASCII range  32..255 and assumes a
-running codepage set to Latin I.
+it limits output to characters in the ASCII range 32..255 and assumes a system
+codepage set to Latin I.
 
 
 ### LICENSE ##################################################################
