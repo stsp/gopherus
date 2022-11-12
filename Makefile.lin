@@ -10,15 +10,11 @@ CFLAGS ?= -std=gnu99 -O3 -Wall -Wextra -pedantic
 LDFLAGS ?=
 
 NC_CFLAGS := $(shell ncursesw6-config --cflags)
-NC_LDFLAGS := $(shell ncursesw6-config --libs)
-
-SDL_CFLAGS := $(shell sdl2-config --cflags)
-SDL_LDFLAGS := $(shell sdl2-config --libs)
+LDFLAGS += $(shell ncursesw6-config --libs)
 
 all: gopherus
 
-gopherus: gopherus.o dnscache.o fs/fs-lin.o history.o net-bsd.o parseurl.o readflin.o startpg.o ui-curse.o wordwrap.o
-	$(CC) gopherus.o dnscache.o fs/fs-lin.o history.o net-bsd.o parseurl.o readflin.o startpg.o ui-curse.o wordwrap.o -o gopherus $(LDFLAGS) $(NC_LDFLAGS) $(CFLAGS) $(NC_CFLAGS)
+gopherus: gopherus.o dnscache.o fs-lin.o history.o net-bsd.o parseurl.o readflin.o startpg.o ui-curse.o wordwrap.o
 
 net-bsd.o: net/net-bsd.c
 	$(CC) -c net/net-bsd.c -o net-bsd.o $(CFLAGS)
@@ -26,13 +22,8 @@ net-bsd.o: net/net-bsd.c
 ui-curse.o: ui/ui-curse.c
 	$(CC) -c ui/ui-curse.c -o ui-curse.o $(CFLAGS) $(NC_CFLAGS)
 
-ui-sdl.o: ui/ui-sdl.c
-	$(CC) -c ui/ui-sdl.c -o ui-sdl.o $(CFLAGS) $(SDL_CFLAGS)
-
-wraptest: wraptest.c wordwrap.o
-	$(CC) wraptest.c wordwrap.o -o wraptest $(CFLAGS)
+fs-lin.o: fs/fs-lin.c
+	$(CC) -c fs/fs-lin.c -o fs-lin.o $(CFLAGS)
 
 clean:
-	rm -f *.o fs/*.o net/*.o idoc/*.o ui/*.o
-	rm -f gopherus gopherus-sdl
-
+	rm -f gopherus *.o
