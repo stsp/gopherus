@@ -2,7 +2,7 @@
 Gopherus changelog
 
 
-Gopherus v1.2.2 [xx xxx xxxx]:
+Gopherus v1.2.2 [12 Nov 2022]:
  - [new] F4 key loads the main menu of the current server
  - [new] key bindings can be reconfigured through a configuration file
  - [new] 0-byte answers are interpreted as a "selector does not exist" error
