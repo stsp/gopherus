@@ -10,7 +10,7 @@ CFLAGS ?= -std=gnu99 -O3 -Wall -Wextra -pedantic
 LDFLAGS ?=
 
 NC_CFLAGS := $(shell ncursesw6-config --cflags)
-LDFLAGS += $(shell ncursesw6-config --libs)
+LDLIBS += $(shell ncursesw6-config --libs)
 
 all: gopherus
 
