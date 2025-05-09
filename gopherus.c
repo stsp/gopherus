@@ -1491,7 +1491,7 @@ static int display_menu(struct historytype **history, const struct gopherusconfi
 
 static int display_text(struct historytype **history, const struct gopherusconfig *cfg, char *buffer, long buffersize, int txtformat) {
   char *txtptr;
-  char linebuff[256];
+  char linebuff[128];
   long x, y, firstline, lastline, bufferlen;
   int eof_flag;
   int screenw = ui_getcolcount();
