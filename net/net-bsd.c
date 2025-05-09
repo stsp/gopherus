@@ -11,6 +11,7 @@
 #include <errno.h>   /* EAGAIN, EWOULDBLOCK... */
 #include <stdint.h>  /* uint32_t */
 #include <string.h>  /* memcpy() */
+#include <time.h>    /* struct timeval */
 
 #ifdef _WIN32
   #include <winsock2.h> /* socket() */
@@ -19,7 +20,9 @@
   #define CLOSESOCK(x) closesocket(x)
 #else
   #include <sys/socket.h> /* socket() */
+#ifndef DJ64
   #include <sys/select.h> /* select(), fd_set() */
+#endif
   #include <arpa/inet.h>
   #include <netdb.h>
   #include <unistd.h> /* close() */
@@ -40,10 +43,14 @@ int net_dnsresolve(char *ip, const char *name) {
   if (r->ai_family == AF_INET) {
     struct sockaddr_in *a = (void *)(r->ai_addr);
     ntopres = inet_ntop(r->ai_family, &(a->sin_addr), ip, INET_ADDRSTRLEN);
-  } else if (r->ai_family == AF_INET6) {
+  }
+#ifndef DJ64
+  else if (r->ai_family == AF_INET6) {
     struct sockaddr_in6 *a = (void *)(r->ai_addr);
     ntopres = inet_ntop(r->ai_family, a->sin6_addr.s6_addr, ip, INET6_ADDRSTRLEN);
-  } else {
+  }
+#endif
+  else {
     ntopres = NULL; /* error */
   }
 
@@ -71,9 +78,15 @@ int net_init(void) {
 
 struct net_tcpsocket *net_connect(const char *ipaddr, unsigned short port) {
   struct sockaddr_in remote4;
+#ifndef DJ64
   struct sockaddr_in6 remote6;
+#endif
   struct net_tcpsocket *result;
+#ifndef DJ64
   struct sockaddr_storage dstbin;
+#else
+  char dstbin[INET_ADDRSTRLEN];
+#endif
   int connectres;
   int af = AF_UNSPEC;
   int i;
@@ -84,10 +97,12 @@ struct net_tcpsocket *net_connect(const char *ipaddr, unsigned short port) {
       af = AF_INET;
       break;
     }
+#ifndef DJ64
     if (ipaddr[i] == ':') {
       af = AF_INET6;
       break;
     }
+#endif
     if (ipaddr[i] == 0) return(NULL);
   }
 
@@ -121,12 +136,15 @@ struct net_tcpsocket *net_connect(const char *ipaddr, unsigned short port) {
     memcpy(&(remote4.sin_addr.s_addr), &dstbin, sizeof(remote4.sin_addr.s_addr));
     remote4.sin_port = htons(port); /* set the dst port */
     connectres = connect(result->s, (struct sockaddr *)&remote4, sizeof(struct sockaddr_in));
-  } else {
+  }
+#ifndef DJ64
+  else {
     remote6.sin6_family = AF_INET6;  /* Proto family (IPv6) */
     memcpy(remote6.sin6_addr.s6_addr, &dstbin, sizeof(remote6.sin6_addr.s6_addr));
     remote6.sin6_port = htons(port); /* set the dst port */
     connectres = connect(result->s, (struct sockaddr *)&remote6, sizeof(struct sockaddr_in6));
   }
+#endif
 #ifdef _WIN32
   if ((connectres < 0) && (WSAGetLastError() != WSAEWOULDBLOCK)) {
 #else
