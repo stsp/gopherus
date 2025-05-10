@@ -1,0 +1,9 @@
+ipv6 are tried to be resolved, which fails...
+
+user should be able to cancel during the 'resolving...' phase
+
+external viewers (images...)
+
+display_text() and display_menu() shouldn't need to copy content into another buffer before displaying it.
+
+wordwrap() does not understand utf-8, hence sometimes it may wrap a little bit too early

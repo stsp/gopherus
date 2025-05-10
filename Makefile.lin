@@ -1,0 +1,29 @@
+#
+# Gopherus Makefile for Linux (and BSD, and probably other POSIX systems)
+# Copyright (C) 2013-2022 Mateusz Viste
+#
+# 2020-04-17: LDFLAGS/CFLAGS improvements by François Revol
+#
+
+CC ?= gcc
+CFLAGS ?= -std=gnu99 -O3 -Wall -Wextra -pedantic
+LDFLAGS ?=
+
+NC_CFLAGS := $(shell ncursesw6-config --cflags)
+LDLIBS += $(shell ncursesw6-config --libs)
+
+all: gopherus
+
+gopherus: gopherus.o dnscache.o fs-lin.o history.o net-bsd.o parseurl.o readflin.o startpg.o ui-curse.o wordwrap.o
+
+net-bsd.o: net/net-bsd.c
+	$(CC) -c net/net-bsd.c -o net-bsd.o $(CFLAGS)
+
+ui-curse.o: ui/ui-curse.c
+	$(CC) -c ui/ui-curse.c -o ui-curse.o $(CFLAGS) $(NC_CFLAGS)
+
+fs-lin.o: fs/fs-lin.c
+	$(CC) -c fs/fs-lin.c -o fs-lin.o $(CFLAGS)
+
+clean:
+	rm -f gopherus *.o

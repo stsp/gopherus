@@ -1,0 +1,42 @@
+
+=== Building instructions ===
+
+There is nothing particular to know about the building process of Gopherus.
+It's shipped with Makefile files for different operating systems, therefore
+the whole thing would be about using the right one for your target.
+
+
+=== What compiler to use ===
+
+DOS 16 bit: OpenWatcom v1.9 (+Watt32)    wmake -f Makefile.dos
+Linux: gcc or clang (+ncursesw)          make -f Makefile.lin
+BSD: same as Linux                       make -f Makefile.lin
+Windows: Mingw64 (+ncursesw)             make -f Makefile.win
+
+
+=== Customization ===
+
+A fair amount of compile-time options can be fiddled with through the
+config.h file.
+
+
+=== Dependencies ===
+
+DOS
+  The DOS versions rely on the Watt32 library for all network operations.
+  I use Watt32 2.2.10 even though ver 2.2.11 is available, because the latter
+  locks up during DHCP discovery when used with 16 bit code. Reported here:
+  https://github.com/gvanem/Watt-32/issues/4
+
+  Wanna compile Watt32 yourself? Instructions:
+    - unzip watt32s-2.2-dev.10.zip and switch to the "src" directory
+    - apply "config.patch" and "fsm_win.patch" patches
+    - execute "configur watcom"
+    - execute "wmake -f watcom_l.mak"
+
+Linux, BSD & Windows
+  Non-DOS versions are built against the ncursesw library to access the
+  terminal. All network operations are performed using BSD-style sockets.
+
+
+                                                              - Mateusz Viste

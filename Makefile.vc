@@ -1,0 +1,73 @@
+#
+# GNU makefile for Windows Gopherus using MSVC with clang-cl.
+# Contributed by Gisle Vanem
+#
+
+VPATH = net ui
+
+USE_CLANG_CL ?= 1
+SDL_ROOT     ?= f:/MingW32/src/Graphics/SDL
+
+CFLAGS = -MD -Ot -W3 -Zi                   \
+         -I$(SDL_ROOT)/include             \
+         -D_WINSOCK_DEPRECATED_NO_WARNINGS \
+         -DUSE_SDL1                        \
+
+CFLAGS += -D_CRT_SECURE_NO_WARNINGS         \
+          -D_CRT_SECURE_NO_DEPRECATE        \
+          -D_CRT_OBSOLETE_NO_WARNINGS       \
+          -D_CRT_SECURE_NO_WARNINGS_GLOBALS \
+          -D_CRT_NONSTDC_NO_WARNINGS        \
+          -Dstrcasecmp=_stricmp
+
+LDFLAGS = -nologo -debug -map -incremental:no # -subsystem:windows
+
+ifeq ($(USE_CLANG_CL),1)
+  CC      = clang-cl
+  CFLAGS += -ferror-limit=5
+  export CL=
+else
+  CC = cl
+endif
+
+SOURCES = gopherus.c    \
+          dnscache.c    \
+          history.c     \
+          parseurl.c    \
+          startpg.c     \
+          wordwrap.c    \
+          net/net-win.c \
+          ui/ui-sdl.c
+
+OBJECTS = $(SOURCES:.c=.obj) gopherus.res
+
+LIBS = $(SDL_ROOT)/lib/SDL2.lib \
+       advapi32.lib             \
+       user32.lib               \
+       gdi32.lib                \
+       imm32.lib                \
+       ole32.lib                \
+       oleaut32.lib             \
+       shell32.lib              \
+       version.lib              \
+       winmm.lib                \
+       ws2_32.lib
+
+all: gopherus.exe
+	@echo 'Welcome to Gopherus client.'
+
+gopherus.exe: $(OBJECTS) Makefile.clang
+	link $(LDFLAGS) -out:$@ $(OBJECTS) $(LIBS)
+	@echo
+
+gopherus.res: win/gopherus.rc
+	rc -nologo -Fo $@ $<
+	@echo
+
+%.obj: %.c
+	$(CC) $(CFLAGS) -c -Fo$@ $<
+	@echo
+
+clean vclean distclean:
+	rm -f $(OBJECTS) gopherus.exe gopherus.pdb gopherus.map
+	@echo

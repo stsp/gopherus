@@ -1,0 +1,34 @@
+#
+# Gopherus Makefile for Linux (and BSD, and probably other POSIX systems)
+# Copyright (C) 2013-2022 Mateusz Viste
+#
+# 2020-04-17: LDFLAGS/CFLAGS improvements by François Revol
+#
+
+CC ?= gcc
+CFLAGS = -std=gnu99 -O3 -Wall -Wextra -pedantic \
+  $(shell pkg-config --variable=xcppflags dj64) \
+  $(shell pkg-config --cflags dj64) -shared -g3
+LDFLAGS = $(shell pkg-config --libs dj64) \
+  -Wl,-rpath=/usr/local/i386-pc-dj64/lib64 \
+  -Wl,-rpath=/usr/i386-pc-dj64/lib64
+
+PREFIX := $(shell pkg-config --variable=dj64prefix dj64)
+NC_CFLAGS := $(shell $(PREFIX)/bin/ncursesw6-config --cflags)
+LDLIBS += $(shell $(PREFIX)/bin/ncursesw6-config --libs)
+
+all: gopherus
+
+gopherus: gopherus.o dnscache.o fs-dj.o history.o net-bsd.o parseurl.o readflin.o startpg.o ui-curse.o wordwrap.o
+
+net-bsd.o: net/net-bsd.c
+	$(CC) -c $< -o $@ $(CFLAGS)
+
+ui-curse.o: ui/ui-curse.c
+	$(CC) -c ui/ui-curse.c -o ui-curse.o $(CFLAGS) $(NC_CFLAGS)
+
+fs-dj.o: fs/fs-dj.c
+	$(CC) -c $< -o $@ $(CFLAGS)
+
+clean:
+	rm -f gopherus *.o

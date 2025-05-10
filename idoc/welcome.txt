@@ -1,0 +1,12 @@
+i                 ____             _
+i                / ___| ___  _ __ | |__   ___ _ __ _   _ ___
+i               | |  _ / _ \| '_ \| '_ \ / _ \ '__| | | / __|
+i               | |_| | (_) | |_) | | | |  __/ |  | |_| \__ \
+i                \____|\___/| .__/|_| |_|\___|_|   \__,_|___/
+i                           |_|                 version 1.2.2
+i
+i     Welcome to Gopherus: a multi-platform, console-mode gopher client.
+i                               Press F1 at any time to read the manual.
+i
+iBookmarks:
+i
