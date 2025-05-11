@@ -1814,7 +1814,7 @@ int main(int argc, char **argv) {
         config_getfname(selector, sizeof(selector));
         ui_puts(selector);
         ui_puts("");
-        ui_puts("This build is dated \"" __DATE__ "\" and handles networking through:");
+//        ui_puts("This build is dated \"" __DATE__ "\" and handles networking through:");
         ui_puts(net_engine());
         return(1);
       }
