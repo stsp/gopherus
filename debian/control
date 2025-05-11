@@ -1,0 +1,18 @@
+Source: gopherus
+Section: otherosfs
+Priority: optional
+Maintainer: Stas Sergeev <stsp@users.sourceforge.net>
+Standards-Version: 3.9.7
+Build-Depends:
+    pkgconf,
+    dj64-dev,
+    dj64-host,
+    debhelper (>= 9~)
+Homepage: https://github.com/stsp/gopherus
+
+Package: gopherus
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: gopher client
+ Free, multiplatform, console-mode gopher client that provides a
+ classic text interface to the gopherspace.

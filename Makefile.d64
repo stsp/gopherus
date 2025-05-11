@@ -40,4 +40,11 @@ fs-dj.o: fs/fs-dj.c
 	$(CC) -c $< -o $@ $(CFLAGS)
 
 clean:
-	rm -f gopherus *.o
+	rm -f gopherus *.o *.so *.elf
+
+install:
+	install -d $(DESTDIR)/bin
+	install -m 0755 gopherus $(DESTDIR)/bin
+
+uninstall:
+	$(RM) $(DESTDIR)/bin/gopherus
