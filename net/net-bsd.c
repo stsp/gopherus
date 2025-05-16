@@ -176,8 +176,9 @@ int net_isconnected(struct net_tcpsocket *s, int waitstate) {
   socklen_t sizeofint = sizeof(int);
   /* use getsockopt(2) to read the SO_ERROR option at level SOL_SOCKET to
    * determine whether connect() completed successfully (SO_ERROR is zero) */
-  getsockopt(s->s, SOL_SOCKET, SO_ERROR, &res, &sizeofint);
-  if (res != 0) return(-1);
+  int rc = getsockopt(s->s, SOL_SOCKET, SO_ERROR, &res, &sizeofint);
+  if (rc == -1 && errno == ENOPROTOOPT) return(1);  // unsupported
+  if (res != 0 || rc != 0) return(-1);
 }
 #endif
   return(1);
