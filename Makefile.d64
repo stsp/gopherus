@@ -7,7 +7,7 @@
 
 CC ?= gcc
 LD = gcc
-CFLAGS = -std=gnu99 -O3 -Wall -Wextra -pedantic \
+CFLAGS = -Wall -Wextra -pedantic \
   $(shell pkg-config --variable=xcppflags dj64) \
   $(shell pkg-config --cflags dj64) -shared -g3
 DJLDFLAGS = $(shell pkg-config --libs dj64) \
