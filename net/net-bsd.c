@@ -20,9 +20,7 @@
   #define CLOSESOCK(x) closesocket(x)
 #else
   #include <sys/socket.h> /* socket() */
-#ifndef DJ64
   #include <sys/select.h> /* select(), fd_set() */
-#endif
   #include <arpa/inet.h>
   #include <netdb.h>
   #include <unistd.h> /* close() */
