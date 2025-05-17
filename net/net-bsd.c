@@ -11,7 +11,6 @@
 #include <errno.h>   /* EAGAIN, EWOULDBLOCK... */
 #include <stdint.h>  /* uint32_t */
 #include <string.h>  /* memcpy() */
-#include <time.h>    /* struct timeval */
 
 #ifdef _WIN32
   #include <winsock2.h> /* socket() */
