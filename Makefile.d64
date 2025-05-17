@@ -1,8 +1,6 @@
 #
-# Gopherus Makefile for Linux (and BSD, and probably other POSIX systems)
-# Copyright (C) 2013-2022 Mateusz Viste
-#
-# 2020-04-17: LDFLAGS/CFLAGS improvements by François Revol
+# Gopherus Makefile for dj64dev
+# Copyright (C) 2025 @stsp
 #
 
 CC ?= gcc
