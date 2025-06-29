@@ -75,7 +75,7 @@
 
 #endif      /* !__DJGPP__ */
 
-#if !defined(_STRUCT_TIMESPEC) && !defined(_pthread_signal_h)
+#if 0 && !defined(_STRUCT_TIMESPEC) && !defined(_pthread_signal_h)
   #define _STRUCT_TIMESPEC
   struct timespec {
          time_t tv_sec;

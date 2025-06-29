@@ -1,0 +1,72 @@
+#
+# Makefile for DOS 16-bit (OpenWatcom 2)
+#
+
+# some interesting wcc flags:
+# -oz  NULL points to valid memory
+# -os  favor code size over code speed
+# -ox  equivalent to "-obmiler -s"   (-s removes stack overflow checks!)
+
+CFLAGS = -j -ml -0 -bt=dos -wx -we -d0 -obmiler -dPAGEBUFSZ=65000 -dMAXALLOWEDCACHE=65000 -dMAXMENULINES=512 -dDNS_MAXENTRIES=2 -dNOLFN -i=watt32/inc
+LDFLAGS = -lr -k10240
+LIB = watt32/lib/wattcpwl.lib
+
+all: gopherus.exe
+
+gopherus.exe: gopherus.o dnscache.o fs-dos.o history.o net-w32.o parseurl.o readflin.o startpg.o ui-dos.o wordwrap.o
+	wcl -$(LDFLAGS) $(LIB) *.o -fe=gopherus.exe
+
+gopherus.o: gopherus.c
+	wcc gopherus.c $(CFLAGS)
+
+history.o: history.c
+	wcc history.c $(CFLAGS)
+
+parseurl.o: parseurl.c
+	wcc parseurl.c $(CFLAGS)
+
+readflin.o: readflin.c
+	wcc readflin.c $(CFLAGS)
+
+startpg.o: startpg.c
+	wcc startpg.c $(CFLAGS)
+
+wordwrap.o: wordwrap.c
+	wcc wordwrap.c $(CFLAGS)
+
+dnscache.o: dnscache.c
+	wcc dnscache.c $(CFLAGS)
+
+fs-dos.o: fs/fs-dos.c
+	wcc $(CFLAGS) fs/fs-dos.c
+
+net-w32.o: net/net-w32.c
+	wcc $(CFLAGS) net/net-w32.c
+
+ui-dos.o: ui/ui-dos.c
+	wcc ui/ui-dos.c $(CFLAGS)
+
+pkg: gopherus.exe
+	if exist pkg_d16/nul deltree /y pkg_d16
+	mkdir pkg_d16
+	mkdir pkg_d16/progs
+	mkdir pkg_d16/progs/gopherus
+	mkdir pkg_d16/appinfo
+	mkdir pkg_d16/links
+	mkdir pkg_d16/source
+	mkdir pkg_d16/source/gopherus
+	copy gopherus.exe pkg_d16/progs/gopherus
+	copy gopherus.txt pkg_d16/progs/gopherus
+	copy history.txt pkg_d16/progs/gopherus
+	copy dos/gopherus.lsm pkg_d16/appinfo
+	copy dos/gopherus.bat pkg_d16/links
+	echo ADD PKG_DOS/SOURCE/GOPHERUS AND ZIP IT ALL
+
+release: gopherus.exe
+	if exist pkg_d16/nul deltree /y pkg_d16
+	mkdir pkg_d16
+	zip -9 pkg_d16/gopherus.zip gopherus.exe gopherus.txt history.txt
+
+clean:
+	$(RM) *.o
+	$(RM) gopherus.exe
