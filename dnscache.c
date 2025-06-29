@@ -5,6 +5,7 @@
 
 #include <time.h>
 #include <string.h>
+#include <strings.h> /* strcasecmp() */
 
 #include "config.h"
 #include "dnscache.h"

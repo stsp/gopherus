@@ -29,6 +29,7 @@
 
 
 #include <string.h>  /* strlen() */
+#include <strings.h> /* strcasecmp() */
 #include <stdint.h>
 #include <stdlib.h>  /* malloc(), getenv() */
 #include <stdio.h>   /* snprintf(), fwrite()... */

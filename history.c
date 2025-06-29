@@ -5,6 +5,7 @@
 
 #include <stdlib.h>  /* malloc(), NULL */
 #include <string.h>  /* strcasecmp(), ... */
+#include <strings.h> /* strcasecmp() */
 
 #include "config.h"
 #include "history.h" /* include self for control and type declaration */

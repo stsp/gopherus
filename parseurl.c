@@ -5,6 +5,7 @@
 
 #include <stdio.h>    /* snprintf() */
 #include <string.h>   /* strstr() */
+#include <strings.h>  /* strcasecmp() */
 #include <stdlib.h>   /* atoi() */
 #include "parseurl.h" /* include self for control */
 
