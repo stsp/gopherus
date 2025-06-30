@@ -7,6 +7,7 @@
  */
 
 #include <fcntl.h>   /* fcntl() */
+#include <sys/fcntl.h>
 #include <stdlib.h>  /* NULL */
 #include <errno.h>   /* EAGAIN, EWOULDBLOCK... */
 #include <stdint.h>  /* uint32_t */
@@ -41,7 +42,7 @@ int net_dnsresolve(char *ip, const char *name) {
     struct sockaddr_in *a = (void *)(r->ai_addr);
     ntopres = inet_ntop(r->ai_family, &(a->sin_addr), ip, INET_ADDRSTRLEN);
   }
-#ifndef DJ64
+#if !defined(DJ64) && !defined(CSOCK)
   else if (r->ai_family == AF_INET6) {
     struct sockaddr_in6 *a = (void *)(r->ai_addr);
     ntopres = inet_ntop(r->ai_family, a->sin6_addr.s6_addr, ip, INET6_ADDRSTRLEN);
@@ -75,11 +76,11 @@ int net_init(void) {
 
 struct net_tcpsocket *net_connect(const char *ipaddr, unsigned short port) {
   struct sockaddr_in remote4;
-#ifndef DJ64
+#if !defined(DJ64) && !defined(CSOCK)
   struct sockaddr_in6 remote6;
 #endif
   struct net_tcpsocket *result;
-#ifndef DJ64
+#if !defined(DJ64) && !defined(CSOCK)
   struct sockaddr_storage dstbin;
 #else
   char dstbin[INET_ADDRSTRLEN];
@@ -94,7 +95,7 @@ struct net_tcpsocket *net_connect(const char *ipaddr, unsigned short port) {
       af = AF_INET;
       break;
     }
-#ifndef DJ64
+#if !defined(DJ64) && !defined(CSOCK)
     if (ipaddr[i] == ':') {
       af = AF_INET6;
       break;
@@ -134,7 +135,7 @@ struct net_tcpsocket *net_connect(const char *ipaddr, unsigned short port) {
     remote4.sin_port = htons(port); /* set the dst port */
     connectres = connect(result->s, (struct sockaddr *)&remote4, sizeof(struct sockaddr_in));
   }
-#ifndef DJ64
+#if !defined(DJ64) && !defined(CSOCK)
   else {
     remote6.sin6_family = AF_INET6;  /* Proto family (IPv6) */
     memcpy(remote6.sin6_addr.s6_addr, &dstbin, sizeof(remote6.sin6_addr.s6_addr));
@@ -145,7 +146,11 @@ struct net_tcpsocket *net_connect(const char *ipaddr, unsigned short port) {
 #ifdef _WIN32
   if ((connectres < 0) && (WSAGetLastError() != WSAEWOULDBLOCK)) {
 #else
+#if !defined(CSOCK)
   if ((connectres < 0) && (errno != EINPROGRESS)) {
+#else
+  if ((connectres < 0) && (errno != EAGAIN)) {
+#endif
 #endif
     CLOSESOCK(result->s);
     free(result);
@@ -168,7 +173,7 @@ int net_isconnected(struct net_tcpsocket *s, int waitstate) {
   res = select(s->s + 1, NULL, &set, NULL, &t);
   if (res < 0) return(-1);
   if (res == 0) return(0);
-#ifndef _WIN32
+#if !defined(_WIN32) && !defined(CSOCK)
 {
   socklen_t sizeofint = sizeof(int);
   /* use getsockopt(2) to read the SO_ERROR option at level SOL_SOCKET to
@@ -212,7 +217,9 @@ int net_recv(struct net_tcpsocket *socket, char *buff, long maxlen) {
     if (WSAGetLastError() == WSAEWOULDBLOCK) return(0);
 #else
     if (errno == EAGAIN) return(0);
+#if !defined(CSOCK)
     if (errno == EWOULDBLOCK) return(0);
+#endif
 #endif
   }
   if (res == 0) return(-1); /* the peer performed an orderly shutdown */

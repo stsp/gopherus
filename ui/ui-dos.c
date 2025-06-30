@@ -16,9 +16,12 @@ int term_width = 0, term_height = 0;
 int cursor_start = 0, cursor_end = 0; /* remember the cursor's shape */
 unsigned short videomode = 0;
 
+#if !defined(_M_I86)
+#define int86(x,y,z) int386(x,y,z)
+#endif
 /* inits the UI subsystem */
 int ui_init(void) {
-  union REGS regs;
+  union REGS regs = {0};
   regs.h.ah = 0x0F;  /* get current video mode */
   int86(0x10, &regs, &regs);
   videomode = regs.h.al;
@@ -45,7 +48,7 @@ void ui_close(void) {
 }
 
 static void cursor_set(int startscanline, int endscanline) {
-  union REGS regs;
+  union REGS regs = {0};
   regs.h.ah = 0x01;
   regs.h.al = videomode; /* RBIL says some BIOSes require video mode in AL */
   regs.h.ch = startscanline;
@@ -64,11 +67,11 @@ int ui_getcolcount(void) {
 
 
 void ui_cls(void) {
-  union REGS regs;
-  regs.x.ax = 0x0600;  /* Scroll window up, entire window */
+  union REGS regs = {0};
+  regs.w.ax = 0x0600;  /* Scroll window up, entire window */
   regs.h.bh = 0x07;    /* Attribute to write to screen */
   regs.h.bl = 0;
-  regs.x.cx = 0x0000;  /* Upper left */
+  regs.w.cx = 0x0000;  /* Upper left */
   regs.h.dh = term_height - 1;
   regs.h.dl = term_width - 1; /* Lower right */
   int86(0x10, &regs, &regs);
@@ -77,7 +80,7 @@ void ui_cls(void) {
 
 
 void ui_puts(const char *str) {
-  union REGS regs;
+  union REGS regs = {0};
   /* display the string one character at a time */
   while (*str != 0) {
     regs.h.ah = 0x02;
@@ -96,7 +99,7 @@ void ui_puts(const char *str) {
 
 
 void ui_locate(int row, int column) {
-  union REGS regs;
+  union REGS regs = {0};
   regs.h.ah = 0x02;
   regs.h.bh = 0;
   regs.h.dh = row;
@@ -115,7 +118,7 @@ void ui_putchar(uint32_t c, int attr, int x, int y) {
 
 
 int ui_getkey(void) {
-  union REGS regs;
+  union REGS regs = {0};
   regs.h.ah = 0x08;
   int86(0x21, &regs, &regs);
   if (regs.h.al != 0) return(regs.h.al);
@@ -127,7 +130,7 @@ int ui_getkey(void) {
 
 
 int ui_kbhit(void) {
-  union REGS regs;
+  union REGS regs = {0};
   regs.h.ah = 0x0b; /* DOS 1+ - GET STDIN STATUS */
   int86(0x21, &regs, &regs);
   return(regs.h.al);
