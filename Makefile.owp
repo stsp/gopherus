@@ -7,8 +7,8 @@
 # -os  favor code size over code speed
 # -ox  equivalent to "-obmiler -s"   (-s removes stack overflow checks!)
 CC = wcc386
-CFLAGS = -bt=dos4g -dPAGEBUFSZ=65000 -dMAXALLOWEDCACHE=65000 -dMAXMENULINES=512 -dDNS_MAXENTRIES=2 -dNOLFN
-LDFLAGS = -l=dos4g
+CFLAGS = -bt=dos4g -d3 -dPAGEBUFSZ=65000 -dMAXALLOWEDCACHE=65000 -dMAXMENULINES=512 -dDNS_MAXENTRIES=2 -dNOLFN
+LDFLAGS = -l=dos4g -d3
 CFLAGS += -i=csock/include
 LIB = csock/libcsock.lib
 NET = net-bsd.o
