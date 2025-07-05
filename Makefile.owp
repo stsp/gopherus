@@ -8,7 +8,7 @@
 # -ox  equivalent to "-obmiler -s"   (-s removes stack overflow checks!)
 CC = wcc386
 LD = wcl
-CFLAGS = -bt=dos4g -d3 -dPAGEBUFSZ=65000 -dMAXALLOWEDCACHE=65000 -dMAXMENULINES=512 -dDNS_MAXENTRIES=2 -dNOLFN
+CFLAGS = -j -wx -bt=dos4g -d3 -dPAGEBUFSZ=65000 -dMAXALLOWEDCACHE=65000 -dMAXMENULINES=512 -dDNS_MAXENTRIES=2 -dNOLFN
 LDFLAGS = -l=dos4g -d3
 CFLAGS += -i=csock/include
 LIB = csock/libcsock.lib
