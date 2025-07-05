@@ -7,6 +7,7 @@
 # -os  favor code size over code speed
 # -ox  equivalent to "-obmiler -s"   (-s removes stack overflow checks!)
 CC = wcc386
+LD = wcl
 CFLAGS = -bt=dos4g -d3 -dPAGEBUFSZ=65000 -dMAXALLOWEDCACHE=65000 -dMAXMENULINES=512 -dDNS_MAXENTRIES=2 -dNOLFN
 LDFLAGS = -l=dos4g -d3
 CFLAGS += -i=csock/include
@@ -16,7 +17,7 @@ NET = net-bsd.o
 all: gopherus.exe
 
 gopherus.exe: gopherus.o dnscache.o fs-dos.o history.o $(NET) parseurl.o readflin.o startpg.o ui-dos.o wordwrap.o
-	wcl -$(LDFLAGS) $(LIB) *.o -fe=gopherus.exe
+	$(LD) -$(LDFLAGS) $(LIB) *.o -fe=gopherus.exe
 
 gopherus.o: gopherus.c
 	$(CC) gopherus.c $(CFLAGS)
