@@ -24,7 +24,11 @@
   #include <arpa/inet.h>
   #include <netdb.h>
   #include <unistd.h> /* close() */
+#if defined(CSOCK)
+  #define CLOSESOCK(x) closesocket(x)
+#else
   #define CLOSESOCK(x) close(x)
+#endif
 #endif
 
 #include "net.h" /* include self for control */
