@@ -18,7 +18,7 @@ DJLDFLAGS += $(shell $(PREFIX)/bin/ncursesw6-config --libs)
 DJ64HOST_OUTPUT = gopherus
 DJ64DOS_OUTPUT = gopherus.exe
 
-all: gopherus
+all: $(DJ64HOST_OUTPUT) $(DJ64DOS_OUTPUT)
 
 MK = $(shell pkg-config --variable=makeinc dj64host)
 ifeq ($(wildcard $(MK)),)
@@ -29,7 +29,7 @@ include $(MK)
 
 $(DJHOSTLIB): gopherus.o dnscache.o fs-dj.o history.o net-bsd.o parseurl.o readflin.o startpg.o ui-curse.o wordwrap.o
 $(DJ64DOS_OUTPUT): $(DJHOSTLIB)
-	djlink -d dosemu_$@.dbg $< -n $@ -o $@ -f 0x80
+	djlink -d $@.dbg $< -o $@ -f 0x80
 
 net-bsd.o: net/net-bsd.c
 	$(CC) -c $< -o $@ $(CFLAGS)
@@ -41,7 +41,7 @@ fs-dj.o: fs/fs-dj.c
 	$(CC) -c $< -o $@ $(CFLAGS)
 
 clean:
-	rm -f gopherus *.o *.so *.elf
+	rm -f $(DJ64HOST_OUTPUT) $(DJ64DOS_OUTPUT) *.o *.so *.elf
 
 install:
 	install -d $(DESTDIR)/bin
