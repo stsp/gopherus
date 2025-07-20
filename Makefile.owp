@@ -17,7 +17,7 @@ NET = net-bsd.o
 all: gopherus.exe
 
 gopherus.exe: gopherus.o dnscache.o fs-dos.o history.o $(NET) parseurl.o readflin.o startpg.o ui-dos.o wordwrap.o
-	$(LD) -$(LDFLAGS) $(LIB) *.o -fe=gopherus.exe
+	$(LD) $(LDFLAGS) $(LIB) $^ -fe=gopherus.exe
 
 gopherus.o: gopherus.c
 	$(CC) gopherus.c $(CFLAGS)
