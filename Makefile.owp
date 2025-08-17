@@ -10,8 +10,8 @@ CC = wcc386
 LD = wcl
 CFLAGS = -j -wx -bt=dos4g -d3 -dPAGEBUFSZ=65000 -dMAXALLOWEDCACHE=65000 -dMAXMENULINES=512 -dDNS_MAXENTRIES=2 -dNOLFN
 LDFLAGS = -l=dos4g -d3
-CFLAGS += -i=csock/include
-LIB = csock/libcsock.lib
+CFLAGS += -i=libd2sock/include
+LIB = libd2sock/D32/libd2sock.lib
 NET = net-bsd.o
 
 all: gopherus.exe

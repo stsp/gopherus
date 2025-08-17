@@ -10,8 +10,8 @@ CC = wcc
 LD = wcl
 CFLAGS = -j -wx -ml -bt=dos -d3 -dPAGEBUFSZ=65000 -dMAXALLOWEDCACHE=65000 -dMAXMENULINES=512 -dDNS_MAXENTRIES=2 -dNOLFN
 LDFLAGS = -l=dos -d3 -ml -lr -k10240
-CFLAGS += -i=csock/include
-LIB = csock/libcsock.lib
+CFLAGS += -i=libd2sock/include
+LIB = libd2sock/D16/libd2sock.lib
 NET = net-bsd.o
 
 all: gopherus.exe
