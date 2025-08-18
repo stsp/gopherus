@@ -9,7 +9,7 @@
 struct historytype {
   long cachesize;
   char *selector;
-  char *cache;
+  signed char *cache;
   struct historytype *next;
   unsigned short port;
   unsigned char protocol;
