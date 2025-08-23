@@ -177,7 +177,7 @@ int net_isconnected(struct net_tcpsocket *s, int waitstate) {
   res = select(s->s + 1, NULL, &set, NULL, &t);
   if (res < 0) return(-1);
   if (res == 0) return(0);
-#if !defined(_WIN32) && !defined(CSOCK)
+#if !defined(_WIN32)
 {
   socklen_t sizeofint = sizeof(int);
   /* use getsockopt(2) to read the SO_ERROR option at level SOL_SOCKET to
