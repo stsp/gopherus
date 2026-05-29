@@ -8,17 +8,16 @@ LD = gcc
 CFLAGS = -Wall -Wextra -pedantic \
   $(shell pkg-config --variable=xcppflags dj64) \
   $(shell pkg-config --cflags dj64) -shared -g3
-DJLDFLAGS = $(shell pkg-config --libs dj64) \
-  -Wl,-rpath=/usr/local/i386-pc-dj64/lib64 \
-  -Wl,-rpath=/usr/i386-pc-dj64/lib64
-
 PREFIX := $(shell pkg-config --variable=dj64prefix dj64)
+DJLDFLAGS = $(shell pkg-config --libs dj64) -Wl,-rpath=$(PREFIX)/lib64
+
 NC_CFLAGS := $(shell $(PREFIX)/bin/ncursesw6-config --cflags)
 DJLDFLAGS += $(shell $(PREFIX)/bin/ncursesw6-config --libs)
 DJ64HOST_OUTPUT = gopherus
 DJ64DOS_OUTPUT = gopherus.exe
 
-all: $(DJ64HOST_OUTPUT) $(DJ64DOS_OUTPUT)
+all: $(DJ64HOST_OUTPUT)
+exe: $(DJ64DOS_OUTPUT)
 
 MK = $(shell pkg-config --variable=makeinc dj64host)
 ifeq ($(wildcard $(MK)),)
