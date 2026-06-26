@@ -16,8 +16,7 @@ DJLDFLAGS += $(shell $(PREFIX)/bin/ncursesw6-config --libs)
 DJ64HOST_OUTPUT = gopherus
 DJ64DOS_OUTPUT = gopherus.exe
 
-all: $(DJ64HOST_OUTPUT)
-exe: $(DJ64DOS_OUTPUT)
+all: $(DJ64HOST_OUTPUT) $(DJ64DOS_OUTPUT)
 
 MK = $(shell pkg-config --variable=makeinc dj64host)
 ifeq ($(wildcard $(MK)),)
