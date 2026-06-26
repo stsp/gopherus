@@ -128,7 +128,7 @@ struct net_tcpsocket *net_connect(const char *ipaddr, unsigned short port) {
   ioctlsocket(result->s, FIONBIO, &flag);
 #else
     int flags;
-    flags = fcntl(result->s, F_GETFD);
+    flags = fcntl(result->s, F_GETFL);
     fcntl(result->s, F_SETFL, flags | O_NONBLOCK);
 #endif
   }
