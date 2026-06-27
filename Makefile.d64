@@ -48,7 +48,12 @@ install:
 	install -m 0755 $(DJ64HOST_OUTPUT) $(DESTDIR)$(prefix)/bin
 	install -d $(DESTDIR)$(prefix)/$(pkgdir)/gopherus
 	install -m 0644 $(DJ64DOS_OUTPUT) $(DESTDIR)$(prefix)/$(pkgdir)/gopherus
+	install -d $(DESTDIR)$(prefix)/$(pkgdir)/bat
+	install -m 0644 bat/gopher32.bat $(DESTDIR)$(prefix)/$(pkgdir)/bat
+	install -m 0644 bat/gopherus.bat $(DESTDIR)$(prefix)/$(pkgdir)/bat
 
 uninstall:
 	$(RM) $(DESTDIR)$(prefix)/bin/$(DJ64HOST_OUTPUT)
 	$(RM) -r $(DESTDIR)$(prefix)/$(pkgdir)/gopherus
+	$(RM) $(DESTDIR)$(prefix)/$(pkgdir)/bat/gopher32.bat
+	$(RM) $(DESTDIR)$(prefix)/$(pkgdir)/bat/gopherus.bat
