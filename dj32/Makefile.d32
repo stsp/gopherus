@@ -1,0 +1,36 @@
+srcdir = ..
+vpath %.c $(srcdir) $(srcdir)/net $(srcdir)/ui $(srcdir)/fs
+PREFIX := $(shell pkg-config --variable=dj32prefix dj32)
+DJCFLAGS := $(shell $(PREFIX)/bin/ncursesw6-config --cflags) -g
+# hack! needs to do that properly
+DJLDFLAGS = -lncursesw -Wl,--allow-multiple-definition
+DJ64DOS_OUTPUT = gopher32.exe
+
+all: $(DJ64DOS_OUTPUT)
+
+OBJECTS = gopherus.o dnscache.o fs-dj.o history.o net-bsd.o parseurl.o readflin.o startpg.o ui-curse.o wordwrap.o
+
+DJMK = $(shell pkg-config --variable=makeinc dj32)
+ifeq ($(wildcard $(DJMK)),)
+ifeq ($(filter install uninstall clean,$(MAKECMDGOALS)),)
+$(error dj32-dev not installed)
+endif
+clean_dj64:
+clean_dj32:
+else
+include $(DJMK)
+endif
+
+$(DJ64DOS_OUTPUT): $(DJ64_XLIB)
+	$(LINK) -d $@.dbg $< -o $@ $(DJ64_XLDFLAGS)
+	djstrip $@
+
+clean: clean_dj32
+	rm -f $(DJ64DOS_OUTPUT) *.o
+
+install:
+	install -d $(DESTDIR)/share/gopher32
+	install -m 0755 $(DJ64DOS_OUTPUT) $(DESTDIR)/share/gopher32
+
+uninstall:
+	$(RM) -r $(DESTDIR)/share/gopher32
