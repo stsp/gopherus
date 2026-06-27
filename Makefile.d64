@@ -43,7 +43,10 @@ clean:
 
 install:
 	install -d $(DESTDIR)/bin
-	install -m 0755 gopherus $(DESTDIR)/bin
+	install -m 0755 $(DJ64HOST_OUTPUT) $(DESTDIR)/bin
+	install -d $(DESTDIR)/share/gopherus
+	install -m 0644 $(DJ64DOS_OUTPUT) $(DESTDIR)/share/gopherus
 
 uninstall:
-	$(RM) $(DESTDIR)/bin/gopherus
+	$(RM) $(DESTDIR)/bin/$(DJ64HOST_OUTPUT)
+	$(RM) -r $(DESTDIR)/share/gopherus
