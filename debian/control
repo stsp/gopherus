@@ -7,6 +7,7 @@ Build-Depends:
     pkgconf,
     dj64-dev,
     dj64-host,
+    dj32-dev,
     djstub,
     debhelper (>= 9~)
 Homepage: https://github.com/stsp/gopherus
