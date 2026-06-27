@@ -3,6 +3,7 @@
 # Copyright (C) 2025 @stsp
 #
 
+prefix ?= /usr/local
 CC ?= gcc
 LD = gcc
 CFLAGS = -Wall -Wextra -pedantic \
@@ -42,11 +43,11 @@ clean:
 	rm -f $(DJ64HOST_OUTPUT) $(DJ64DOS_OUTPUT) *.o *.so *.elf
 
 install:
-	install -d $(DESTDIR)/bin
-	install -m 0755 $(DJ64HOST_OUTPUT) $(DESTDIR)/bin
-	install -d $(DESTDIR)/share/gopherus
-	install -m 0644 $(DJ64DOS_OUTPUT) $(DESTDIR)/share/gopherus
+	install -d $(DESTDIR)$(prefix)/bin
+	install -m 0755 $(DJ64HOST_OUTPUT) $(DESTDIR)$(prefix)/bin
+	install -d $(DESTDIR)$(prefix)/share/gopherus
+	install -m 0644 $(DJ64DOS_OUTPUT) $(DESTDIR)$(prefix)/share/gopherus
 
 uninstall:
-	$(RM) $(DESTDIR)/bin/$(DJ64HOST_OUTPUT)
-	$(RM) -r $(DESTDIR)/share/gopherus
+	$(RM) $(DESTDIR)$(prefix)/bin/$(DJ64HOST_OUTPUT)
+	$(RM) -r $(DESTDIR)$(prefix)/share/gopherus

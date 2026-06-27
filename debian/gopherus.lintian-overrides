@@ -1,1 +1,1 @@
-gopherus binary: embedded-library ncurses [bin/gopherus]
+gopherus binary: embedded-library ncurses [usr/bin/gopherus]
