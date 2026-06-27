@@ -1,6 +1,7 @@
 srcdir = ..
 vpath %.c $(srcdir) $(srcdir)/net $(srcdir)/ui $(srcdir)/fs
 prefix ?= /usr/local
+pkgdir = share/dosemu2-extras
 PREFIX := $(shell pkg-config --variable=dj32prefix dj32)
 DJCFLAGS := $(shell $(PREFIX)/bin/ncursesw6-config --cflags) -g
 # hack! needs to do that properly
@@ -30,8 +31,8 @@ clean: clean_dj32
 	rm -f $(DJ64DOS_OUTPUT) *.o
 
 install:
-	install -d $(DESTDIR)$(prefix)/share/gopher32
-	install -m 0755 $(DJ64DOS_OUTPUT) $(DESTDIR)$(prefix)/share/gopher32
+	install -d $(DESTDIR)$(prefix)/$(pkgdir)/gopher32
+	install -m 0644 $(DJ64DOS_OUTPUT) $(DESTDIR)$(prefix)/$(pkgdir)/gopher32
 
 uninstall:
-	$(RM) -r $(DESTDIR)$(prefix)/share/gopher32
+	$(RM) -r $(DESTDIR)$(prefix)/$(pkgdir)/gopher32

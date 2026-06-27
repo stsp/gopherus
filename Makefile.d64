@@ -4,6 +4,7 @@
 #
 
 prefix ?= /usr/local
+pkgdir = share/dosemu2-extras
 CC ?= gcc
 LD = gcc
 CFLAGS = -Wall -Wextra -pedantic \
@@ -45,9 +46,9 @@ clean:
 install:
 	install -d $(DESTDIR)$(prefix)/bin
 	install -m 0755 $(DJ64HOST_OUTPUT) $(DESTDIR)$(prefix)/bin
-	install -d $(DESTDIR)$(prefix)/share/gopherus
-	install -m 0644 $(DJ64DOS_OUTPUT) $(DESTDIR)$(prefix)/share/gopherus
+	install -d $(DESTDIR)$(prefix)/$(pkgdir)/gopherus
+	install -m 0644 $(DJ64DOS_OUTPUT) $(DESTDIR)$(prefix)/$(pkgdir)/gopherus
 
 uninstall:
 	$(RM) $(DESTDIR)$(prefix)/bin/$(DJ64HOST_OUTPUT)
-	$(RM) -r $(DESTDIR)$(prefix)/share/gopherus
+	$(RM) -r $(DESTDIR)$(prefix)/$(pkgdir)/gopherus
