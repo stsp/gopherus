@@ -9,12 +9,12 @@ CC ?= gcc
 LD = gcc
 CFLAGS = -Wall -Wextra -pedantic \
   $(shell pkg-config --variable=xcppflags dj64) \
-  $(shell pkg-config --cflags dj64) -shared -g3
-PREFIX := $(shell pkg-config --variable=dj64prefix dj64)
-DJLDFLAGS = $(shell pkg-config --libs dj64) -Wl,-rpath=$(PREFIX)/lib64
+  $(shell pkg-config --cflags dj64) -g3
+PREFIX := $(shell pkg-config --variable=dj64prefix dj64_s)
+DJLDFLAGS = $(shell pkg-config --libs dj64_s)
 
 NC_CFLAGS := $(shell $(PREFIX)/bin/ncursesw6-config --cflags)
-DJLDFLAGS += $(shell $(PREFIX)/bin/ncursesw6-config --libs)
+DJLDFLAGS += -lncursesw -Wl,--allow-multiple-definition
 DJ64HOST_OUTPUT = gopherus
 DJ64DOS_OUTPUT = gopherus.exe
 
