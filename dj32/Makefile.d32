@@ -23,6 +23,13 @@ else
 include $(DJMK)
 endif
 
+ifneq ($(CROSS_PREFIX),)
+# for djlink on arm
+export READELF = $(CROSS_PREFIX)readelf
+export OBJCOPY = $(CROSS_PREFIX)objcopy
+export STRIP = $(CROSS_PREFIX)strip
+endif
+
 $(DJ64DOS_OUTPUT): $(DJ64_XLIB)
 	$(LINK) -d $@.dbg $< -o $@ $(DJ64_XLDFLAGS)
 	djstrip $@
