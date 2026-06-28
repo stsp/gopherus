@@ -11,6 +11,9 @@ CFLAGS = -Wall -Wextra -pedantic \
   $(shell pkg-config --variable=xcppflags dj64) \
   $(shell pkg-config --cflags dj64) -g3
 PREFIX := $(shell pkg-config --variable=dj64prefix dj64_s)
+ifneq ($(.SHELLSTATUS),0)
+$(error dj64-dev-static not installed)
+endif
 DJLDFLAGS = $(shell pkg-config --libs dj64_s)
 
 NC_CFLAGS := $(shell $(PREFIX)/bin/ncursesw6-config --cflags)
