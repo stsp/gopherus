@@ -5,7 +5,7 @@ pkgdir = share/dosemu2-extras
 PREFIX := $(shell pkg-config --variable=dj32prefix dj32)
 DJCFLAGS := $(shell $(PREFIX)/bin/ncursesw6-config --cflags) -g
 # hack! needs to do that properly
-DJLDFLAGS = -lncursesw -Wl,--allow-multiple-definition
+DJLDFLAGS = $(shell $(PREFIX)/bin/ncursesw6-config --libs)
 DJ64DOS_OUTPUT = gopher32.exe
 
 all: $(DJ64DOS_OUTPUT)

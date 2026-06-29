@@ -14,10 +14,10 @@ PREFIX := $(shell pkg-config --variable=dj64prefix dj64_s)
 ifneq ($(.SHELLSTATUS),0)
 $(error dj64-dev-static not installed)
 endif
-DJLDFLAGS = $(shell pkg-config --libs dj64_s)
 
 NC_CFLAGS := $(shell $(PREFIX)/bin/ncursesw6-config --cflags)
-DJLDFLAGS += -lncursesw -Wl,--allow-multiple-definition
+DJLDFLAGS = $(shell $(PREFIX)/bin/ncursesw6-config --libs)
+DJLDFLAGS += $(shell pkg-config --libs dj64_s)
 DJ64HOST_OUTPUT = gopherus
 DJ64DOS_OUTPUT = gopherus.exe
 
